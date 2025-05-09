@@ -1,4 +1,4 @@
-import { Component, Prop, h, Host, Watch, Element } from '@stencil/core';
+import { Component, Prop, h, Host, Element } from '@stencil/core';
 import { DataSource } from '../../api/types/common';
 
 export interface SourceInfoWidgetConfig {
@@ -31,7 +31,6 @@ export class SourceInfoWidget {
   componentWillLoad() {
     // Listen for config updates
     this.el.addEventListener('configUpdate', (event: CustomEvent) => {
-      console.log(`Received configUpdate event for source-info widget ${this.widgetId}:`, event.detail);
       if (event.detail) {
         // Update config with the received values
         this.config = {
@@ -46,16 +45,7 @@ export class SourceInfoWidget {
     // Clean up event listeners
     this.el.removeEventListener('configUpdate', null);
   }
-  
-  @Watch('config')
-  configChanged(newValue: SourceInfoWidgetConfig) {
-    console.log(`Config changed for source-info widget ${this.widgetId}:`, newValue);
-  }
-  
-  @Watch('availableSources')
-  availableSourcesChanged(newValue: DataSource[]) {
-    console.log(`Available sources changed for source-info widget ${this.widgetId}:`, newValue);
-  }
+
 
   render() {
     // Find the selected source from available sources

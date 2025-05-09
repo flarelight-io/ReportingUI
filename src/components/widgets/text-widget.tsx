@@ -1,4 +1,4 @@
-import { Component, Prop, h, Host, Watch, Element } from '@stencil/core';
+import { Component, Prop, h, Host, Element } from '@stencil/core';
 
 export interface TextWidgetConfig {
   text: string;
@@ -43,7 +43,6 @@ export class TextWidget {
   componentWillLoad() {
     // Listen for config updates
     this.el.addEventListener('configUpdate', (event: CustomEvent) => {
-      console.log(`Received configUpdate event for text widget ${this.widgetId}:`, event.detail);
       if (event.detail) {
         // Update config with the received values
         this.config = {
@@ -57,11 +56,6 @@ export class TextWidget {
   disconnectedCallback() {
     // Clean up event listeners
     this.el.removeEventListener('configUpdate', null);
-  }
-  
-  @Watch('config')
-  configChanged(newValue: TextWidgetConfig) {
-    console.log(`Config changed for text widget ${this.widgetId}:`, newValue);
   }
 
   // Helper function to process simple markdown-like formatting

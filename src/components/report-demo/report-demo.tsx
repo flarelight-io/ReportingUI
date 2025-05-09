@@ -25,6 +25,22 @@ export class ReportDemo {
       },
       // Basic Charts
       {
+        id: 'pie-chart',
+        type: 'data',
+        title: 'Pie Chart',
+        x: 8,
+        y: 1,
+        w: 4,
+        h: 3,
+        config: {
+          sourceId: 'sample-categorical',
+          visualizationType: 'pie',
+          groupByField: 'category',
+          valueField: 'value',
+          showLegend: true
+        }
+      },
+      {
         id: 'bar-chart',
         type: 'data',
         title: 'Bar Chart',
@@ -55,22 +71,6 @@ export class ReportDemo {
           groupByField: 'date',
           valueField: 'value',
           showGrid: true,
-          showLegend: true
-        }
-      },
-      {
-        id: 'pie-chart',
-        type: 'data',
-        title: 'Pie Chart',
-        x: 8,
-        y: 1,
-        w: 4,
-        h: 3,
-        config: {
-          sourceId: 'sample-categorical',
-          visualizationType: 'pie',
-          groupByField: 'category',
-          valueField: 'value',
           showLegend: true
         }
       },
@@ -292,9 +292,7 @@ export class ReportDemo {
     ]
   };
 
-  private fetchChartData = async (request) => {
-    console.log('Chart data request:', request);
-    
+  private fetchChartData = async (request) => {    
     // Mock data based on the source ID or chart type
     switch (request.sourceId) {
       case 'sample-categorical':

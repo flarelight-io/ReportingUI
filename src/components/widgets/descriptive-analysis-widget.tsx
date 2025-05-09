@@ -45,7 +45,6 @@ export class DescriptiveAnalysisWidget {
     
     // Listen for data updates
     this.el.addEventListener('dataUpdate', (event: CustomEvent) => {
-      console.log(`Received dataUpdate event for ${this.widgetId}:`, event.detail);
       if (event.detail) {
         this.analysisData = event.detail;
         this.loading = false;
@@ -54,7 +53,6 @@ export class DescriptiveAnalysisWidget {
     
     // Listen for config updates
     this.el.addEventListener('configUpdate', (event: CustomEvent) => {
-      console.log(`Received configUpdate event for ${this.widgetId}:`, event.detail);
       if (event.detail && event.detail.analysisId) {
         this.analysisSourceId = event.detail.analysisId;
       }

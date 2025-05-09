@@ -61,7 +61,6 @@ export class CorrelationAnalysisWidget {
   componentWillLoad() {
     // Set up event listeners for direct data updates
     this.el.addEventListener('dataUpdate', (event: CustomEvent) => {
-      console.log(`Received dataUpdate event for ${this.widgetId}:`, event.detail);
       if (event.detail) {
         this.processData(event.detail);
       }
@@ -69,7 +68,6 @@ export class CorrelationAnalysisWidget {
     
     // Listen for config updates
     this.el.addEventListener('configUpdate', (event: CustomEvent) => {
-      console.log(`Received configUpdate event for ${this.widgetId}:`, event.detail);
       if (event.detail) {
         if (event.detail.colorScale) {
           this.colorScale = event.detail.colorScale;

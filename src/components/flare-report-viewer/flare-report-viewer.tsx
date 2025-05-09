@@ -32,7 +32,6 @@ export class FlareReportViewer {
   
   @Watch('configuration')
   onConfigurationChange() {
-    console.log('Configuration changed:', this.configuration);
     if (this.configuration) {
       this.parseConfiguration(this.configuration);
       // Reset widget data cache when configuration changes
@@ -43,14 +42,12 @@ export class FlareReportViewer {
   }
   
   connectedCallback() {
-    console.log('FlareReportViewer connected, config:', this.configuration);
     if (this.configuration) {
       this.parseConfiguration(this.configuration);
     }
   }
   
   componentDidLoad() {
-    console.log('FlareReportViewer did load, initializing widgets');
     this.isMounted = true;
     // Get the grid container element
     this.gridContainer = this.el.querySelector('.widget-grid');
@@ -80,11 +77,9 @@ export class FlareReportViewer {
   }
   
   private parseConfiguration(config: any) {
-    console.log('Parsing configuration', config);
     // Parse widgets and data sources
     if (config.widgets && Array.isArray(config.widgets)) {
       this.widgets = config.widgets;
-      console.log('Found widgets:', this.widgets.length);
     } else {
       console.warn('No widgets found in configuration');
       this.widgets = [];
@@ -92,7 +87,6 @@ export class FlareReportViewer {
     
     if (config.sources && Array.isArray(config.sources)) {
       this.dataSources = config.sources;
-      console.log('Found data sources:', this.dataSources.length);
     } else {
       console.warn('No data sources found in configuration');
       this.dataSources = [];
@@ -105,8 +99,6 @@ export class FlareReportViewer {
   }
   
   private async prefetchWidgetData() {
-    console.log("Pre-fetching data for all widgets");
-    
     // Create fetch promises for each widget that needs data
     this.widgets.forEach(widget => {
       if (this.needsFetchChartData(widget.type)) {
@@ -123,7 +115,6 @@ export class FlareReportViewer {
     
     // Wait for all fetch promises to resolve
     await Promise.all(Object.values(this.dataFetchPromises));
-    console.log("All widget data pre-fetched", this.widgetData);
   }
   
   private async fetchDataForWidget(widget: WidgetData, source: DataSource): Promise<any> {
@@ -133,8 +124,6 @@ export class FlareReportViewer {
     }
     
     try {
-      console.log(`Fetching data for widget ${widget.id} (${widget.type})`);
-      
       const sourceId = widget.config?.sourceId as string;
       const valueField = widget.config?.valueField as string;
       const groupByField = widget.config?.groupByField as string;
@@ -172,11 +161,8 @@ export class FlareReportViewer {
         widgetType: visualizationType
       };
       
-      console.log(`Chart data request for ${widget.id}:`, chartDataRequest);
-      
       // Fetch the data
       const response = await this.fetchChartData(chartDataRequest);
-      console.log(`Data received for ${widget.id}:`, response);
       
       // Store in widget data cache
       this.widgetData = {
@@ -204,18 +190,14 @@ export class FlareReportViewer {
     }
     
     if (!this.isMounted) {
-      console.log('Component not mounted yet, will render later');
       return;
     }
-    
-    console.log('Rendering widgets:', this.widgets.length);
     
     // Clear existing content
     this.gridContainer.innerHTML = '';
     
     // No widgets? Show placeholder if needed
     if (!this.widgets || this.widgets.length === 0) {
-      console.log('No widgets to display, showing placeholder:', this.showPlaceholder);
       if (this.showPlaceholder) {
         const emptyElement = document.createElement('div');
         emptyElement.className = 'empty-report';
@@ -226,17 +208,24 @@ export class FlareReportViewer {
     }
     
     // Create all widget elements
-    this.widgets.forEach((widget, index) => {
-      console.log(`Creating widget ${index + 1}/${this.widgets.length}: ${widget.type} (${widget.id})`);
-      
+    this.widgets.forEach((widget) => {
       // Create the widget container
       const widgetContainer = document.createElement('div');
       widgetContainer.className = 'widget-item';
       widgetContainer.setAttribute('data-id', widget.id);
       
       // Position the widget using grid properties
-      widgetContainer.style.gridColumn = `span ${widget.w || 6}`;
-      widgetContainer.style.gridRow = `span ${widget.h || 4}`;
+      // Set both size (span) and position (start)
+      // Using zero-based coordinates (add 1 when applying to grid since CSS grid is 1-based)
+      const x = (widget.x !== undefined) ? widget.x : 0; // Default to first column (0) if not specified
+      const y = (widget.y !== undefined) ? widget.y : 0; // Default to first row (0) if not specified
+      const w = widget.w || 6; // Default width of 6 grid units
+      const h = widget.h || 4; // Default height of 4 grid units
+      
+      // Set both size (span) and position (start)
+      // Add 1 to x and y because CSS grid is 1-based, but our coordinates are 0-based
+      widgetContainer.style.gridColumn = `${x + 1} / span ${w}`;
+      widgetContainer.style.gridRow = `${y + 1} / span ${h}`;
       
       // Create the widget element
       const widgetElement = this.createWidgetElement(widget);
@@ -247,8 +236,6 @@ export class FlareReportViewer {
       // Add to grid
       this.gridContainer.appendChild(widgetContainer);
     });
-    
-    console.log('Widgets rendered');
   }
   
   private createWidgetElement(widget: WidgetData): HTMLElement {
@@ -282,7 +269,6 @@ export class FlareReportViewer {
               bubbles: false
             });
             element.dispatchEvent(configEvent);
-            console.log(`Dispatched configUpdate event for text widget ${widget.id}`);
           }
         }, 100);
         break;
@@ -312,7 +298,6 @@ export class FlareReportViewer {
               bubbles: false
             });
             element.dispatchEvent(configEvent);
-            console.log(`Dispatched configUpdate event for source info widget ${widget.id}`);
           }
         }, 100);
         break;
@@ -334,8 +319,6 @@ export class FlareReportViewer {
         
         // Directly pass pre-fetched data to the component through a custom property
         if (widgetDataCache) {
-          console.log(`Using cached data for ${widget.id}`, widgetDataCache);
-          
           // Set data as both attribute and direct property
           element.setAttribute('data', JSON.stringify(widgetDataCache));
           (element as any).data = widgetDataCache;
@@ -352,7 +335,6 @@ export class FlareReportViewer {
                 bubbles: false
               });
               element.dispatchEvent(dataEvent);
-              console.log(`Dispatched dataUpdate event for ${widget.id}`);
               
               // Config update event
               const configEvent = new CustomEvent('configUpdate', {
@@ -387,8 +369,6 @@ export class FlareReportViewer {
         
         // Directly pass pre-fetched data to the component
         if (widgetDataCache) {
-          console.log(`Using cached data for ${widget.id}`, widgetDataCache);
-          
           // Set data as both attribute and direct property
           element.setAttribute('data', JSON.stringify(widgetDataCache));
           (element as any).data = widgetDataCache;
@@ -405,7 +385,6 @@ export class FlareReportViewer {
                 bubbles: false
               });
               element.dispatchEvent(dataEvent);
-              console.log(`Dispatched dataUpdate event for ${widget.id}`);
               
               // Config update event
               const configEvent = new CustomEvent('configUpdate', {
@@ -455,16 +434,12 @@ export class FlareReportViewer {
           visualizationType: visualizationType
         };
         
-        console.log(`Setting config for ${widget.id} with visualizationType: ${visualizationType}`, dataConfig);
-        
         element.setAttribute('config', JSON.stringify(dataConfig));
         element.setAttribute('availableSources', JSON.stringify(this.dataSources || []));
         element.setAttribute('activeFilters', JSON.stringify(this.activeFilters || []));
         
         // IMPORTANT FIX: Directly pass the data as a CustomEvent since setAttribute may not work for complex data
         if (widgetDataCache) {
-          console.log(`Using cached data for ${widget.id}`, widgetDataCache);
-          
           // First set the data property directly
           (element as any).data = widgetDataCache;
           
@@ -479,7 +454,6 @@ export class FlareReportViewer {
                 bubbles: false
               });
               element.dispatchEvent(dataEvent);
-              console.log(`Dispatched dataUpdate event for ${widget.id}`);
               
               // Also dispatch a config update event
               const configEvent = new CustomEvent('configUpdate', {
@@ -487,7 +461,6 @@ export class FlareReportViewer {
                 bubbles: false
               });
               element.dispatchEvent(configEvent);
-              console.log(`Dispatched configUpdate event for ${widget.id}`);
             }
           }, 100);
           
@@ -529,7 +502,6 @@ export class FlareReportViewer {
   @Listen('filter-change', { target: 'window' })
   handleFilterChangeEvent(event: CustomEvent) {
     const { sourceId, field, value } = event.detail;
-    console.log(`FlareReportViewer received filter-change: source=${sourceId}, field=${field}, value=${value}`);
     this.handleFilterChange(sourceId, field, value);
   }
   
@@ -570,7 +542,6 @@ export class FlareReportViewer {
   }
   
   render() {
-    console.log('Rendering FlareReportViewer');
     return (
       <div class="flare-report-container">
         <div class="widget-grid"></div>

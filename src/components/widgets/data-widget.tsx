@@ -59,7 +59,6 @@ export class DataWidget {
   @Watch('data')
   dataChanged(newValue: any[]) {
     if (newValue && newValue.length > 0) {
-      console.log(`Data changed for widget ${this.widgetId}:`, newValue);
       this.internalData = [...newValue];
       this.loading = false;
     }
@@ -70,7 +69,6 @@ export class DataWidget {
     
     // Setup listener for direct data updates via events
     this.el.addEventListener('dataUpdate', (event: CustomEvent) => {
-      console.log(`Received dataUpdate event for ${this.widgetId}:`, event.detail);
       if (event.detail) {
         this.internalData = [...event.detail];
         this.loading = false;
@@ -121,7 +119,6 @@ export class DataWidget {
       composed: true
     });
     
-    console.log(`Dispatching filter-change event: source=${sourceId}, field=${field}, value=${value}`);
     this.el.dispatchEvent(event);
   }
   
