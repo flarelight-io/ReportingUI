@@ -57,6 +57,7 @@ stages:
           package.json
           README.md
           LICENSE
+          .npmrc
         TargetFolder: '$(Build.ArtifactStagingDirectory)'
       displayName: 'Copy package files to artifacts'
 
@@ -75,13 +76,9 @@ stages:
   - job: Publish
     displayName: 'Publish to Azure Artifacts'
     steps:
-    - checkout: none
-    
-    - task: npmAuthenticate@0
-      inputs:
-        workingFile: '.npmrc'
-        customEndpoint: 'AzDO Artifacts'
-
+    - checkout: self
+      displayName: 'Checkout code'
+      
     - task: DownloadBuildArtifacts@0
       inputs:
         buildType: 'current'
@@ -90,10 +87,21 @@ stages:
         downloadPath: '$(System.ArtifactsDirectory)'
       displayName: 'Download build artifacts'
 
+    - task: npmAuthenticate@0
+      inputs:
+        workingFile: '$(System.ArtifactsDirectory)/package/.npmrc'
+      displayName: 'Authenticate with npm'
+      
     - task: NodeTool@0
       inputs:
         versionSpec: '16.x'
       displayName: 'Install Node.js'
+      
+    # Temporarily modify package.json to remove prepublishOnly script
+    - script: |
+        cd $(System.ArtifactsDirectory)/package
+        node -e "const pkg = require('./package.json'); delete pkg.scripts.prepublishOnly; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+      displayName: 'Remove prepublishOnly script'
 
     # Increment package version (patch)
     - script: |
