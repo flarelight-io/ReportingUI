@@ -3,9 +3,6 @@ trigger:
     include:
     - main
     - release/*
-  paths:
-    include:
-    - ./*
 
 pool:
   vmImage: 'windows-latest'
