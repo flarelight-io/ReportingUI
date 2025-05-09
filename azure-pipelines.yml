@@ -100,15 +100,10 @@ stages:
         echo "@pegasus:registry=https://goranstj.pkgs.visualstudio.com/Pegasus/_packaging/pegasus/npm/registry/" >> .npmrc
       displayName: 'Create .npmrc file'
       
-    # Authenticate the npm feed
-    - task: npmAuthenticate@0
-      inputs:
-        workingFile: '$(System.ArtifactsDirectory)/package/.npmrc'
-      displayName: 'Authenticate with npm'
-      
     # Temporarily modify package.json to remove prepublishOnly script
     - script: |
         cd $(System.ArtifactsDirectory)/package
+        vsts-npm-auth -config .npmrc
         node -e "const pkg = require('./package.json'); delete pkg.scripts.prepublishOnly; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
       displayName: 'Remove prepublishOnly script'
 
