@@ -24,10 +24,6 @@ export interface DataWidgetConfig {
   columns?: Array<{ field: string; header: string }>;
 }
 
-interface DataItem {
-  [key: string]: any;
-}
-
 @Component({
   tag: 'data-widget',
   styleUrl: 'data-widget.scss',
@@ -50,17 +46,45 @@ export class DataWidget {
   @Prop() availableSources: any[] = [];
   @Prop() activeFilters: Filter[] = [];
   @Prop() fetchChartData: Function;
+  @Prop() data: any[] = [];
   
   @State() loading: boolean = false;
-  @State() data: DataItem[] = [];
+  @State() internalData: any[] = [];
   @State() error: string = '';
   
   private timeoutId: any = null;
   private isMounted: boolean = false;
   
+  // Watch for changes to the data prop
+  @Watch('data')
+  dataChanged(newValue: any[]) {
+    if (newValue && newValue.length > 0) {
+      console.log(`Data changed for widget ${this.widgetId}:`, newValue);
+      this.internalData = [...newValue];
+      this.loading = false;
+    }
+  }
+  
   connectedCallback() {
     this.isMounted = true;
-    this.fetchDataFromSource();
+    
+    // Setup listener for direct data updates via events
+    this.el.addEventListener('dataUpdate', (event: CustomEvent) => {
+      console.log(`Received dataUpdate event for ${this.widgetId}:`, event.detail);
+      if (event.detail) {
+        this.internalData = [...event.detail];
+        this.loading = false;
+      }
+    });
+    
+    // If we already have data from props, use it
+    if (this.data && this.data.length > 0) {
+      this.internalData = [...this.data];
+      this.loading = false;
+    } else {
+      // Otherwise fetch data if needed
+      this.fetchDataFromSource();
+    }
   }
   
   disconnectedCallback() {
@@ -68,6 +92,9 @@ export class DataWidget {
     if (this.timeoutId) {
       clearTimeout(this.timeoutId);
     }
+    
+    // Remove event listener
+    this.el.removeEventListener('dataUpdate', null);
   }
   
   @Watch('config')
@@ -152,7 +179,7 @@ export class DataWidget {
           const responseData = response || [];
           
           // Update state with the data
-          this.data = responseData;
+          this.internalData = responseData;
           this.loading = false;
         }
       } else {
@@ -170,7 +197,7 @@ export class DataWidget {
   
   private renderVisualization() {
     const visualizationData: VisualizationData = {
-      rawData: this.data,
+      rawData: this.internalData.length > 0 ? this.internalData : this.data,
       loading: this.loading,
       error: this.error
     };

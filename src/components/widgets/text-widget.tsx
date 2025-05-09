@@ -1,4 +1,4 @@
-import { Component, Prop, h, Host } from '@stencil/core';
+import { Component, Prop, h, Host, Watch, Element } from '@stencil/core';
 
 export interface TextWidgetConfig {
   text: string;
@@ -20,6 +20,8 @@ export interface TextWidgetConfig {
   shadow: true
 })
 export class TextWidget {
+  @Element() el!: HTMLElement;
+  
   @Prop() widgetId: string;
   @Prop() widgetTitle: string;
   @Prop() width?: number;
@@ -37,6 +39,30 @@ export class TextWidget {
     showDivider: false,
     dividerStyle: 'solid'
   };
+  
+  componentWillLoad() {
+    // Listen for config updates
+    this.el.addEventListener('configUpdate', (event: CustomEvent) => {
+      console.log(`Received configUpdate event for text widget ${this.widgetId}:`, event.detail);
+      if (event.detail) {
+        // Update config with the received values
+        this.config = {
+          ...this.config,
+          ...event.detail
+        };
+      }
+    });
+  }
+  
+  disconnectedCallback() {
+    // Clean up event listeners
+    this.el.removeEventListener('configUpdate', null);
+  }
+  
+  @Watch('config')
+  configChanged(newValue: TextWidgetConfig) {
+    console.log(`Config changed for text widget ${this.widgetId}:`, newValue);
+  }
 
   // Helper function to process simple markdown-like formatting
   private formatText(text: string): string {
@@ -53,7 +79,7 @@ export class TextWidget {
     
     return formattedText;
   }
-
+  
   private getFontSize(): string {
     switch (this.config.fontSize) {
       case 'small': return 'text-small';

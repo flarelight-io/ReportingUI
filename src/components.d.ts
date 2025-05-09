@@ -41,6 +41,7 @@ export namespace Components {
     }
     interface CorrelationAnalysisWidget {
         "config": CorrelationAnalysisWidgetConfig;
+        "data": any[];
         "fetchChartData": Function;
         "height"?: number;
         "isInEditor": boolean;
@@ -55,6 +56,7 @@ export namespace Components {
         "activeFilters": Filter[];
         "availableSources": any[];
         "config": DataWidgetConfig1;
+        "data": any[];
         "fetchChartData": Function;
         "height"?: number;
         "isInEditor": boolean;
@@ -67,6 +69,7 @@ export namespace Components {
     }
     interface DescriptiveAnalysisWidget {
         "config": DescriptiveAnalysisWidgetConfig;
+        "data": any;
         "fetchChartData": Function;
         "height"?: number;
         "isInEditor": boolean;
@@ -441,6 +444,7 @@ declare namespace LocalJSX {
     }
     interface CorrelationAnalysisWidget {
         "config"?: CorrelationAnalysisWidgetConfig;
+        "data"?: any[];
         "fetchChartData"?: Function;
         "height"?: number;
         "isInEditor"?: boolean;
@@ -455,6 +459,7 @@ declare namespace LocalJSX {
         "activeFilters"?: Filter[];
         "availableSources"?: any[];
         "config"?: DataWidgetConfig1;
+        "data"?: any[];
         "fetchChartData"?: Function;
         "height"?: number;
         "isInEditor"?: boolean;
@@ -467,6 +472,7 @@ declare namespace LocalJSX {
     }
     interface DescriptiveAnalysisWidget {
         "config"?: DescriptiveAnalysisWidgetConfig;
+        "data"?: any;
         "fetchChartData"?: Function;
         "height"?: number;
         "isInEditor"?: boolean;

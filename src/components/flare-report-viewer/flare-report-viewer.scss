@@ -2,69 +2,103 @@
   display: block;
   width: 100%;
   height: 100%;
+  min-height: 600px;
 }
 
 .flare-report-container {
   width: 100%;
   height: 100%;
-  overflow: auto;
-  padding: 16px;
+  padding: 10px;
   box-sizing: border-box;
+  overflow: auto;
+  background-color: #f8f9fa;
+  
+  .widget-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-auto-rows: minmax(100px, auto);
+    gap: 15px;
+    width: 100%;
+    position: relative;
+    
+    .widget-item {
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: box-shadow 0.3s ease;
+      min-height: 200px;
+      overflow: hidden;
+      
+      &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+    }
+    
+    .empty-report {
+      grid-column: span 12;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f8f9fa;
+      border-radius: 6px;
+      padding: 40px;
+      text-align: center;
+      
+      p {
+        font-size: 16px;
+        color: #6c757d;
+      }
+    }
+  }
 }
 
-.widgets-grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  grid-auto-rows: minmax(100px, auto);
-  gap: 16px;
-  min-height: 100%;
-}
-
-.widget-container {
-  background-color: transparent;
-  height: 100%;
-  transition: all 0.2s ease;
-}
-
+/* Style for placeholder widgets */
 .placeholder-widget {
   height: 100%;
-  border: 1px dashed #cbd5e1;
-  border-radius: 8px;
-  background-color: #f8fafc;
+  width: 100%;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* Error widget styling */
+.error-widget {
+  padding: 1rem;
+  background-color: #fff0f0;
+  color: #e53935;
+  border-radius: 4px;
+  text-align: center;
+  height: 100%;
+  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
-  text-align: center;
-  
-  h3 {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #475569;
-  }
-  
-  p {
-    font-size: 0.875rem;
-    color: #64748b;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .flare-report-container {
+    .widget-grid {
+      gap: 10px;
+      
+      /* Let widgets take more space on smaller screens */
+      .widget-item {
+        grid-column: span 12 !important; /* Force single column layout on mobile */
+      }
+    }
   }
 }
 
-.empty-report {
-  grid-column: span 12;
-  grid-row: span 4;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 300px;
-  border: 2px dashed #cbd5e1;
-  border-radius: 8px;
-  background-color: #f8fafc;
-  
-  p {
-    font-size: 1rem;
-    color: #64748b;
+@media (max-width: 480px) {
+  .flare-report-container {
+    padding: 5px;
+    
+    .widget-grid {
+      gap: 8px;
+    }
   }
 } 

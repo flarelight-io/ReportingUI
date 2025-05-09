@@ -1,4 +1,4 @@
-import { Component, Prop, h, Host, State, Watch } from '@stencil/core';
+import { Component, Prop, h, Host, State, Watch, Element } from '@stencil/core';
 
 export interface DescriptiveAnalysisWidgetConfig {
   analysisId?: string;
@@ -12,6 +12,8 @@ export interface DescriptiveAnalysisWidgetConfig {
   shadow: true
 })
 export class DescriptiveAnalysisWidget {
+  @Element() el!: HTMLElement;
+  
   @Prop() widgetId: string;
   @Prop() widgetTitle: string;
   @Prop() reportId?: string;
@@ -22,22 +24,62 @@ export class DescriptiveAnalysisWidget {
   @Prop() isViewer: boolean = false;
   @Prop() config: DescriptiveAnalysisWidgetConfig = {};
   @Prop() fetchChartData: Function;
+  @Prop() data: any = null;
   
   @State() loading: boolean = true;
   @State() analysisSourceId: string = null;
+  @State() analysisData: any = null;
   
   componentWillLoad() {
     if (this.config.analysisId) {
       this.analysisSourceId = this.config.analysisId;
     }
-    this.loading = false;
+    
+    // If we already have data from props, use it
+    if (this.data) {
+      this.analysisData = this.data;
+      this.loading = false;
+    } else {
+      this.loading = false;
+    }
+    
+    // Listen for data updates
+    this.el.addEventListener('dataUpdate', (event: CustomEvent) => {
+      console.log(`Received dataUpdate event for ${this.widgetId}:`, event.detail);
+      if (event.detail) {
+        this.analysisData = event.detail;
+        this.loading = false;
+      }
+    });
+    
+    // Listen for config updates
+    this.el.addEventListener('configUpdate', (event: CustomEvent) => {
+      console.log(`Received configUpdate event for ${this.widgetId}:`, event.detail);
+      if (event.detail && event.detail.analysisId) {
+        this.analysisSourceId = event.detail.analysisId;
+      }
+    });
   }
   
   @Watch('config')
-  configChanged() {
-    if (this.config.analysisId) {
-      this.analysisSourceId = this.config.analysisId;
+  configChanged(newConfig: DescriptiveAnalysisWidgetConfig) {
+    if (newConfig.analysisId) {
+      this.analysisSourceId = newConfig.analysisId;
     }
+  }
+  
+  @Watch('data')
+  dataChanged(newData: any) {
+    if (newData) {
+      this.analysisData = newData;
+      this.loading = false;
+    }
+  }
+  
+  disconnectedCallback() {
+    // Clean up event listeners
+    this.el.removeEventListener('dataUpdate', null);
+    this.el.removeEventListener('configUpdate', null);
   }
   
   render() {
@@ -51,7 +93,7 @@ export class DescriptiveAnalysisWidget {
             height={this.height}
             readOnly={this.readOnly}
             isInEditor={this.isInEditor}
-            hideTitle={false}
+            hideTitle={this.config.hideTitle || false}
           >
             <div class="loading-spinner">Loading...</div>
           </base-widget>
@@ -59,7 +101,7 @@ export class DescriptiveAnalysisWidget {
       );
     }
     
-    if (!this.config.analysisId || !this.analysisSourceId) {
+    if (!this.config.analysisId && !this.analysisSourceId) {
       return (
         <Host>
           <base-widget
@@ -69,7 +111,7 @@ export class DescriptiveAnalysisWidget {
             height={this.height}
             readOnly={this.readOnly}
             isInEditor={this.isInEditor}
-            hideTitle={false}
+            hideTitle={this.config.hideTitle || false}
           >
             <div class="empty-analysis">
               <p>No analysis selected</p>
@@ -93,6 +135,7 @@ export class DescriptiveAnalysisWidget {
           isViewer={this.isViewer}
           isInEditor={this.isInEditor}
           fetchChartData={this.fetchChartData}
+          data={this.analysisData}
           availableSources={[{
             id: this.analysisSourceId,
             name: this.config.analysisName || "Descriptive Statistics",

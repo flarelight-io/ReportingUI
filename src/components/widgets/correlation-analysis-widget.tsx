@@ -1,4 +1,4 @@
-import { Component, Prop, h, Host, State, Watch } from '@stencil/core';
+import { Component, Prop, h, Host, State, Watch, Element } from '@stencil/core';
 import { ChartDataRequest } from '../../api/types/common';
 
 export interface CorrelationAnalysisWidgetConfig {
@@ -12,10 +12,7 @@ export interface CorrelationAnalysisWidgetConfig {
   colorScale?: string[];
 }
 
-interface ChartData {
-  Name: string;
-  [key: string]: any;
-}
+
 
 interface TooltipState {
   visible: boolean;
@@ -30,6 +27,8 @@ interface TooltipState {
   shadow: true
 })
 export class CorrelationAnalysisWidget {
+  @Element() el!: HTMLElement;
+  
   @Prop() widgetId: string;
   @Prop() widgetTitle: string;
   @Prop() reportId?: string;
@@ -40,9 +39,10 @@ export class CorrelationAnalysisWidget {
   @Prop() isViewer: boolean = false;
   @Prop() config: CorrelationAnalysisWidgetConfig = {};
   @Prop() fetchChartData: Function;
+  @Prop() data: any[] = [];
   
   @State() loading: boolean = true;
-  @State() correlationData: ChartData[] = [];
+  @State() correlationData: any[] = [];
   @State() fields: string[] = [];
   @State() isKpiMode: boolean = false;
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
@@ -59,22 +59,72 @@ export class CorrelationAnalysisWidget {
   ];
   
   componentWillLoad() {
-    // Set color scale from config if provided
-    if (this.config.colorScale && this.config.colorScale.length === 5) {
-      this.colorScale = this.config.colorScale;
-    }
+    // Set up event listeners for direct data updates
+    this.el.addEventListener('dataUpdate', (event: CustomEvent) => {
+      console.log(`Received dataUpdate event for ${this.widgetId}:`, event.detail);
+      if (event.detail) {
+        this.processData(event.detail);
+      }
+    });
     
-    this.fetchData();
+    // Listen for config updates
+    this.el.addEventListener('configUpdate', (event: CustomEvent) => {
+      console.log(`Received configUpdate event for ${this.widgetId}:`, event.detail);
+      if (event.detail) {
+        if (event.detail.colorScale) {
+          this.colorScale = event.detail.colorScale;
+        }
+      }
+    });
+    
+    // Check if we have data from props
+    if (this.data && this.data.length > 0) {
+      this.processData(this.data);
+    } else if (this.config.analysisId) {
+      this.fetchData();
+    } else {
+      this.loading = false;
+    }
+  }
+  
+  disconnectedCallback() {
+    // Clean up event listeners
+    this.el.removeEventListener('dataUpdate', null);
+    this.el.removeEventListener('configUpdate', null);
+  }
+  
+  @Watch('data')
+  dataChanged(newValue: any[]) {
+    if (newValue && newValue.length > 0) {
+      this.processData(newValue);
+    }
   }
   
   @Watch('config')
-  configChanged() {
-    // Update colorScale if changed in config
-    if (this.config.colorScale && this.config.colorScale.length === 5) {
-      this.colorScale = this.config.colorScale;
+  configChanged(newValue: CorrelationAnalysisWidgetConfig, oldValue?: CorrelationAnalysisWidgetConfig) {
+    if (newValue.analysisId !== oldValue?.analysisId && newValue.analysisId) {
+      this.fetchData();
     }
     
-    this.fetchData();
+    if (newValue.colorScale) {
+      this.colorScale = newValue.colorScale;
+    }
+  }
+  
+  // Process incoming data
+  private processData(data: any[]) {
+    if (data && Array.isArray(data) && data.length > 0) {
+      this.correlationData = data;
+      
+      // Extract field names from the first row's keys, excluding "Name"
+      const firstRow = data[0];
+      const fieldNames = Object.keys(firstRow).filter(key => key !== "Name");
+      this.fields = fieldNames;
+      
+      // Determine if we should use KPI mode (single row = correlation between 2 fields)
+      this.isKpiMode = data.length === 1 && fieldNames.length === 1;
+      this.loading = false;
+    }
   }
   
   private async fetchData() {
@@ -100,20 +150,7 @@ export class CorrelationAnalysisWidget {
       };
       
       const data = await this.fetchChartData(chartDataRequest);
-      
-      if (data && Array.isArray(data) && data.length > 0) {
-        this.correlationData = data;
-        
-        // Extract field names from the first row's keys, excluding "Name"
-        const firstRow = data[0];
-        const fieldNames = Object.keys(firstRow).filter(key => key !== "Name");
-        this.fields = fieldNames;
-        
-        // Determine if we should use KPI mode (single row = correlation between 2 fields)
-        this.isKpiMode = data.length === 1 && fieldNames.length === 1;
-      }
-      
-      this.loading = false;
+      this.processData(data);
     } catch (error) {
       console.error("Failed to fetch correlation analysis data:", error);
       this.loading = false;
