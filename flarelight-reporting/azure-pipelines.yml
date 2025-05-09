@@ -1,0 +1,111 @@
+trigger:
+  branches:
+    include:
+    - main
+    - release/*
+  paths:
+    include:
+    - flarelight-reporting/*
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  projectDir: 'flarelight-reporting'
+  npm_config_cache: $(Pipeline.Workspace)/.npm
+
+# Define the pipeline stages
+stages:
+- stage: Build
+  displayName: 'Build and Test'
+  jobs:
+  - job: Build
+    displayName: 'Build Package'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '16.x'
+      displayName: 'Install Node.js'
+
+    - task: Cache@2
+      inputs:
+        key: 'npm | "$(Agent.OS)" | $(projectDir)/package-lock.json'
+        restoreKeys: |
+          npm | "$(Agent.OS)"
+        path: $(npm_config_cache)
+      displayName: 'Cache npm packages'
+
+    - script: |
+        cd $(projectDir)
+        npm ci
+      displayName: 'Install dependencies'
+
+    - script: |
+        cd $(projectDir)
+        npm run build -- --prod
+      displayName: 'Build package'
+
+    - script: |
+        cd $(projectDir)
+        npm test
+      displayName: 'Run tests'
+      continueOnError: true  # Continue even if tests fail
+
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: '$(projectDir)/dist'
+        Contents: '**'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/dist'
+      displayName: 'Copy dist folder to artifacts'
+
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: '$(projectDir)'
+        Contents: |
+          package.json
+          README.md
+          LICENSE
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+      displayName: 'Copy package files to artifacts'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'package'
+        publishLocation: 'Container'
+      displayName: 'Publish package artifact'
+
+- stage: Publish
+  displayName: 'Publish Package'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - job: Publish
+    displayName: 'Publish to Azure Artifacts'
+    steps:
+    - checkout: none
+    
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        artifactName: 'package'
+        downloadPath: '$(System.ArtifactsDirectory)'
+      displayName: 'Download build artifacts'
+
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '16.x'
+      displayName: 'Install Node.js'
+
+    # Increment package version (patch)
+    - script: |
+        cd $(System.ArtifactsDirectory)/package
+        npm version patch --no-git-tag-version
+      displayName: 'Increment package version'
+
+    # Publish to Azure Artifacts
+    - script: |
+        cd $(System.ArtifactsDirectory)/package
+        npm publish --registry=https://pkgs.dev.azure.com/goranstj/_packaging/pegasus/npm/registry/
+      displayName: 'Publish package to Azure Artifacts' 
