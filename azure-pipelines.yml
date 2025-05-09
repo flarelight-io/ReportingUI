@@ -80,6 +80,11 @@ stages:
     steps:
     - checkout: none
     
+    - task: npmAuthenticate@0
+      inputs:
+        workingFile: '.npmrc'
+        customEndpoint: 'AzDO Artifacts'
+
     - task: DownloadBuildArtifacts@0
       inputs:
         buildType: 'current'
