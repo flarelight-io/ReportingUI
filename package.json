@@ -36,7 +36,7 @@
     "prepublishOnly": "npm run build"
   },
   "publishConfig": {
-    "registry": "https://pkgs.dev.azure.com/goranstj/_packaging/pegasus/npm/registry/",
+    "registry": "https://goranstj.pkgs.visualstudio.com/Pegasus/_packaging/pegasus/npm/registry/",
     "access": "restricted"
   },
   "dependencies": {
