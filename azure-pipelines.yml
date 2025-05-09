@@ -91,21 +91,6 @@ stages:
       inputs:
         versionSpec: '16.x'
       displayName: 'Install Node.js'
-    
-    # Create a fresh .npmrc file in the package directory
-    - script: |
-        cd $(System.ArtifactsDirectory)/package
-        echo "registry=https://registry.npmjs.org/" > .npmrc
-        echo "always-auth=true" >> .npmrc
-        echo "@pegasus:registry=https://goranstj.pkgs.visualstudio.com/Pegasus/_packaging/pegasus/npm/registry/" >> .npmrc
-      displayName: 'Create .npmrc file'
-      
-    # Temporarily modify package.json to remove prepublishOnly script
-    - script: |
-        cd $(System.ArtifactsDirectory)/package
-        vsts-npm-auth -config .npmrc
-        node -e "const pkg = require('./package.json'); delete pkg.scripts.prepublishOnly; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
-      displayName: 'Remove prepublishOnly script'
 
     # Increment package version (patch)
     - script: |
@@ -114,7 +99,9 @@ stages:
       displayName: 'Increment package version'
 
     # Publish to Azure Artifacts with verbose output
-    - script: |
-        cd $(System.ArtifactsDirectory)/package
-        npm publish --verbose
-      displayName: 'Publish package to Azure Artifacts' 
+    - task: Npm@1
+      inputs:
+        command: 'publish'
+        workingDir: '$(System.ArtifactsDirectory)/package'
+        publishRegistry: 'useFeed'
+        publishFeed: 'dbd3a592-3bd3-427d-81d2-1aef2f9e4a6f/c296f9a0-cc3d-45bd-90c3-ffcb1737fdaf'
