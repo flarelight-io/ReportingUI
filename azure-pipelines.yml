@@ -5,13 +5,12 @@ trigger:
     - release/*
   paths:
     include:
-    - flarelight-reporting/*
+    - ./*
 
 pool:
   vmImage: 'windows-latest'
 
 variables:
-  projectDir: 'flarelight-reporting'
   npm_config_cache: $(Pipeline.Workspace)/.npm
 
 # Define the pipeline stages
@@ -36,31 +35,27 @@ stages:
       displayName: 'Cache npm packages'
 
     - script: |
-        cd $(projectDir)
         npm ci
       displayName: 'Install dependencies'
 
     - script: |
-        cd $(projectDir)
         npm run build -- --prod
       displayName: 'Build package'
 
     - script: |
-        cd $(projectDir)
         npm test
       displayName: 'Run tests'
       continueOnError: true  # Continue even if tests fail
 
     - task: CopyFiles@2
       inputs:
-        SourceFolder: '$(projectDir)/dist'
+        SourceFolder: 'dist'
         Contents: '**'
         TargetFolder: '$(Build.ArtifactStagingDirectory)/dist'
       displayName: 'Copy dist folder to artifacts'
 
     - task: CopyFiles@2
       inputs:
-        SourceFolder: '$(projectDir)'
         Contents: |
           package.json
           README.md
