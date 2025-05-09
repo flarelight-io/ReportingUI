@@ -99,7 +99,7 @@ export class DataWidget {
   }
   
   private async fetchDataFromSource() {
-    const { sourceId, visualizationType, valueField, groupByField } = this.config;
+    const { sourceId, visualizationType, valueField, groupByField, aggregation } = this.config;
     
     // Skip if necessary conditions aren't met
     if (!sourceId || !this.isMounted) {
@@ -126,8 +126,13 @@ export class DataWidget {
       const chartDataRequest: ChartDataRequest = {
         reportId: this.reportId,
         sourceId: sourceId,
-        sourceType: 'DataImport', // Default to DataImport type
-        valueFields: valueField ? [{ fieldName: valueField }] : [],
+        sourceType: source.type as 'DataImport' | 'DataPreparation' | 'AnalysisResult',
+        valueFields: valueField ? [
+          {
+            fieldName: valueField,
+            aggregation: aggregation === 'none' ? undefined : aggregation
+          }
+        ] : [],
         groupByFields: groupByField ? [{ fieldName: groupByField }] : [],
         labelFields: [],
         filters: sourceFilters.map(filter => ({
