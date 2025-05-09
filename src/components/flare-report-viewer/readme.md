@@ -27,6 +27,8 @@
 
 - [text-widget](../widgets)
 - [source-info-widget](../widgets)
+- [descriptive-analysis-widget](../widgets)
+- [correlation-analysis-widget](../widgets)
 - [data-widget](../widgets)
 
 ### Graph
@@ -34,9 +36,13 @@
 graph TD;
   flare-report-viewer --> text-widget
   flare-report-viewer --> source-info-widget
+  flare-report-viewer --> descriptive-analysis-widget
+  flare-report-viewer --> correlation-analysis-widget
   flare-report-viewer --> data-widget
   text-widget --> base-widget
   source-info-widget --> base-widget
+  descriptive-analysis-widget --> base-widget
+  descriptive-analysis-widget --> data-widget
   data-widget --> table-visualization
   data-widget --> bar-chart-visualization
   data-widget --> line-chart-visualization
@@ -48,6 +54,7 @@ graph TD;
   data-widget --> sunburst-chart-visualization
   data-widget --> bubble-chart-visualization
   data-widget --> base-widget
+  correlation-analysis-widget --> base-widget
   report-demo --> flare-report-viewer
   style flare-report-viewer fill:#f9f,stroke:#333,stroke-width:4px
 ```
