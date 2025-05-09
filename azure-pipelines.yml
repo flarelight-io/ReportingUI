@@ -104,7 +104,6 @@ stages:
     - task: npmAuthenticate@0
       inputs:
         workingFile: '$(System.ArtifactsDirectory)/package/.npmrc'
-        customEndpoint: 'pegasus-npm'
       displayName: 'Authenticate with npm'
       
     # Temporarily modify package.json to remove prepublishOnly script
