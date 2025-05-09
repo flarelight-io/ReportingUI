@@ -102,11 +102,11 @@ stages:
         echo "registry=https://registry.npmjs.org/" > .npmrc
         echo "@pegasus:registry=https://goranstj.pkgs.visualstudio.com/Pegasus/_packaging/pegasus/npm/registry/" >> .npmrc
         echo "always-auth=true" >> .npmrc
-      workingDirectory: '$(System.ArtifactStagingDirectory)/package'
+      workingDirectory: '$(System.ArtifactsDirectory)/package'
       displayName: 'Create fresh .npmrc'
 
     - script: |
-        cd $(System.ArtifactStagingDirectory)/package
+        cd $(System.ArtifactsDirectory)/package
         node -e "const pkg = require('./package.json'); delete pkg.scripts.prepublishOnly; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2))"
       displayName: 'Remove prepublishOnly script'
     
