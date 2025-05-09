@@ -40,7 +40,7 @@ export class BaseWidget {
   }
 
   render() {
-    const shouldShowTitleBar = !this.hideTitle;
+    const shouldShowTitleBar = !this.isInEditor && !this.hideTitle;
 
     return (
       <div class="widget-card" 
