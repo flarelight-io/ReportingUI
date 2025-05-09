@@ -1,4 +1,5 @@
 import { Component, Prop, h, Host, State, Watch } from '@stencil/core';
+import { ChartDataRequest } from '../../api/types/common';
 
 export interface CorrelationAnalysisWidgetConfig {
   analysisId?: string;
@@ -86,7 +87,7 @@ export class CorrelationAnalysisWidget {
       this.loading = true;
       
       // Use the standard getChartData method
-      const chartDataRequest = {
+      const chartDataRequest: ChartDataRequest = {
         reportId: this.reportId,
         sourceId: this.config.analysisId,
         sourceType: 'AnalysisResult', 

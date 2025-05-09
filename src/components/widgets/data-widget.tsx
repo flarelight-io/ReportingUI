@@ -124,21 +124,19 @@ export class DataWidget {
       
       // Create chart data request
       const chartDataRequest: ChartDataRequest = {
-        reportId: this.reportId || "",
-        widgetId: this.widgetId,
+        reportId: this.reportId,
         sourceId: sourceId,
-        chartType: visualizationType || 'table',
-        dimensions: groupByField ? [groupByField] : [],
-        measures: valueField ? [valueField] : [],
+        sourceType: 'DataImport', // Default to DataImport type
+        valueFields: valueField ? [{ fieldName: valueField }] : [],
+        groupByFields: groupByField ? [{ fieldName: groupByField }] : [],
+        labelFields: [],
         filters: sourceFilters.map(filter => ({
-          field: filter.field,
-          operator: 'eq',
+          fieldName: filter.field,
+          operation: 'eq',
           value: filter.value
         })),
-        options: {
-          ...this.config,
-          widgetType: visualizationType
-        }
+        isViewer: this.isViewer,
+        widgetType: visualizationType
       };
       
       // Fetch the data

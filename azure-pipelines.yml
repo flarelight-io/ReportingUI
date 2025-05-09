@@ -1,8 +1,8 @@
-trigger:
-  branches:
-    include:
-    - main
-    - release/*
+#trigger:
+#  branches:
+#    include:
+#    - main
+#    - release/*
 
 pool:
   vmImage: 'windows-latest'
@@ -99,7 +99,6 @@ stages:
       displayName: 'Increment package version'
 
     - script: |
-        echo "registry=https://registry.npmjs.org/" > .npmrc
         echo "@pegasus:registry=https://goranstj.pkgs.visualstudio.com/Pegasus/_packaging/pegasus/npm/registry/" >> .npmrc
         echo "always-auth=true" >> .npmrc
       workingDirectory: '$(System.ArtifactsDirectory)/package'

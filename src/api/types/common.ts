@@ -1,19 +1,31 @@
 export interface ChartDataRequest {
-  reportId: string;
-  widgetId: string;
-  sourceId: string;
-  chartType: string;
-  dimensions: string[];
-  measures: string[];
-  filters?: Array<{
-    field: string;
-    operator: string;
-    value: any;
-  }>;
-  sortBy?: string;
-  sortDirection?: 'asc' | 'desc';
-  limit?: number;
-  options?: Record<string, any>;
+  reportId?: string;
+  sourceId: string; // Using string for GUID
+  sourceType: 'DataImport' | 'DataPreparation' | 'AnalysisResult';
+  valueFields: ChartField[];
+  groupByFields: ChartField[];
+  labelFields: ChartField[];
+  filters?: ChartFilter[];
+  pagination?: Pagination;
+  isViewer: boolean;
+  widgetType?: string;
+}
+
+export interface ChartField {
+  fieldName: string;
+  aggregation?: "sum" | "avg" | "min" | "max" | "count" | "countDistinct" | "stdDev" | "stdDevPop";
+}
+
+export interface ChartFilter {
+  fieldName: string;
+  operation: "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "like" | "is" | "isnot" | "in" | "notin" | "between" | "notbetween" | "isnull" | "isnotnull";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  value: any;
+}
+
+export interface Pagination {
+  pageNumber: number;
+  pageSize: number;
 }
 
 export interface DataSource {
