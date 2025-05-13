@@ -23,14 +23,30 @@ export class ReportDemo {
           enableFormatting: true
         }
       },
+      // Section Title: Basic Charts
+      {
+        id: 'basic-charts',
+        type: 'text',
+        title: '',
+        x: 0,
+        y: 1,
+        w: 12,
+        h: 1,
+        config: {
+          text: '## Basic Charts',
+          fontSize: 'medium',
+          textAlign: 'left',
+          enableFormatting: true
+        }
+      },
       // Basic Charts
       {
         id: 'pie-chart',
         type: 'data',
         title: 'Pie Chart',
-        x: 8,
-        y: 1,
-        w: 4,
+        x: 0,
+        y: 2,
+        w: 3,
         h: 3,
         config: {
           sourceId: 'sample-categorical',
@@ -41,28 +57,61 @@ export class ReportDemo {
         }
       },
       {
+        id: 'donut-chart',
+        type: 'data',
+        title: 'Donut Chart',
+        x: 3,
+        y: 2,
+        w: 3,
+        h: 3,
+        config: {
+          sourceId: 'sample-categorical',
+          visualizationType: 'donut',
+          groupByField: 'category',
+          valueField: 'value',
+          showLegend: true
+        }
+      },
+      {
         id: 'bar-chart',
         type: 'data',
         title: 'Bar Chart',
-        x: 0,
-        y: 1,
-        w: 4,
+        x: 6,
+        y: 2,
+        w: 3,
         h: 3,
         config: {
           sourceId: 'sample-categorical',
           visualizationType: 'bar',
           groupByField: 'category',
           valueField: 'value',
-          showGrid: true,
-          showLegend: true
+          showGrid: false,
+          showLabels: true
+        }
+      },
+      {
+        id: 'horizontal-bar',
+        type: 'data',
+        title: 'Horizontal Bar Chart',
+        x: 9,
+        y: 2,
+        w: 3,
+        h: 3,
+        config: {
+          sourceId: 'sample-categorical',
+          visualizationType: 'hbar',
+          groupByField: 'category',
+          valueField: 'value',
+          showGrid: false,
+          showLabels: true
         }
       },
       {
         id: 'line-chart',
         type: 'data',
         title: 'Line Chart',
-        x: 4,
-        y: 1,
+        x: 0,
+        y: 5,
         w: 4,
         h: 3,
         config: {
@@ -74,29 +123,12 @@ export class ReportDemo {
           showLegend: true
         }
       },
-      // Complex Charts - Row 1
-      {
-        id: 'donut-chart',
-        type: 'data',
-        title: 'Donut Chart',
-        x: 0,
-        y: 4,
-        w: 4,
-        h: 3,
-        config: {
-          sourceId: 'sample-categorical',
-          visualizationType: 'donut',
-          groupByField: 'category',
-          valueField: 'value',
-          showLegend: true
-        }
-      },
       {
         id: 'scatter-chart',
         type: 'data',
         title: 'Scatter Chart',
         x: 4,
-        y: 4,
+        y: 5,
         w: 4,
         h: 3,
         config: {
@@ -109,12 +141,167 @@ export class ReportDemo {
         }
       },
       {
+        id: 'kpi-widget',
+        type: 'data',
+        title: 'KPI Widget',
+        x: 8,
+        y: 5,
+        w: 4,
+        h: 3,
+        config: {
+          sourceId: 'sample-kpi',
+          visualizationType: 'kpi',
+          valueField: 'value',
+          kpiFormatType: 'number',
+          kpiPrefix: '$',
+          kpiSuffix: 'M'
+        }
+      },
+      
+      // Section Title: Multi-Series Charts
+      {
+        id: 'multi-series-charts',
+        type: 'text',
+        title: '',
+        x: 0,
+        y: 8,
+        w: 12,
+        h: 1,
+        config: {
+          text: '## Multi-Series Charts',
+          fontSize: 'medium',
+          textAlign: 'left',
+          enableFormatting: true
+        }
+      },
+      // Multi-Series Charts
+      {
+        id: 'stacked-bar',
+        type: 'data',
+        title: 'Stacked Bar Chart',
+        x: 0,
+        y: 9,
+        w: 3,
+        h: 3,
+        config: {
+          sourceId: 'sample-multi-series',
+          visualizationType: 'stacked-bar',
+          groupByField: 'category',
+          fields: ['series1', 'series2', 'series3'],
+          showLegend: true,
+          showGrid: false
+        }
+      },
+      {
+        id: 'stacked-hbar',
+        type: 'data',
+        title: 'Horizontal Stacked Bar',
+        x: 3,
+        y: 9,
+        w: 3,
+        h: 3,
+        config: {
+          sourceId: 'sample-multi-series',
+          visualizationType: 'stacked-hbar',
+          groupByField: 'category',
+          fields: ['series1', 'series2', 'series3'],
+          showLegend: true,
+          showGrid: false
+        }
+      },
+      {
+        id: 'clustered-bar',
+        type: 'data',
+        title: 'Clustered Bar Chart',
+        x: 6,
+        y: 9,
+        w: 3,
+        h: 3,
+        config: {
+          sourceId: 'sample-multi-series',
+          visualizationType: 'clustered-bar',
+          groupByField: 'category',
+          fields: ['series1', 'series2', 'series3'],
+          showLegend: true,
+          showGrid: false
+        }
+      },
+      {
+        id: 'clustered-hbar',
+        type: 'data',
+        title: 'Horizontal Clustered Bar',
+        x: 9,
+        y: 9,
+        w: 3,
+        h: 3,
+        config: {
+          sourceId: 'sample-multi-series',
+          visualizationType: 'clustered-hbar',
+          groupByField: 'category',
+          fields: ['series1', 'series2', 'series3'],
+          showLegend: true,
+          showGrid: false
+        }
+      },
+      
+      // Section Title: Specialized Charts
+      {
+        id: 'specialized-charts',
+        type: 'text',
+        title: '',
+        x: 0,
+        y: 12,
+        w: 12,
+        h: 1,
+        config: {
+          text: '## Specialized Charts',
+          fontSize: 'medium',
+          textAlign: 'left',
+          enableFormatting: true
+        }
+      },
+      // Specialized Charts
+      {
+        id: 'lollipop-chart',
+        type: 'data',
+        title: 'Lollipop Chart',
+        x: 0,
+        y: 13,
+        w: 3,
+        h: 3,
+        config: {
+          sourceId: 'sample-categorical',
+          visualizationType: 'lollipop',
+          groupByField: 'category',
+          valueField: 'value',
+          showGrid: false,
+          showLabels: true
+        }
+      },
+      {
+        id: 'lollipop-h-chart',
+        type: 'data',
+        title: 'Horizontal Lollipop Chart',
+        x: 3,
+        y: 13,
+        w: 3,
+        h: 3,
+        config: {
+          sourceId: 'sample-categorical',
+          visualizationType: 'lollipop-h',
+          groupByField: 'category',
+          valueField: 'value',
+          showGrid: false,
+          showLabels: true
+        }
+      },
+      {
         id: 'histogram-chart',
         type: 'data',
         title: 'Histogram',
-        x: 8,
-        y: 4,
-        w: 4,
+        x: 6,
+        y: 13,
+        w: 3,
         h: 3,
         config: {
           sourceId: 'sample-histogram',
@@ -124,14 +311,13 @@ export class ReportDemo {
           showGrid: true
         }
       },
-      // Complex Charts - Row 2
       {
         id: 'heatmap',
         type: 'data',
         title: 'Heatmap',
-        x: 0,
-        y: 7,
-        w: 4,
+        x: 9,
+        y: 13,
+        w: 3,
         h: 3,
         config: {
           sourceId: 'sample-heatmap',
@@ -142,12 +328,14 @@ export class ReportDemo {
           fields: ['x']
         }
       },
+      
+      // Complex Charts
       {
         id: 'sunburst-chart',
         type: 'data',
         title: 'Sunburst Chart',
-        x: 4,
-        y: 7,
+        x: 0,
+        y: 16,
         w: 4,
         h: 3,
         config: {
@@ -164,8 +352,8 @@ export class ReportDemo {
         id: 'bubble-chart',
         type: 'data',
         title: 'Bubble Chart',
-        x: 8,
-        y: 7,
+        x: 4,
+        y: 16,
         w: 4,
         h: 3,
         config: {
@@ -184,9 +372,9 @@ export class ReportDemo {
         id: 'descriptive-analysis',
         type: 'descriptiveAnalysis',
         title: 'Descriptive Statistics',
-        x: 0,
-        y: 10,
-        w: 6,
+        x: 8,
+        y: 16,
+        w: 4,
         h: 3,
         config: {
           analysisId: 'sample-descriptive',
@@ -197,9 +385,9 @@ export class ReportDemo {
         id: 'correlation-analysis',
         type: 'correlationAnalysis',
         title: 'Correlation Analysis',
-        x: 6,
-        y: 10,
-        w: 6,
+        x: 0,
+        y: 19,
+        w: 12,
         h: 3,
         config: {
           analysisId: 'sample-correlation',
@@ -275,6 +463,25 @@ export class ReportDemo {
           { name: 'y', displayName: 'Y Position', type: 'number' },
           { name: 'size', displayName: 'Size', type: 'number' },
           { name: 'category', displayName: 'Category', type: 'string' }
+        ]
+      },
+      {
+        id: 'sample-multi-series',
+        name: 'Multi-Series Data',
+        type: 'mock',
+        fields: [
+          { name: 'category', displayName: 'Category', type: 'string' },
+          { name: 'series1', displayName: 'Series 1', type: 'number' },
+          { name: 'series2', displayName: 'Series 2', type: 'number' },
+          { name: 'series3', displayName: 'Series 3', type: 'number' }
+        ]
+      },
+      {
+        id: 'sample-kpi',
+        name: 'KPI Data',
+        type: 'mock',
+        fields: [
+          { name: 'value', displayName: 'Value', type: 'number' }
         ]
       },
       {
@@ -370,6 +577,19 @@ export class ReportDemo {
           { x: 15, y: 30, size: 20, category: 'Group 2' },
           { x: 35, y: 25, size: 15, category: 'Group 3' },
           { x: 20, y: 10, size: 25, category: 'Group 3' }
+        ];
+        
+      case 'sample-multi-series':
+        return [
+          { category: 'Category A', series1: 30, series2: 40, series3: 20 },
+          { category: 'Category B', series1: 20, series2: 30, series3: 35 },
+          { category: 'Category C', series1: 40, series2: 25, series3: 30 },
+          { category: 'Category D', series1: 35, series2: 20, series3: 25 }
+        ];
+      
+      case 'sample-kpi':
+        return [
+          { value: 1250000 }
         ];
         
       case 'sample-descriptive':

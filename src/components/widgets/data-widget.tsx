@@ -5,7 +5,7 @@ import { FilterChangeEventDetail, VisualizationData } from './visualizations/bas
 export interface DataWidgetConfig {
   sourceId?: string;
   sourceName?: string;
-  visualizationType?: 'table' | 'bar' | 'line' | 'pie' | 'donut' | 'hbar' | 'scatter' | 'sunburst' | 'heatmap' | 'bubble' | 'kpi' | 'histogram';
+  visualizationType?: 'table' | 'bar' | 'line' | 'pie' | 'donut' | 'hbar' | 'scatter' | 'sunburst' | 'heatmap' | 'bubble' | 'kpi' | 'histogram' | 'stacked-bar' | 'stacked-hbar' | 'clustered-bar' | 'clustered-hbar' | 'lollipop' | 'lollipop-h';
   fields?: string[];
   hideTitle?: boolean;
   showLabels?: boolean;
@@ -123,7 +123,7 @@ export class DataWidget {
   }
   
   private async fetchDataFromSource() {
-    const { sourceId, visualizationType, valueField, groupByField, aggregation } = this.config;
+    const { sourceId, visualizationType, valueField, groupByField, aggregation, fields } = this.config;
     
     // Skip if necessary conditions aren't met
     if (!sourceId || !this.isMounted) {
@@ -151,12 +151,7 @@ export class DataWidget {
         reportId: this.reportId,
         sourceId: sourceId,
         sourceType: source.type as 'DataImport' | 'DataPreparation' | 'AnalysisResult',
-        valueFields: valueField ? [
-          {
-            fieldName: valueField,
-            aggregation: aggregation === 'none' ? undefined : aggregation
-          }
-        ] : [],
+        valueFields: [],
         groupByFields: groupByField ? [{ fieldName: groupByField }] : [],
         labelFields: [],
         filters: sourceFilters.map(filter => ({
@@ -167,6 +162,28 @@ export class DataWidget {
         isViewer: this.isViewer,
         widgetType: visualizationType
       };
+
+      // Handle value fields based on visualization type
+      if (visualizationType === 'stacked-bar' || 
+          visualizationType === 'stacked-hbar' ||
+          visualizationType === 'clustered-bar' || 
+          visualizationType === 'clustered-hbar') {
+        // For multi-series charts, use multiple value fields
+        if (fields && fields.length > 0) {
+          chartDataRequest.valueFields = fields.map(field => ({
+            fieldName: field,
+            aggregation: aggregation === 'none' ? undefined : aggregation
+          }));
+        }
+      } else {
+        // For standard charts, use single value field
+        if (valueField) {
+          chartDataRequest.valueFields = [{
+            fieldName: valueField,
+            aggregation: aggregation === 'none' ? undefined : aggregation
+          }];
+        }
+      }
       
       // Fetch the data
       if (typeof this.fetchChartData === 'function') {
@@ -219,6 +236,33 @@ export class DataWidget {
           />
         );
       
+      case 'stacked-bar':
+      case 'stacked-hbar':
+        return (
+          <stacked-bar-chart-visualization 
+            config={this.config} 
+            data={visualizationData}
+          />
+        );
+      
+      case 'clustered-bar':
+      case 'clustered-hbar':
+        return (
+          <clustered-bar-chart-visualization 
+            config={this.config} 
+            data={visualizationData}
+          />
+        );
+      
+      case 'lollipop':
+      case 'lollipop-h':
+        return (
+          <lollipop-chart-visualization 
+            config={this.config} 
+            data={visualizationData}
+          />
+        );
+        
       case 'line':
         return (
           <line-chart-visualization 

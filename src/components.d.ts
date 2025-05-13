@@ -39,6 +39,10 @@ export namespace Components {
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
+    interface ClusteredBarChartVisualization {
+        "config": DataWidgetConfig;
+        "data": VisualizationData;
+    }
     interface CorrelationAnalysisWidget {
         "config": CorrelationAnalysisWidgetConfig;
         "data": any[];
@@ -104,6 +108,10 @@ export namespace Components {
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
+    interface LollipopChartVisualization {
+        "config": DataWidgetConfig;
+        "data": VisualizationData;
+    }
     interface PieChartVisualization {
         "config": DataWidgetConfig;
         "data": VisualizationData;
@@ -123,6 +131,10 @@ export namespace Components {
         "widgetId": string;
         "widgetTitle": string;
         "width"?: number;
+    }
+    interface StackedBarChartVisualization {
+        "config": DataWidgetConfig;
+        "data": VisualizationData;
     }
     interface SunburstChartVisualization {
         "config": DataWidgetConfig;
@@ -150,6 +162,10 @@ export interface BubbleChartVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLBubbleChartVisualizationElement;
 }
+export interface ClusteredBarChartVisualizationCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLClusteredBarChartVisualizationElement;
+}
 export interface HeatmapVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLHeatmapVisualizationElement;
@@ -166,6 +182,10 @@ export interface LineChartVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLLineChartVisualizationElement;
 }
+export interface LollipopChartVisualizationCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLLollipopChartVisualizationElement;
+}
 export interface PieChartVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLPieChartVisualizationElement;
@@ -173,6 +193,10 @@ export interface PieChartVisualizationCustomEvent<T> extends CustomEvent<T> {
 export interface ScatterChartVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLScatterChartVisualizationElement;
+}
+export interface StackedBarChartVisualizationCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLStackedBarChartVisualizationElement;
 }
 export interface SunburstChartVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -222,6 +246,23 @@ declare global {
     var HTMLBubbleChartVisualizationElement: {
         prototype: HTMLBubbleChartVisualizationElement;
         new (): HTMLBubbleChartVisualizationElement;
+    };
+    interface HTMLClusteredBarChartVisualizationElementEventMap {
+        "filterChange": FilterChangeEventDetail;
+    }
+    interface HTMLClusteredBarChartVisualizationElement extends Components.ClusteredBarChartVisualization, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLClusteredBarChartVisualizationElementEventMap>(type: K, listener: (this: HTMLClusteredBarChartVisualizationElement, ev: ClusteredBarChartVisualizationCustomEvent<HTMLClusteredBarChartVisualizationElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLClusteredBarChartVisualizationElementEventMap>(type: K, listener: (this: HTMLClusteredBarChartVisualizationElement, ev: ClusteredBarChartVisualizationCustomEvent<HTMLClusteredBarChartVisualizationElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLClusteredBarChartVisualizationElement: {
+        prototype: HTMLClusteredBarChartVisualizationElement;
+        new (): HTMLClusteredBarChartVisualizationElement;
     };
     interface HTMLCorrelationAnalysisWidgetElement extends Components.CorrelationAnalysisWidget, HTMLStencilElement {
     }
@@ -315,6 +356,23 @@ declare global {
         prototype: HTMLLineChartVisualizationElement;
         new (): HTMLLineChartVisualizationElement;
     };
+    interface HTMLLollipopChartVisualizationElementEventMap {
+        "filterChange": FilterChangeEventDetail;
+    }
+    interface HTMLLollipopChartVisualizationElement extends Components.LollipopChartVisualization, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLLollipopChartVisualizationElementEventMap>(type: K, listener: (this: HTMLLollipopChartVisualizationElement, ev: LollipopChartVisualizationCustomEvent<HTMLLollipopChartVisualizationElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLLollipopChartVisualizationElementEventMap>(type: K, listener: (this: HTMLLollipopChartVisualizationElement, ev: LollipopChartVisualizationCustomEvent<HTMLLollipopChartVisualizationElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLLollipopChartVisualizationElement: {
+        prototype: HTMLLollipopChartVisualizationElement;
+        new (): HTMLLollipopChartVisualizationElement;
+    };
     interface HTMLPieChartVisualizationElementEventMap {
         "filterChange": FilterChangeEventDetail;
     }
@@ -361,6 +419,23 @@ declare global {
         prototype: HTMLSourceInfoWidgetElement;
         new (): HTMLSourceInfoWidgetElement;
     };
+    interface HTMLStackedBarChartVisualizationElementEventMap {
+        "filterChange": FilterChangeEventDetail;
+    }
+    interface HTMLStackedBarChartVisualizationElement extends Components.StackedBarChartVisualization, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLStackedBarChartVisualizationElementEventMap>(type: K, listener: (this: HTMLStackedBarChartVisualizationElement, ev: StackedBarChartVisualizationCustomEvent<HTMLStackedBarChartVisualizationElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLStackedBarChartVisualizationElementEventMap>(type: K, listener: (this: HTMLStackedBarChartVisualizationElement, ev: StackedBarChartVisualizationCustomEvent<HTMLStackedBarChartVisualizationElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLStackedBarChartVisualizationElement: {
+        prototype: HTMLStackedBarChartVisualizationElement;
+        new (): HTMLStackedBarChartVisualizationElement;
+    };
     interface HTMLSunburstChartVisualizationElementEventMap {
         "filterChange": FilterChangeEventDetail;
     }
@@ -405,6 +480,7 @@ declare global {
         "bar-chart-visualization": HTMLBarChartVisualizationElement;
         "base-widget": HTMLBaseWidgetElement;
         "bubble-chart-visualization": HTMLBubbleChartVisualizationElement;
+        "clustered-bar-chart-visualization": HTMLClusteredBarChartVisualizationElement;
         "correlation-analysis-widget": HTMLCorrelationAnalysisWidgetElement;
         "data-widget": HTMLDataWidgetElement;
         "descriptive-analysis-widget": HTMLDescriptiveAnalysisWidgetElement;
@@ -413,10 +489,12 @@ declare global {
         "histogram-chart-visualization": HTMLHistogramChartVisualizationElement;
         "kpi-visualization": HTMLKpiVisualizationElement;
         "line-chart-visualization": HTMLLineChartVisualizationElement;
+        "lollipop-chart-visualization": HTMLLollipopChartVisualizationElement;
         "pie-chart-visualization": HTMLPieChartVisualizationElement;
         "report-demo": HTMLReportDemoElement;
         "scatter-chart-visualization": HTMLScatterChartVisualizationElement;
         "source-info-widget": HTMLSourceInfoWidgetElement;
+        "stacked-bar-chart-visualization": HTMLStackedBarChartVisualizationElement;
         "sunburst-chart-visualization": HTMLSunburstChartVisualizationElement;
         "table-visualization": HTMLTableVisualizationElement;
         "text-widget": HTMLTextWidgetElement;
@@ -441,6 +519,11 @@ declare namespace LocalJSX {
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: BubbleChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
+    }
+    interface ClusteredBarChartVisualization {
+        "config"?: DataWidgetConfig;
+        "data"?: VisualizationData;
+        "onFilterChange"?: (event: ClusteredBarChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
     interface CorrelationAnalysisWidget {
         "config"?: CorrelationAnalysisWidgetConfig;
@@ -511,6 +594,11 @@ declare namespace LocalJSX {
         "data"?: VisualizationData;
         "onFilterChange"?: (event: LineChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
+    interface LollipopChartVisualization {
+        "config"?: DataWidgetConfig;
+        "data"?: VisualizationData;
+        "onFilterChange"?: (event: LollipopChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
+    }
     interface PieChartVisualization {
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
@@ -532,6 +620,11 @@ declare namespace LocalJSX {
         "widgetId"?: string;
         "widgetTitle"?: string;
         "width"?: number;
+    }
+    interface StackedBarChartVisualization {
+        "config"?: DataWidgetConfig;
+        "data"?: VisualizationData;
+        "onFilterChange"?: (event: StackedBarChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
     interface SunburstChartVisualization {
         "config"?: DataWidgetConfig;
@@ -556,6 +649,7 @@ declare namespace LocalJSX {
         "bar-chart-visualization": BarChartVisualization;
         "base-widget": BaseWidget;
         "bubble-chart-visualization": BubbleChartVisualization;
+        "clustered-bar-chart-visualization": ClusteredBarChartVisualization;
         "correlation-analysis-widget": CorrelationAnalysisWidget;
         "data-widget": DataWidget;
         "descriptive-analysis-widget": DescriptiveAnalysisWidget;
@@ -564,10 +658,12 @@ declare namespace LocalJSX {
         "histogram-chart-visualization": HistogramChartVisualization;
         "kpi-visualization": KpiVisualization;
         "line-chart-visualization": LineChartVisualization;
+        "lollipop-chart-visualization": LollipopChartVisualization;
         "pie-chart-visualization": PieChartVisualization;
         "report-demo": ReportDemo;
         "scatter-chart-visualization": ScatterChartVisualization;
         "source-info-widget": SourceInfoWidget;
+        "stacked-bar-chart-visualization": StackedBarChartVisualization;
         "sunburst-chart-visualization": SunburstChartVisualization;
         "table-visualization": TableVisualization;
         "text-widget": TextWidget;
@@ -580,6 +676,7 @@ declare module "@stencil/core" {
             "bar-chart-visualization": LocalJSX.BarChartVisualization & JSXBase.HTMLAttributes<HTMLBarChartVisualizationElement>;
             "base-widget": LocalJSX.BaseWidget & JSXBase.HTMLAttributes<HTMLBaseWidgetElement>;
             "bubble-chart-visualization": LocalJSX.BubbleChartVisualization & JSXBase.HTMLAttributes<HTMLBubbleChartVisualizationElement>;
+            "clustered-bar-chart-visualization": LocalJSX.ClusteredBarChartVisualization & JSXBase.HTMLAttributes<HTMLClusteredBarChartVisualizationElement>;
             "correlation-analysis-widget": LocalJSX.CorrelationAnalysisWidget & JSXBase.HTMLAttributes<HTMLCorrelationAnalysisWidgetElement>;
             "data-widget": LocalJSX.DataWidget & JSXBase.HTMLAttributes<HTMLDataWidgetElement>;
             "descriptive-analysis-widget": LocalJSX.DescriptiveAnalysisWidget & JSXBase.HTMLAttributes<HTMLDescriptiveAnalysisWidgetElement>;
@@ -588,10 +685,12 @@ declare module "@stencil/core" {
             "histogram-chart-visualization": LocalJSX.HistogramChartVisualization & JSXBase.HTMLAttributes<HTMLHistogramChartVisualizationElement>;
             "kpi-visualization": LocalJSX.KpiVisualization & JSXBase.HTMLAttributes<HTMLKpiVisualizationElement>;
             "line-chart-visualization": LocalJSX.LineChartVisualization & JSXBase.HTMLAttributes<HTMLLineChartVisualizationElement>;
+            "lollipop-chart-visualization": LocalJSX.LollipopChartVisualization & JSXBase.HTMLAttributes<HTMLLollipopChartVisualizationElement>;
             "pie-chart-visualization": LocalJSX.PieChartVisualization & JSXBase.HTMLAttributes<HTMLPieChartVisualizationElement>;
             "report-demo": LocalJSX.ReportDemo & JSXBase.HTMLAttributes<HTMLReportDemoElement>;
             "scatter-chart-visualization": LocalJSX.ScatterChartVisualization & JSXBase.HTMLAttributes<HTMLScatterChartVisualizationElement>;
             "source-info-widget": LocalJSX.SourceInfoWidget & JSXBase.HTMLAttributes<HTMLSourceInfoWidgetElement>;
+            "stacked-bar-chart-visualization": LocalJSX.StackedBarChartVisualization & JSXBase.HTMLAttributes<HTMLStackedBarChartVisualizationElement>;
             "sunburst-chart-visualization": LocalJSX.SunburstChartVisualization & JSXBase.HTMLAttributes<HTMLSunburstChartVisualizationElement>;
             "table-visualization": LocalJSX.TableVisualization & JSXBase.HTMLAttributes<HTMLTableVisualizationElement>;
             "text-widget": LocalJSX.TextWidget & JSXBase.HTMLAttributes<HTMLTextWidgetElement>;

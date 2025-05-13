@@ -138,18 +138,37 @@ export class BarChartVisualization {
       
       if (isHorizontal) {
         // For horizontal bars
-        const y = viewBoxHeight - 10 - (index * step * 1.45);
-        const height = step * 0.8; // Bar height is 70% of available slot
+        // Adjust to prevent bars from going outside the bottom boundary
+        // Calculate the y-coordinate ensuring the last bar is above the x-axis
+        const totalRows = chartData.length;
+        const barHeight = step * 0.8; // Bar height is 80% of available slot
+        const verticalSpace = viewBoxHeight - 35; // Significantly increase padding at bottom
+        const requiredSpace = totalRows * step * 1.45;
+        
+        // Adjust the vertical position calculation if there are many bars
+        let y;
+        if (requiredSpace > verticalSpace) {
+          // Compress the bars to fit the available space
+          const adjustedStep = verticalSpace / totalRows;
+          y = viewBoxHeight - 35 - (index * adjustedStep); // Start much higher
+        } else {
+          // Regular spacing, ensure the last bar stays inside the chart area
+          y = viewBoxHeight - 35 - (index * step * 1.45); // Start much higher
+          // Ensure the bottom bar doesn't extend beyond the chart
+          if (index === totalRows - 1) {
+            y = Math.min(y, viewBoxHeight - 35 - barHeight);
+          }
+        }
         
         return {
           x: 5,
           y,
           width: scaledValue,
-          height,
+          height: barHeight,
           color: colors[index % colors.length],
           label: {
             x: 5 + scaledValue + 2,
-            y: y + height / 2,
+            y: y + barHeight / 2,
             text: `${item.category} (${item.value})`
           },
           category: item.category,
@@ -246,8 +265,8 @@ export class BarChartVisualization {
             ))}
             
             {/* X and Y axis */}
-            <line x1="5" y1={viewBoxHeight - 5} x2={viewBoxWidth - 5} y2={viewBoxHeight - 5} stroke="#333" stroke-width="1" />
-            <line x1="5" y1="5" x2="5" y2={viewBoxHeight - 5} stroke="#333" stroke-width="1" />
+            <line x1="5" y1={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} x2={viewBoxWidth - 5} y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} stroke="#333" stroke-width="1" />
+            <line x1="5" y1="5" x2="5" y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} stroke="#333" stroke-width="1" />
             
             {/* Show values on the bars if enabled */}
             {this.config.showLabels && (
