@@ -47,6 +47,7 @@ export class DataWidget {
   @Prop() availableSources: any[] = [];
   @Prop() activeFilters: Filter[] = [];
   @Prop() fetchChartData: Function;
+  @Prop() onFilterChange: Function;
   @Prop() data: any[] = [];
   
   @State() loading: boolean = false;
@@ -105,12 +106,17 @@ export class DataWidget {
   @Listen('filterChange')
   handleFilterChangeEvent(event: CustomEvent<FilterChangeEventDetail>) {
     const { sourceId, field, value } = event.detail;
-    this.triggerFilterChange(sourceId, field, value);
+    if(this.onFilterChange) {
+      this.onFilterChange(sourceId, field, value);
+    }
+    else{
+      this.triggerFilterChange(sourceId, field, value);
+    }
   }
   
   private triggerFilterChange(sourceId: string, field: string, value: any) {
     // Make sure we're using the correct event format
-    const event = new CustomEvent('onFilterChange', {
+    const event = new CustomEvent('filter-change', {
       detail: { 
         sourceId, 
         field, 
