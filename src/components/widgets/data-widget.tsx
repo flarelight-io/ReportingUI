@@ -1,4 +1,4 @@
-import { Component, Prop, h, Host, State, Watch, Element, Listen } from '@stencil/core';
+import { Component, Prop, h, Host, State, Watch, Element, Listen, EventEmitter } from '@stencil/core';
 import { ChartDataRequest, Filter } from '../../api/types/common';
 import { FilterChangeEventDetail, VisualizationData } from './visualizations/base-visualization';
 
@@ -47,7 +47,6 @@ export class DataWidget {
   @Prop() availableSources: any[] = [];
   @Prop() activeFilters: Filter[] = [];
   @Prop() fetchChartData: Function;
-  @Prop() onFilterChange: Function;
   @Prop() data: any[] = [];
   
   @State() loading: boolean = false;
@@ -105,13 +104,9 @@ export class DataWidget {
   
   @Listen('filterChange')
   handleFilterChangeEvent(event: CustomEvent<FilterChangeEventDetail>) {
+    console.log('handleFilterChangeEvent', event);
     const { sourceId, field, value } = event.detail;
-    if(this.onFilterChange) {
-      this.onFilterChange(sourceId, field, value);
-    }
-    else{
-      this.triggerFilterChange(sourceId, field, value);
-    }
+    this.triggerFilterChange(sourceId, field, value);
   }
   
   private triggerFilterChange(sourceId: string, field: string, value: any) {
