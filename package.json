@@ -1,6 +1,6 @@
 {
   "name": "@pegasus/reporting",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Report Viewer and Widgets packaged as Web Components",
   "main": "dist/index.cjs.js",
   "module": "dist/index.js",
