@@ -110,7 +110,7 @@ export class DataWidget {
   
   private triggerFilterChange(sourceId: string, field: string, value: any) {
     // Make sure we're using the correct event format
-    const event = new CustomEvent('filter-change', {
+    const event = new CustomEvent('onFilterChange', {
       detail: { 
         sourceId, 
         field, 
