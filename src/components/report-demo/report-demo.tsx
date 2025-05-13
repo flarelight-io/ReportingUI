@@ -36,7 +36,8 @@ export class ReportDemo {
           text: '## Basic Charts',
           fontSize: 'medium',
           textAlign: 'left',
-          enableFormatting: true
+          enableFormatting: true,
+          hideTitle: true
         }
       },
       // Basic Charts
@@ -171,7 +172,8 @@ export class ReportDemo {
           text: '## Multi-Series Charts',
           fontSize: 'medium',
           textAlign: 'left',
-          enableFormatting: true
+          enableFormatting: true,
+          hideTitle: true
         }
       },
       // Multi-Series Charts
@@ -257,7 +259,8 @@ export class ReportDemo {
           text: '## Specialized Charts',
           fontSize: 'medium',
           textAlign: 'left',
-          enableFormatting: true
+          enableFormatting: true,
+          hideTitle: true
         }
       },
       // Specialized Charts
@@ -345,6 +348,8 @@ export class ReportDemo {
           idField: 'id',
           parentIdField: 'parentId',
           groupByField: 'name',
+          labelField: 'displayName',
+          showLabels: true,
           showLegend: true
         }
       },
@@ -451,6 +456,7 @@ export class ReportDemo {
           { name: 'id', displayName: 'ID', type: 'string' },
           { name: 'parentId', displayName: 'Parent ID', type: 'string' },
           { name: 'name', displayName: 'Name', type: 'string' },
+          { name: 'displayName', displayName: 'Display Name', type: 'string' },
           { name: 'value', displayName: 'Value', type: 'number' }
         ]
       },
@@ -559,13 +565,13 @@ export class ReportDemo {
         
       case 'sample-hierarchy':
         return [
-          { id: '1', parentId: null, name: 'Root', value: 100 },
-          { id: '2', parentId: '1', name: 'Branch A', value: 60 },
-          { id: '3', parentId: '1', name: 'Branch B', value: 40 },
-          { id: '4', parentId: '2', name: 'Leaf A1', value: 30 },
-          { id: '5', parentId: '2', name: 'Leaf A2', value: 30 },
-          { id: '6', parentId: '3', name: 'Leaf B1', value: 25 },
-          { id: '7', parentId: '3', name: 'Leaf B2', value: 15 }
+          { id: '1', parentId: null, name: 'Root', displayName: 'Main Root', value: 100 },
+          { id: '2', parentId: '1', name: 'Branch A', displayName: 'Branch Alpha', value: 60 },
+          { id: '3', parentId: '1', name: 'Branch B', displayName: 'Branch Beta', value: 40 },
+          { id: '4', parentId: '2', name: 'Leaf A1', displayName: 'Leaf A-1', value: 30 },
+          { id: '5', parentId: '2', name: 'Leaf A2', displayName: 'Leaf A-2', value: 30 },
+          { id: '6', parentId: '3', name: 'Leaf B1', displayName: 'Leaf B-1', value: 25 },
+          { id: '7', parentId: '3', name: 'Leaf B2', displayName: 'Leaf B-2', value: 15 }
         ];
         
       case 'sample-bubble':

@@ -16,19 +16,19 @@
   .widget-grid {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
-    grid-template-rows: repeat(24, minmax(100px, auto));
     gap: 15px;
     width: 100%;
     position: relative;
     grid-auto-flow: dense;
-    min-height: 1200px;
+    
+    // Default row height until JavaScript sets the exact value
+    grid-auto-rows: 80px;
     
     .widget-item {
       background: #fff;
       border-radius: 6px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       transition: box-shadow 0.3s ease;
-      min-height: 200px;
       overflow: hidden;
       
       &:hover {

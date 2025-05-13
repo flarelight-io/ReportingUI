@@ -26,5 +26,5 @@ export const config: Config = {
   ],
   testing: {
     browserHeadless: "shell",
-  },
+  }
 };

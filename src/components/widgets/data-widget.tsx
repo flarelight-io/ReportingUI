@@ -14,6 +14,7 @@ export interface DataWidgetConfig {
   showRegressionLine?: boolean;
   groupByField?: string;
   valueField?: string;
+  labelField?: string;
   aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
   kpiFormatType?: 'number' | 'currency' | 'percentage';
   kpiPrefix?: string;
@@ -38,7 +39,7 @@ export class DataWidget {
   @Prop() width?: number;
   @Prop() height?: number;
   @Prop() readOnly: boolean = false;
-  @Prop() isInEditor: boolean = true;
+  @Prop() isInEditor: boolean = false;
   @Prop() isViewer: boolean = false;
   @Prop() config: DataWidgetConfig = {
     visualizationType: 'table'
@@ -123,7 +124,7 @@ export class DataWidget {
   }
   
   private async fetchDataFromSource() {
-    const { sourceId, visualizationType, valueField, groupByField, aggregation, fields } = this.config;
+    const { sourceId, visualizationType, valueField, groupByField, labelField, aggregation, fields } = this.config;
     
     // Skip if necessary conditions aren't met
     if (!sourceId || !this.isMounted) {
@@ -153,7 +154,7 @@ export class DataWidget {
         sourceType: source.type as 'DataImport' | 'DataPreparation' | 'AnalysisResult',
         valueFields: [],
         groupByFields: groupByField ? [{ fieldName: groupByField }] : [],
-        labelFields: [],
+        labelFields: labelField ? [{ fieldName: labelField }] : [],
         filters: sourceFilters.map(filter => ({
           fieldName: filter.field,
           operation: 'eq',

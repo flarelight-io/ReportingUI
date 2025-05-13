@@ -29,6 +29,12 @@ export class FlareReportViewer {
   private gridContainer?: HTMLElement;
   private dataFetchPromises: { [widgetId: string]: Promise<any> } = {};
   private isMounted: boolean = false;
+  private resizeObserver: ResizeObserver | null = null;
+  private handleResize = () => {
+    if (this.isMounted && this.gridContainer) {
+      this.setEqualGridDimensions();
+    }
+  };
   
   @Watch('configuration')
   onConfigurationChange() {
@@ -53,6 +59,9 @@ export class FlareReportViewer {
     this.gridContainer = this.el.querySelector('.widget-grid');
     
     if (this.gridContainer) {
+      // Set equal row height to column width
+      this.setEqualGridDimensions();
+      
       // If we already have widget data pre-fetched, render widgets
       if (Object.keys(this.widgetData).length > 0) {
         this.renderWidgets();
@@ -67,6 +76,15 @@ export class FlareReportViewer {
         // Otherwise just render widgets (will show empty/loading state)
         this.renderWidgets();
       }
+      
+      // Add resize observer to update grid dimensions when window resizes
+      if (typeof ResizeObserver !== 'undefined') {
+        this.resizeObserver = new ResizeObserver(this.handleResize);
+        this.resizeObserver.observe(this.gridContainer);
+      } else {
+        // Fallback for browsers without ResizeObserver
+        window.addEventListener('resize', this.handleResize);
+      }
     } else {
       console.error('Could not find grid container element');
     }
@@ -74,6 +92,15 @@ export class FlareReportViewer {
   
   disconnectedCallback() {
     this.isMounted = false;
+    
+    // Clean up resize observer
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
+    
+    // Clean up resize event listener
+    window.removeEventListener('resize', this.handleResize);
   }
   
   private parseConfiguration(config: any) {
@@ -249,16 +276,17 @@ export class FlareReportViewer {
       case 'text':
         // Create text widget
         element = document.createElement('text-widget');
-        element.setAttribute('widgetId', widget.id);
-        element.setAttribute('widgetTitle', widget.title || '');
-        element.setAttribute('readOnly', 'true');
-        element.setAttribute('isInEditor', 'false');
+        
+        // Set properties directly
+        (element as any).widgetId = widget.id;
+        (element as any).widgetTitle = widget.title || '';
+        (element as any).readOnly = true;
+        (element as any).isInEditor = false;
         
         const textConfig = widget.config || { text: '' };
         if (!textConfig.text) textConfig.text = '';
         
         // Set the config as both attribute and direct property
-        element.setAttribute('config', JSON.stringify(textConfig));
         (element as any).config = textConfig;
         
         // Dispatch a config update event
@@ -276,18 +304,18 @@ export class FlareReportViewer {
       case 'sourceInfo':
         // Create source info widget
         element = document.createElement('source-info-widget');
-        element.setAttribute('widgetId', widget.id);
-        element.setAttribute('widgetTitle', widget.title || '');
-        element.setAttribute('readOnly', 'true');
-        element.setAttribute('isInEditor', 'false');
         
-        // Set config as both attribute and direct property
+        // Set properties directly
+        (element as any).widgetId = widget.id;
+        (element as any).widgetTitle = widget.title || '';
+        (element as any).readOnly = true;
+        (element as any).isInEditor = false;
+        
+        // Set config as direct property
         const sourceInfoConfig = widget.config || {};
-        element.setAttribute('config', JSON.stringify(sourceInfoConfig));
         (element as any).config = sourceInfoConfig;
         
-        // Set available sources as both attribute and direct property
-        element.setAttribute('availableSources', JSON.stringify(this.dataSources || []));
+        // Set available sources as direct property
         (element as any).availableSources = this.dataSources || [];
         
         // Dispatch a config update event
@@ -305,22 +333,22 @@ export class FlareReportViewer {
       case 'descriptiveAnalysis':
         // Create descriptive analysis widget
         element = document.createElement('descriptive-analysis-widget');
-        element.setAttribute('widgetId', widget.id);
-        element.setAttribute('widgetTitle', widget.title || '');
-        element.setAttribute('reportId', this.reportId || '');
-        element.setAttribute('readOnly', 'true');
-        element.setAttribute('isInEditor', 'false');
-        element.setAttribute('isViewer', String(this.isViewer));
         
-        // Set the config as both attribute and direct property
+        // Set properties directly
+        (element as any).widgetId = widget.id;
+        (element as any).widgetTitle = widget.title || '';
+        (element as any).reportId = this.reportId || '';
+        (element as any).readOnly = true;
+        (element as any).isInEditor = false;
+        (element as any).isViewer = this.isViewer;
+        
+        // Set config as direct property
         const descriptiveConfig = widget.config || {};
-        element.setAttribute('config', JSON.stringify(descriptiveConfig));
         (element as any).config = descriptiveConfig;
         
         // Directly pass pre-fetched data to the component through a custom property
         if (widgetDataCache) {
-          // Set data as both attribute and direct property
-          element.setAttribute('data', JSON.stringify(widgetDataCache));
+          // Set data directly
           (element as any).data = widgetDataCache;
           
           // We also need to pass a dummy fetchChartData function
@@ -346,7 +374,7 @@ export class FlareReportViewer {
           }, 100);
         } else if (this.fetchChartData) {
           // If data is still loading, set loading state
-          element.setAttribute('loading', String(dataIsLoading));
+          (element as any).loading = dataIsLoading;
           // Pass real function for future updates
           (element as any).fetchChartData = this.fetchChartData;
         }
@@ -355,22 +383,22 @@ export class FlareReportViewer {
       case 'correlationAnalysis':
         // Create correlation analysis widget  
         element = document.createElement('correlation-analysis-widget');
-        element.setAttribute('widgetId', widget.id);
-        element.setAttribute('widgetTitle', widget.title || '');
-        element.setAttribute('reportId', this.reportId || '');
-        element.setAttribute('readOnly', 'true');
-        element.setAttribute('isInEditor', 'false');
-        element.setAttribute('isViewer', String(this.isViewer));
         
-        // Set the config as both attribute and direct property
+        // Set properties directly
+        (element as any).widgetId = widget.id;
+        (element as any).widgetTitle = widget.title || '';
+        (element as any).reportId = this.reportId || '';
+        (element as any).readOnly = true;
+        (element as any).isInEditor = false;
+        (element as any).isViewer = this.isViewer;
+        
+        // Set config as direct property
         const correlationConfig = widget.config || {};
-        element.setAttribute('config', JSON.stringify(correlationConfig));
         (element as any).config = correlationConfig;
         
         // Directly pass pre-fetched data to the component
         if (widgetDataCache) {
-          // Set data as both attribute and direct property
-          element.setAttribute('data', JSON.stringify(widgetDataCache));
+          // Set data directly
           (element as any).data = widgetDataCache;
           
           // We also need to pass a dummy fetchChartData function
@@ -396,7 +424,7 @@ export class FlareReportViewer {
           }, 100);
         } else if (this.fetchChartData) {
           // If data is still loading, set loading state
-          element.setAttribute('loading', String(dataIsLoading));
+          (element as any).loading = dataIsLoading;
           // Pass real function for future updates
           (element as any).fetchChartData = this.fetchChartData;
         }
@@ -418,11 +446,14 @@ export class FlareReportViewer {
         // Create data widget with specific visualization type
         element = document.createElement('data-widget');
         element.setAttribute('widgetId', widget.id);
-        element.setAttribute('widgetTitle', widget.title || '');
-        element.setAttribute('reportId', this.reportId || '');
-        element.setAttribute('readOnly', 'true');
-        element.setAttribute('isInEditor', 'false');
-        element.setAttribute('isViewer', String(this.isViewer));
+        
+        // Set properties directly
+        (element as any).widgetId = widget.id;
+        (element as any).widgetTitle = widget.title || '';
+        (element as any).reportId = this.reportId || '';
+        (element as any).readOnly = true;
+        (element as any).isInEditor = false;
+        (element as any).isViewer = this.isViewer;
         
         // Use the widget type as visualization type if it's not a generic data widget
         const visualizationType = widget.type === 'data'
@@ -434,19 +465,17 @@ export class FlareReportViewer {
           visualizationType: visualizationType
         };
         
-        element.setAttribute('config', JSON.stringify(dataConfig));
-        element.setAttribute('availableSources', JSON.stringify(this.dataSources || []));
-        element.setAttribute('activeFilters', JSON.stringify(this.activeFilters || []));
+        // Set properties directly
+        (element as any).config = dataConfig;
+        (element as any).availableSources = this.dataSources || [];
+        (element as any).activeFilters = this.activeFilters || [];
         
-        // IMPORTANT FIX: Directly pass the data as a CustomEvent since setAttribute may not work for complex data
+        // Directly pass the data
         if (widgetDataCache) {
-          // First set the data property directly
+          // Set data directly
           (element as any).data = widgetDataCache;
           
-          // Then set the config property directly (not just as an attribute)
-          (element as any).config = dataConfig;
-          
-          // Then dispatch a custom event to ensure the component picks up the data
+          // Dispatch a custom event to ensure the component picks up the data
           setTimeout(() => {
             if (element.isConnected) {
               const dataEvent = new CustomEvent('dataUpdate', {
@@ -539,6 +568,22 @@ export class FlareReportViewer {
       // If we can't fetch new data, just re-render with existing data
       this.renderWidgets();
     }
+  }
+  
+  private setEqualGridDimensions() {
+    if (!this.gridContainer) return;
+    
+    // Get the width of the grid
+    const gridWidth = this.gridContainer.offsetWidth;
+    
+    // Calculate column width (account for gap)
+    const numColumns = 12;
+    const gapSize = 15; // Should match the gap size in CSS
+    const totalGapWidth = gapSize * (numColumns - 1);
+    const columnWidth = (gridWidth - totalGapWidth) / numColumns;
+    
+    // Set the row height to match column width
+    this.gridContainer.style.gridAutoRows = `${columnWidth}px`;
   }
   
   render() {

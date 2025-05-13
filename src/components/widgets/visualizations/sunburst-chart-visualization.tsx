@@ -8,6 +8,7 @@ interface SunburstNode {
   name: string;
   value: number;
   color?: string;
+  label?: string;
   // For rendering
   path?: string;
   startAngle?: number;
@@ -58,6 +59,7 @@ export class SunburstChartVisualization {
     const idField = this.config.idField;
     const parentIdField = this.config.parentIdField;
     const valueField = this.config.valueField;
+    const labelField = this.config.labelField || this.config.groupByField;
     
     // Convert flat data to hierarchical nodes with proper parent/child relationships
     const nodeMap = new Map<string | number, SunburstNode>();
@@ -70,6 +72,7 @@ export class SunburstChartVisualization {
           id,
           parentId: item[parentIdField],
           name: item[this.config.groupByField] || String(id),
+          label: item[labelField] || item[this.config.groupByField] || String(id),
           value: Number(item[valueField] || 0)
         });
       }
@@ -382,7 +385,9 @@ export class SunburstChartVisualization {
         (node.endAngle - node.startAngle) > 15 && // Only show if segment is large enough
         (node.outerRadius - node.innerRadius) > 5; // Only show if segment is thick enough
       
-      const tooltipContent = `${node.name}: ${node.value.toLocaleString()}`;
+      // Use label field if available, fall back to name
+      const displayText = node.label || node.name;
+      const tooltipContent = `${displayText}: ${node.value.toLocaleString()}`;
       
       return (
         <g key={index} class="segment-group">
@@ -409,7 +414,7 @@ export class SunburstChartVisualization {
                 textShadow: '0px 0px 3px rgba(0,0,0,0.5)'
               }}
             >
-              {node.name.toString().substring(0, 6)}{node.name.toString().length > 6 ? '...' : ''}
+              {displayText.toString().substring(0, 6)}{displayText.toString().length > 6 ? '...' : ''}
             </text>
           )}
         </g>
@@ -442,7 +447,7 @@ export class SunburstChartVisualization {
         {displayedLegendItems.map((node, index) => (
           <div key={index} class="legend-item">
             <div class="legend-color-box" style={{ backgroundColor: node.color }}></div>
-            <div class="legend-text">{node.name}: {node.value.toLocaleString()}</div>
+            <div class="legend-text">{node.label || node.name}: {node.value.toLocaleString()}</div>
           </div>
         ))}
         {legendItems.length > maxLegendItems && (

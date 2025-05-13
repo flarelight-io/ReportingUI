@@ -20,7 +20,7 @@ export class SourceInfoWidget {
   @Prop() width?: number;
   @Prop() height?: number;
   @Prop() readOnly: boolean = false;
-  @Prop() isInEditor: boolean = true;
+  @Prop() isInEditor: boolean = false;
   @Prop() config: SourceInfoWidgetConfig = { 
     sourceId: '',
     hideTitle: false,

@@ -26,6 +26,9 @@ graph TD;
   descriptive-analysis-widget --> data-widget
   data-widget --> table-visualization
   data-widget --> bar-chart-visualization
+  data-widget --> stacked-bar-chart-visualization
+  data-widget --> clustered-bar-chart-visualization
+  data-widget --> lollipop-chart-visualization
   data-widget --> line-chart-visualization
   data-widget --> pie-chart-visualization
   data-widget --> kpi-visualization

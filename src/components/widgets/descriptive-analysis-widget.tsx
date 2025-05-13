@@ -20,7 +20,7 @@ export class DescriptiveAnalysisWidget {
   @Prop() width?: number;
   @Prop() height?: number;
   @Prop() readOnly: boolean = false;
-  @Prop() isInEditor: boolean = true;
+  @Prop() isInEditor: boolean = false;
   @Prop() isViewer: boolean = false;
   @Prop() config: DescriptiveAnalysisWidgetConfig = {};
   @Prop() fetchChartData: Function;

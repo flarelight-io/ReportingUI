@@ -27,7 +27,7 @@ export class TextWidget {
   @Prop() width?: number;
   @Prop() height?: number;
   @Prop() readOnly: boolean = false;
-  @Prop() isInEditor: boolean = true;
+  @Prop() isInEditor: boolean = false;
   @Prop() config: TextWidgetConfig = { 
     text: 'Text content goes here', 
     fontSize: 'medium', 

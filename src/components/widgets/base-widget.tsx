@@ -25,7 +25,7 @@ export class BaseWidget {
   @Prop() width?: number;  // Width in grid units
   @Prop() height?: number; // Height in grid units
   @Prop() readOnly: boolean = false;
-  @Prop() isInEditor: boolean = true;
+  @Prop() isInEditor: boolean = false;
   @Prop() hideTitle: boolean = false;
   
   @State() isHovered: boolean = false;
@@ -41,6 +41,7 @@ export class BaseWidget {
 
   render() {
     const shouldShowTitleBar = !this.isInEditor && !this.hideTitle;
+    const displayTitle = this.widgetTitle || '';
 
     return (
       <div class="widget-card" 
@@ -50,7 +51,7 @@ export class BaseWidget {
         {shouldShowTitleBar && (
           <div class="widget-header">
             <div class="title-container">
-              <h3 class="widget-title">{this.widgetTitle}</h3>
+              <h3 class="widget-title">{displayTitle}</h3>
             </div>
           </div>
         )}
