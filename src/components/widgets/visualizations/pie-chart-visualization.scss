@@ -41,56 +41,73 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .visualization-container {
   flex: 1;
   position: relative;
-  overflow: hidden;
-  min-height: 200px;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.visualization-container svg {
+  max-height: 100%;
+  max-width: 100%;
 }
 
 .chart-legend {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
-  margin-top: 8px;
-  padding: 0 8px;
-  max-height: 80px;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 0 4px;
+  max-height: 70px;
   overflow-y: auto;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  margin-right: 12px;
-  margin-bottom: 4px;
+  margin: 0 6px 4px 0;
+  flex-shrink: 0;
+  max-width: 100%;
 }
 
 .color-indicator {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  margin-right: 8px;
+  margin-right: 4px;
   flex-shrink: 0;
 }
 
 .legend-text {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #4b5563;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
 }
 
 .chart-metadata {
-  padding: 4px 8px;
+  padding: 4px;
   font-size: 0.6875rem;
   color: #6b7280;
   text-align: center;
-  margin-top: 4px;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chart-info {
   font-size: 0.6875rem;
   color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
 } 

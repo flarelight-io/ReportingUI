@@ -294,7 +294,7 @@ export class LineChartVisualization {
           <div class="chart-legend">
             <div class="legend-item">
               <div class="color-indicator" style={{ backgroundColor: colors[0] }}></div>
-              <span class="legend-text">{this.config.valueField}</span>
+              <span class="legend-text">{this.config.valueField || "Value"}</span>
             </div>
           </div>
         )}

@@ -412,19 +412,28 @@ export class ScatterChartVisualization {
         
         {this.config.showLegend && (
           <div class="chart-legend">
-            {chartData.map((item, i) => (
+            {chartData.length <= 10 ? (
+              // If we have a reasonable number of points, show them each in the legend
+              chartData.map((item, i) => (
+                <div class="legend-item" key={i}>
+                  <div 
+                    class="color-indicator" 
+                    style={{ backgroundColor: colors[i % colors.length] }}
+                  ></div>
+                  <span class="legend-text">
+                    {String(item.x).length > 10 
+                      ? String(item.x).substring(0, 10) + '...' 
+                      : String(item.x)}: {item.y}
+                  </span>
+                </div>
+              ))
+            ) : (
+              // If we have too many points, just show a summary
               <div class="legend-item">
-                <div 
-                  class="color-indicator" 
-                  style={{ backgroundColor: colors[i % colors.length] }}
-                ></div>
-                <span class="legend-text">
-                  {String(item.x).length > 15 
-                    ? String(item.x).substring(0, 15) + '...' 
-                    : String(item.x)}: {item.y}
-                </span>
+                <div class="color-indicator" style={{ backgroundColor: colors[0] }}></div>
+                <span class="legend-text">{chartData.length} data points</span>
               </div>
-            ))}
+            )}
             
             {/* Add regression line to legend if it exists */}
             {this.config.showRegressionLine && regressionLine && (

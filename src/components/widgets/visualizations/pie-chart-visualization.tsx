@@ -102,11 +102,11 @@ export class PieChartVisualization {
     const total = dataWithPercentages.reduce((sum, item) => sum + item.value, 0);
     const colors = this.getColors();
     
-    // Rendering constants for the chart
+    // Rendering constants for the chart - reduced radius to leave space for labels
     const centerX = 50;
     const centerY = 50;
-    const radius = 45;
-    const innerRadius = this.config.visualizationType === 'donut' ? 25 : 0;
+    const radius = 40; // Reduced from 45 to provide more space for labels
+    const innerRadius = this.config.visualizationType === 'donut' ? 22 : 0;
 
     // Special case handling for single data point
     if (dataWithPercentages.length === 1) {
@@ -164,7 +164,7 @@ export class PieChartVisualization {
                   x1={centerX}
                   y1={centerY - radius}
                   x2={centerX}
-                  y2={centerY - radius - 10}
+                  y2={centerY - radius - 5}
                   stroke="#555"
                   stroke-width="0.5"
                   stroke-dasharray="1,1"
@@ -172,10 +172,10 @@ export class PieChartVisualization {
                 
                 <text
                   x={centerX}
-                  y={centerY - radius - 12}
+                  y={centerY - radius - 7}
                   text-anchor="middle"
                   dominant-baseline="middle"
-                  font-size="5"
+                  font-size="4"
                   fill="#333"
                   font-weight="bold"
                 >
@@ -257,9 +257,10 @@ export class PieChartVisualization {
       const labelX = centerX + labelRadius * Math.cos(midAngleRadians);
       const labelY = centerY + labelRadius * Math.sin(midAngleRadians);
       
-      // Calculate position for external category label
-      const outerLabelRadius = radius * 1.2; // Position external label at 120% of radius
-      const outerConnectorRadius = radius * 1.05; // Position connector end at 105% of radius
+      // Calculate position for external category labels - keep within viewBox
+      const maxLabelDistance = 1.15; // Reduced from 1.2 to ensure labels stay in viewBox
+      const outerLabelRadius = radius * maxLabelDistance;
+      const outerConnectorRadius = radius * 1.02; // Shorter connectors
       const outerLabelX = centerX + outerLabelRadius * Math.cos(midAngleRadians);
       const outerLabelY = centerY + outerLabelRadius * Math.sin(midAngleRadians);
       const connectorX = centerX + outerConnectorRadius * Math.cos(midAngleRadians);
@@ -289,7 +290,7 @@ export class PieChartVisualization {
       };
     });
     
-    // Calculate optimal label properties based on chart properties
+    // Calculate optimal label properties based on chart properties and segment count
     const fontSize = this.calculateFontSize(segments.length);
     const maxTextLength = this.calculateMaxTextLength(segments.length);
     
@@ -326,73 +327,81 @@ export class PieChartVisualization {
               ))
             )}
             
-            {/* Add category name labels around the outside of the chart */}
-            {segments.map((segment, i) => {
-              // Skip very small segments for external labels
-              if (segment.angle < 8) return null;
-              
-              // Calculate the average text length 
-              const avgTextLength = dataWithPercentages.reduce((sum, item) => sum + item.category.length, 0) / dataWithPercentages.length;
-              
-              // Further adjust font size if average text is long
-              let adjustedFontSize = fontSize;
-              if (avgTextLength > 8) {
-                adjustedFontSize = Math.max(3, fontSize * 0.65);
-              }
-              
-              // Truncate text based on available space
-              const displayText = segment.category.length > maxTextLength 
-                ? `${segment.category.substring(0, maxTextLength)}...` 
-                : segment.category;
+            {/* Add category name labels around the outside of the chart - limited to segments larger than 10 degrees */}
+            {segments
+              .filter(segment => segment.angle >= 10)
+              .map((segment, i) => {
+                // Calculate the average text length 
+                const avgTextLength = dataWithPercentages.reduce((sum, item) => sum + item.category.length, 0) / dataWithPercentages.length;
+                
+                // Further adjust font size based on segment count and text length
+                let adjustedFontSize = fontSize;
+                if (avgTextLength > 8 || segments.length > 6) {
+                  adjustedFontSize = Math.max(2.5, fontSize * 0.65);
+                }
+                
+                // Truncate text based on available space and segment size
+                const maxLength = Math.min(maxTextLength, Math.max(3, Math.floor(segment.angle / 10)));
+                const displayText = segment.category.length > maxLength 
+                  ? `${segment.category.substring(0, maxLength)}...` 
+                  : segment.category;
 
-              return (
-                <g key={`label-${i}`}>
-                  {/* Connector line from segment to label */}
-                  <line 
-                    x1={segment.connectorX}
-                    y1={segment.connectorY}
-                    x2={segment.outerLabelX}
-                    y2={segment.outerLabelY}
-                    stroke="#555"
-                    stroke-width="0.5"
-                    stroke-dasharray="1,1"
-                  />
-                  
-                  {/* Category label */}
-                  <text
-                    x={segment.outerLabelX}
-                    y={segment.outerLabelY}
-                    text-anchor={segment.textAnchor}
-                    dominant-baseline="middle"
-                    font-size={adjustedFontSize}
-                    fill="#333"
-                    font-weight="bold"
-                  >
-                    {displayText}
-                  </text>
-                </g>
-              );
+                return (
+                  <g key={`label-${i}`}>
+                    {/* Connector line from segment to label */}
+                    <line 
+                      x1={segment.connectorX}
+                      y1={segment.connectorY}
+                      x2={segment.outerLabelX}
+                      y2={segment.outerLabelY}
+                      stroke="#555"
+                      stroke-width="0.5"
+                      stroke-dasharray="1,1"
+                    />
+                    
+                    {/* Category label */}
+                    <text
+                      x={segment.outerLabelX}
+                      y={segment.outerLabelY}
+                      text-anchor={segment.textAnchor}
+                      dominant-baseline="middle"
+                      font-size={adjustedFontSize}
+                      fill="#333"
+                      font-weight="bold"
+                    >
+                      {displayText}
+                    </text>
+                  </g>
+                );
             })}
           </svg>
         </div>
         
         {this.config.showLegend && (
           <div class="chart-legend">
-            {segments.map((segment, i) => (
-              <div key={i} class="legend-item">
-                <div class="color-indicator" style={{ backgroundColor: segment.color }}></div>
-                <span class="legend-text">
-                  {segment.category}: {segment.value} ({segment.displayPercentage}%)
-                </span>
-              </div>
-            ))}
+            {segments.map((segment, i) => {
+              // Truncate category name in legend if too long
+              const displayText = segment.category.length > 15 
+                ? `${segment.category.substring(0, 15)}...` 
+                : segment.category;
+              
+              return (
+                <div key={i} class="legend-item">
+                  <div class="color-indicator" style={{ backgroundColor: segment.color }}></div>
+                  <span class="legend-text">
+                    {displayText}: {segment.value} ({segment.displayPercentage}%)
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
         
         <div class="chart-metadata">
           {this.config.groupByField && this.config.valueField && (
             <div class="chart-info">
-              Group: {this.config.groupByField} • Value: {this.config.valueField} • Agg: {this.config.aggregation}
+              Group: {this.config.groupByField} • Value: {this.config.valueField} • 
+              Agg: {this.config.aggregation || 'none'}
             </div>
           )}
         </div>
