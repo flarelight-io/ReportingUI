@@ -1,4 +1,4 @@
-import { Component, Prop, h, Host, State, Watch, Element, Listen, EventEmitter } from '@stencil/core';
+import { Component, Prop, h, Host, State, Watch, Element, Listen } from '@stencil/core';
 import { ChartDataRequest, Filter } from '../../api/types/common';
 import { FilterChangeEventDetail, VisualizationData } from './visualizations/base-visualization';
 
