@@ -73,9 +73,10 @@ stages:
       displayName: "Version increase"
       inputs:
         command: 'custom'
-        customCommand: 'npm version patch'
+        customCommand: 'version patch'
 
     - task: Npm@1
+      displayName: "Publish Npm Package"
       inputs:
         command: 'publish'
         workingDir: '$(System.ArtifactsDirectory)/package'
