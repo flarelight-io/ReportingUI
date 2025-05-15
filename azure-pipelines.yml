@@ -24,6 +24,12 @@ stages:
       displayName: 'Install Node.js'
 
     - task: Npm@1
+      displayName: "Version increase"
+      inputs:
+        command: 'custom'
+        customCommand: 'version patch'
+        
+    - task: Npm@1
       displayName: "Npm ci"
       inputs:
         command: "ci"
@@ -68,12 +74,6 @@ stages:
         ArtifactName: 'package'
         publishLocation: 'Container'
       displayName: 'Publish package artifact'
-
-    - task: Npm@1
-      displayName: "Version increase"
-      inputs:
-        command: 'custom'
-        customCommand: 'version patch'
 
     - task: Npm@1
       displayName: "Publish Npm Package"
