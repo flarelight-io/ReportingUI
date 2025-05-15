@@ -191,7 +191,7 @@ export class ReportDemo {
           groupByField: 'category',
           fields: ['series1', 'series2', 'series3'],
           showLegend: true,
-          showGrid: false
+          showGrid: true
         }
       },
       {
@@ -208,7 +208,7 @@ export class ReportDemo {
           groupByField: 'category',
           fields: ['series1', 'series2', 'series3'],
           showLegend: true,
-          showGrid: false
+          showGrid: true
         }
       },
       {
@@ -225,7 +225,7 @@ export class ReportDemo {
           groupByField: 'category',
           fields: ['series1', 'series2', 'series3'],
           showLegend: true,
-          showGrid: false
+          showGrid: true,
         }
       },
       {
@@ -242,7 +242,7 @@ export class ReportDemo {
           groupByField: 'category',
           fields: ['series1', 'series2', 'series3'],
           showLegend: true,
-          showGrid: false
+          showGrid: true
         }
       },
       

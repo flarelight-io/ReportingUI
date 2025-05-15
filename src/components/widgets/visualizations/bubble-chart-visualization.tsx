@@ -197,8 +197,10 @@ export class BubbleChartVisualization {
     // Calculate optimal aspect ratio for the chart
     const viewBoxWidth = 100;
     const viewBoxHeight = 60;
-    const xPadding = 10;
-    const yPadding = 5;
+    
+    // Increase padding to account for bubble sizes and prevent overflow
+    const xPadding = 10 + maxSize / 2;
+    const yPadding = 5 + maxSize / 2;
     
     // Get unique categories for coloring
     const categories = this.getUniqueCategories(bubbleData);
@@ -224,7 +226,8 @@ export class BubbleChartVisualization {
       const y = viewBoxHeight - yPadding - ((item.y - minY) / (maxY - minY || 1)) * (viewBoxHeight - 2 * yPadding);
       
       // Scale bubble size relative to max size (to avoid overly large bubbles)
-      const scaleFactor = maxSize > 30 ? 30 / maxSize : 1;
+      // Reduce the maximum size of bubbles to ensure they fit within the chart area
+      const scaleFactor = Math.min(0.8, maxSize > 20 ? 20 / maxSize : 1);
       const scaledSize = item.size * scaleFactor;
       
       // Get color based on category

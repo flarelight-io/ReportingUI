@@ -284,15 +284,16 @@ export class CorrelationAnalysisWidget {
     const cellSize = Math.max(45, Math.floor(Math.min(this.width || 300, this.height || 300) / rowFields.length));
     const fontSize = Math.max(8, Math.min(11, cellSize * 0.4));
     const maxTextLength = Math.max(...rowFields.map(field => field.length));
-    const padding = 60 + maxTextLength * fontSize * 0.1;
+    const paddingLeft = 60 + maxTextLength * fontSize * 0.1;
+    const paddingTop = 100; // Increased top padding significantly for x-axis labels
     
     // Calculate dimensions
     const gridSize = cellSize * rowFields.length;
-    const svgWidth = Math.max(Math.min(this.width || 300, this.height || 300), gridSize + padding * 2);
-    const svgHeight = Math.max(Math.min(this.width || 300, this.height || 300) - 50, gridSize + padding * 2);
+    const svgWidth = Math.max(Math.min(this.width || 300, this.height || 300), gridSize + paddingLeft * 1.5);
+    const svgHeight = Math.max(Math.min(this.width || 300, this.height || 300) - 80, gridSize + paddingTop * 1.5);
     
     return (
-      <div class="heatmap-container">
+      <div class="heatmap-container" style={{ flexDirection: 'column' }}>
         <div class="heatmap-visualization">
           <svg 
             ref={(el) => this.svgRef = el}
@@ -305,8 +306,8 @@ export class CorrelationAnalysisWidget {
             {rowFields.map((field, i) => (
               <text
                 key={`y-${i}`}
-                x={padding - 3}
-                y={padding + i * cellSize + cellSize / 2}
+                x={paddingLeft - 5}
+                y={paddingTop + i * cellSize + cellSize / 2}
                 text-anchor="end"
                 dominant-baseline="middle"
                 font-size={fontSize}
@@ -320,13 +321,13 @@ export class CorrelationAnalysisWidget {
             {this.fields.map((field, i) => (
               <text
                 key={`x-${i}`}
-                x={padding + i * cellSize + cellSize / 2}
-                y={padding - 3}
+                x={paddingLeft + (i * cellSize) + (cellSize / 2)}
+                y={paddingTop - field.length * fontSize * 0.1}
                 text-anchor="start"
                 dominant-baseline="middle"
                 font-size={fontSize}
                 font-family="sans-serif"
-                transform={`rotate(-45, ${padding + i * cellSize + cellSize / 2}, ${padding - 3})`}
+                transform={`rotate(-45, ${paddingLeft + i * cellSize + cellSize / 2}, ${paddingTop - field.length * fontSize * 0.1})`}
               >
                 {field}
               </text>
@@ -343,8 +344,8 @@ export class CorrelationAnalysisWidget {
                     onMouseLeave={() => this.handleMouseLeave()}
                   >
                     <rect
-                      x={padding + j * cellSize}
-                      y={padding + i * cellSize}
+                      x={paddingLeft + j * cellSize}
+                      y={paddingTop + i * cellSize}
                       width={cellSize}
                       height={cellSize}
                       fill={this.getCorrelationColor(value)}
@@ -355,8 +356,8 @@ export class CorrelationAnalysisWidget {
                     {/* Show correlation values in cells if configured */}
                     {this.config.showLabels && (
                       <text
-                        x={padding + j * cellSize + cellSize / 2}
-                        y={padding + i * cellSize + cellSize / 2}
+                        x={paddingLeft + j * cellSize + cellSize / 2}
+                        y={paddingTop + i * cellSize + cellSize / 2}
                         text-anchor="middle"
                         dominant-baseline="middle"
                         font-size={fontSize}
@@ -386,7 +387,7 @@ export class CorrelationAnalysisWidget {
           )}
         </div>
         
-        {/* Color scale legend */}
+        {/* Color scale legend - positioned below the chart */}
         <div class="color-legend">
           <div class="legend-item">
             <div class="color-box" style={{ backgroundColor: this.colorScale[0] }}></div>

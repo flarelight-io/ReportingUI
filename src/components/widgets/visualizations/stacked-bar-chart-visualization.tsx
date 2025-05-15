@@ -133,8 +133,12 @@ export class StackedBarChartVisualization {
     
     // SVG dimensions
     const viewBoxWidth = isHorizontal ? 200 : 200;
-    const viewBoxHeight = isHorizontal ? 300 : 100;
+    const viewBoxHeight = isHorizontal ? Math.max(200, chartData.length * 35) : 100;
     const step = Math.floor(viewBoxWidth / chartData.length);
+    
+    // Calculate available space
+    const availableWidth = viewBoxWidth - (isHorizontal ? 40 : 10);
+    const availableHeight = viewBoxHeight - 50;
     
     // Label properties
     const { fontSize, maxTextLength } = this.calculateLabelProperties(chartData);
@@ -142,39 +146,21 @@ export class StackedBarChartVisualization {
     // Calculate positions and dimensions for bars
     const bars = chartData.map((item, categoryIndex) => {
       const segments = item.values.map((segment, segmentIndex) => {
-        const scaledValue = (segment.value / maxValue) * 90; // Max bar height/width is 90% of the available space
+        const scaledValue = (segment.value / maxValue) * (isHorizontal ? availableWidth * 0.9 : 90); // Scale appropriately
         
         if (isHorizontal) {
           // For horizontal bars
-          // Adjust to prevent bars from going outside the bottom boundary
-          const totalRows = chartData.length;
-          const barHeight = step * 0.8; // Bar height
-          const verticalSpace = viewBoxHeight - 45; // Significantly increase padding at bottom
-          const requiredSpace = totalRows * step * 1.45;
-          
-          // Adjust the vertical position calculation based on available space
-          let y;
-          if (requiredSpace > verticalSpace) {
-            // Compress the bars to fit
-            const adjustedStep = verticalSpace / totalRows;
-            y = viewBoxHeight - 45 - (categoryIndex * adjustedStep); // Start much higher
-          } else {
-            // Regular spacing with adjustment for the last bar
-            y = viewBoxHeight - 45 - (categoryIndex * step * 1.45); // Start much higher
-            // Ensure the bottom bar doesn't extend beyond the chart
-            if (categoryIndex === totalRows - 1) {
-              y = Math.min(y, viewBoxHeight - 45 - barHeight);
-            }
-          }
+          const categoryYPosition = 30 + (categoryIndex * (availableHeight / chartData.length));
+          const barHeight = (availableHeight / chartData.length) * 0.7;
           
           // Calculate starting position based on previous segments
           const startPosition = item.values
             .slice(0, segmentIndex)
-            .reduce((sum, prev) => sum + (prev.value / maxValue) * 90, 0);
+            .reduce((sum, prev) => sum + (prev.value / maxValue) * availableWidth * 0.9, 0);
           
           return {
-            x: 5 + startPosition,
-            y,
+            x: 40 + startPosition,
+            y: categoryYPosition,
             width: scaledValue,
             height: barHeight,
             color: colors[segmentIndex % colors.length],
@@ -203,9 +189,22 @@ export class StackedBarChartVisualization {
         }
       });
       
+      // Calculate center point for category labels
+      let centerPoint;
+      if (isHorizontal) {
+        const categoryYPosition = 30 + (categoryIndex * (availableHeight / chartData.length));
+        const barHeight = (availableHeight / chartData.length) * 0.7;
+        centerPoint = categoryYPosition + barHeight / 2;
+      } else {
+        const x = 5 + (categoryIndex * step * 0.95) + (step * 0.7 / 2);
+        centerPoint = x;
+      }
+      
       return {
         category: item.category,
-        segments
+        segments,
+        center: centerPoint,
+        total: item.total
       };
     });
 
@@ -218,101 +217,182 @@ export class StackedBarChartVisualization {
             viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`} 
             preserveAspectRatio="xMidYMin meet"
           >
-            {this.config.showGrid && (
-              <g>
-                {/* Draw grid lines */}
-                {[0, 25, 50, 75, 100].map((pos, i) => (
-                  <g key={i}>
-                    <line x1="5" y1={pos} x2={viewBoxWidth - 5} y2={pos} stroke="#ccc" stroke-width="0.5" />
-                    {Array.from({length: 5}).map((_, j) => {
-                      const xPos = 5 + (j * (viewBoxWidth - 10) / 4);
-                      return <line key={`v-${j}`} x1={xPos} y1="5" x2={xPos} y2={viewBoxHeight - 5} stroke="#ccc" stroke-width="0.5" />
-                    })}
-                  </g>
-                ))}
-              </g>
-            )}
+            {/* Background and grid elements */}
+            <g class="chart-background">
+              {this.config.showGrid && (
+                <g>
+                  {/* Draw grid lines */}
+                  {isHorizontal ? (
+                    // Horizontal grid lines for horizontal bar chart
+                    Array.from({length: 5}).map((_, i) => {
+                      const xPos = 40 + (i * availableWidth / 4);
+                      return <line key={`v-${i}`} x1={xPos} y1="30" x2={xPos} y2={viewBoxHeight - 10} stroke="#ccc" stroke-width="0.5" stroke-dasharray={i > 0 ? "1,1" : ""} />
+                    })
+                  ) : (
+                    // Grid lines for vertical bar chart - revised to align properly
+                    <g>
+                      {/* Horizontal grid lines */}
+                      {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+                        const yPos = 95 - (ratio * 90); // Aligned with the chart height
+                        return (
+                          <line 
+                            key={`h-${i}`} 
+                            x1="5" 
+                            y1={yPos} 
+                            x2={viewBoxWidth - 5} 
+                            y2={yPos} 
+                            stroke="#ccc" 
+                            stroke-width="0.5"
+                            stroke-dasharray={i > 0 ? "1,1" : ""}
+                          />
+                        );
+                      })}
+                      
+                      {/* Vertical grid lines */}
+                      {Array.from({length: 5}).map((_, i) => {
+                        const xPos = 5 + (i * (viewBoxWidth - 10) / 4);
+                        return (
+                          <line 
+                            key={`v-${i}`} 
+                            x1={xPos} 
+                            y1="5" 
+                            x2={xPos} 
+                            y2="95" 
+                            stroke="#ccc" 
+                            stroke-width="0.5"
+                            stroke-dasharray={i > 0 ? "1,1" : ""}
+                          />
+                        );
+                      })}
+                    </g>
+                  )}
+                </g>
+              )}
+            </g>
             
             {/* Draw stacked bars */}
-            {bars.map((bar, i) => (
-              <g key={i}>
-                {bar.segments.map((segment, j) => (
-                  <rect 
-                    key={`${i}-${j}`} 
-                    x={segment.x} 
-                    y={segment.y} 
-                    width={segment.width} 
-                    height={segment.height} 
-                    fill={segment.color}
-                    style={{ cursor: 'pointer' }}
-                    onMouseMove={(e) => this.handleMouseMove(e, { field: segment.field, value: segment.value }, bar.category)}
-                    onMouseLeave={() => this.handleMouseLeave()}
-                    onClick={() => this.handleFilterClick(this.config.groupByField, bar.category)}
-                  />
-                ))}
-              </g>
-            ))}
-            
-            {/* X and Y axis */}
-            <line x1="5" y1={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} x2={viewBoxWidth - 5} y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} stroke="#333" stroke-width="1" />
-            <line x1="5" y1="5" x2="5" y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} stroke="#333" stroke-width="1" />
+            <g class="chart-bars">
+              {bars.map((bar, i) => (
+                <g key={i}>
+                  {bar.segments.map((segment, j) => (
+                    <rect 
+                      key={`${i}-${j}`} 
+                      x={segment.x} 
+                      y={segment.y} 
+                      width={segment.width} 
+                      height={segment.height} 
+                      fill={segment.color}
+                      style={{ cursor: 'pointer' }}
+                      onMouseMove={(e) => this.handleMouseMove(e, { field: segment.field, value: segment.value }, bar.category)}
+                      onMouseLeave={() => this.handleMouseLeave()}
+                      onClick={() => this.handleFilterClick(this.config.groupByField, bar.category)}
+                    />
+                  ))}
+                </g>
+              ))}
+            </g>
             
             {/* Category labels */}
-            {!isHorizontal && (
-              <g>
-                {chartData.map((item, i) => {
-                  const x = 5 + (i * step * 0.95) + (step * 0.7 / 2);
-                  
-                  // Truncate text based on available space
-                  const displayText = item.category.length > maxTextLength 
-                    ? `${item.category.substring(0, maxTextLength)}...` 
-                    : item.category;
-                  
-                  return (
-                    <text 
-                      key={i} 
-                      x={x} 
-                      y={105} 
-                      font-size={fontSize}
-                      text-anchor="middle"
-                      fill="#333"
-                    >
-                      {displayText}
-                    </text>
-                  );
-                })}
-              </g>
-            )}
+            <g class="chart-categories">
+              {!isHorizontal && chartData.map((item, i) => {
+                // Truncate text based on available space
+                const displayText = item.category.length > maxTextLength 
+                  ? `${item.category.substring(0, maxTextLength)}...` 
+                  : item.category;
+                
+                return (
+                  <text 
+                    key={i} 
+                    x={bars[i].center} 
+                    y={105} 
+                    font-size={fontSize}
+                    text-anchor="middle"
+                    fill="#333"
+                  >
+                    {displayText}
+                  </text>
+                );
+              })}
+              
+              {/* For horizontal bar charts, show labels on the bars */}
+              {isHorizontal && bars.map((bar, i) => {
+                // Calculate total width
+                const totalWidth = bar.segments.reduce((sum, segment) => sum + segment.width, 0);
+                
+                // Truncate text based on available space
+                const displayText = bar.category.length > maxTextLength 
+                  ? `${bar.category.substring(0, maxTextLength)}...` 
+                  : bar.category;
+                
+                return (
+                  <text 
+                    key={i} 
+                    x={35} 
+                    y={bar.center} 
+                    font-size={fontSize} 
+                    text-anchor="end"
+                    dominant-baseline="middle" 
+                    fill="#555"
+                  >
+                    {displayText}
+                  </text>
+                );
+              })}
+            </g>
             
-            {/* For horizontal bar charts, show labels on the bars */}
-            {isHorizontal && (
-              <g>
-                {bars.map((bar, i) => {
-                  const y = viewBoxHeight - 45 - (i * step * 1.25) + (step * 0.8 / 2);
+            {/* X and Y axis - Always draw regardless of showGrid setting - DRAWN LAST to ensure visibility */}
+            <g class="chart-axes">
+              {isHorizontal ? (
+                // Axis for horizontal bar chart
+                <>
+                  <line x1="40" y1="30" x2="40" y2={viewBoxHeight - 10} stroke="#333" stroke-width="1.5" />
+                  <line x1="40" y1={viewBoxHeight - 10} x2={viewBoxWidth - 10} y2={viewBoxHeight - 10} stroke="#333" stroke-width="1.5" />
                   
-                  // Calculate total width
-                  const totalWidth = bar.segments.reduce((sum, segment) => sum + segment.width, 0);
+                  {/* X-axis labels */}
+                  {Array.from({length: 5}).map((_, i) => {
+                    const xPos = 40 + (i * availableWidth / 4);
+                    const value = Math.round((i * maxValue / 4) * 100) / 100;
+                    return (
+                      <text
+                        key={`x-label-${i}`}
+                        x={xPos}
+                        y={viewBoxHeight - 5}
+                        font-size={fontSize * 0.8}
+                        text-anchor="middle"
+                        fill="#666"
+                      >
+                        {value}
+                      </text>
+                    );
+                  })}
+                </>
+              ) : (
+                // Axis for vertical bar chart
+                <>
+                  <line x1="5" y1="95" x2={viewBoxWidth - 5} y2="95" stroke="#333" stroke-width="1.5" />
+                  <line x1="5" y1="5" x2="5" y2="95" stroke="#333" stroke-width="1.5" />
                   
-                  // Truncate text based on available space
-                  const displayText = bar.category.length > maxTextLength 
-                    ? `${bar.category.substring(0, maxTextLength)}...` 
-                    : bar.category;
-                  
-                  return (
-                    <text 
-                      key={i} 
-                      x={5 + totalWidth + 2} 
-                      y={y} 
-                      font-size={fontSize} 
-                      dominant-baseline="middle" 
-                      fill="#555"
-                    >
-                      {displayText} ({chartData[i].total})
-                    </text>
-                  );
-                })}
-              </g>
-            )}
+                  {/* Y-axis labels */}
+                  {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+                    const yPos = 95 - (ratio * 90);
+                    const value = Math.round((ratio * maxValue) * 100) / 100;
+                    return (
+                      <text
+                        key={`y-label-${i}`}
+                        x="3"
+                        y={yPos}
+                        font-size={fontSize * 0.8}
+                        text-anchor="end"
+                        dominant-baseline="middle"
+                        fill="#666"
+                      >
+                        {value}
+                      </text>
+                    );
+                  })}
+                </>
+              )}
+            </g>
           </svg>
           
           {/* Tooltip */}

@@ -223,9 +223,9 @@ export class HeatmapVisualization {
       ...heatmapData.colLabels.map(label => label.length)
     );
     
-    // Base padding for row and column labels
+    // Base padding for row and column labels - reduce colLabelPadding to remove excess whitespace
     const rowLabelPadding = Math.min(maxTextLength * 5, 80);
-    const colLabelPadding = 40;
+    const colLabelPadding = 20; // Reduced from 40 to eliminate excess top space
     
     // Calculate cell size constraints
     const cellWidth = 30;
