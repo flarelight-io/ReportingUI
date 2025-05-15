@@ -56,6 +56,7 @@ graph TD;
   data-widget --> heatmap-visualization
   data-widget --> sunburst-chart-visualization
   data-widget --> bubble-chart-visualization
+  data-widget --> box-whisker-chart-visualization
   data-widget --> base-widget
   correlation-analysis-widget --> base-widget
   report-demo --> flare-report-viewer

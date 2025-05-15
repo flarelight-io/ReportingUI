@@ -37,6 +37,7 @@ graph TD;
   data-widget --> heatmap-visualization
   data-widget --> sunburst-chart-visualization
   data-widget --> bubble-chart-visualization
+  data-widget --> box-whisker-chart-visualization
   data-widget --> base-widget
   correlation-analysis-widget --> base-widget
   style report-demo fill:#f9f,stroke:#333,stroke-width:4px
