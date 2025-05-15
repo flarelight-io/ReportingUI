@@ -39,34 +39,10 @@ stages:
         projectName: 'Pegasus/ReportingUI'
         organization: 'crogox'
 
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: 'dist'
-        Contents: '**'
-        TargetFolder: '$(Build.ArtifactStagingDirectory)/dist'
-      displayName: 'Copy dist folder to artifacts'
-
-    - task: CopyFiles@2
-      inputs:
-        Contents: |
-          package.json
-          README.md
-          LICENSE
-          .npmrc
-        TargetFolder: '$(Build.ArtifactStagingDirectory)'
-      displayName: 'Copy package files to artifacts'
-
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'package'
-        publishLocation: 'Container'
-      displayName: 'Publish package artifact'
-
     - task: Npm@1
-      displayName: "Publish Npm Package"
+      displayName: 'Publish'
       continueOnError: true
       inputs:
         command: 'publish'
         publishRegistry: 'useFeed'
-        publishFeed: 'pegasus'
+        publishFeed: 'dbd3a592-3bd3-427d-81d2-1aef2f9e4a6f/c296f9a0-cc3d-45bd-90c3-ffcb1737fdaf'
