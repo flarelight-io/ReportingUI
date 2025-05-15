@@ -68,6 +68,5 @@ stages:
       continueOnError: true
       inputs:
         command: 'publish'
-        workingDir: '$(System.ArtifactsDirectory)/package'
         publishRegistry: 'useFeed'
         publishFeed: 'pegasus'
