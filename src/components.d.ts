@@ -35,6 +35,10 @@ export namespace Components {
         "widgetTitle": string;
         "width"?: number;
     }
+    interface BoxWhiskerChartVisualization {
+        "config": DataWidgetConfig;
+        "data": VisualizationData;
+    }
     interface BubbleChartVisualization {
         "config": DataWidgetConfig;
         "data": VisualizationData;
@@ -158,6 +162,10 @@ export interface BarChartVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLBarChartVisualizationElement;
 }
+export interface BoxWhiskerChartVisualizationCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLBoxWhiskerChartVisualizationElement;
+}
 export interface BubbleChartVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLBubbleChartVisualizationElement;
@@ -229,6 +237,23 @@ declare global {
     var HTMLBaseWidgetElement: {
         prototype: HTMLBaseWidgetElement;
         new (): HTMLBaseWidgetElement;
+    };
+    interface HTMLBoxWhiskerChartVisualizationElementEventMap {
+        "filterChange": FilterChangeEventDetail;
+    }
+    interface HTMLBoxWhiskerChartVisualizationElement extends Components.BoxWhiskerChartVisualization, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLBoxWhiskerChartVisualizationElementEventMap>(type: K, listener: (this: HTMLBoxWhiskerChartVisualizationElement, ev: BoxWhiskerChartVisualizationCustomEvent<HTMLBoxWhiskerChartVisualizationElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLBoxWhiskerChartVisualizationElementEventMap>(type: K, listener: (this: HTMLBoxWhiskerChartVisualizationElement, ev: BoxWhiskerChartVisualizationCustomEvent<HTMLBoxWhiskerChartVisualizationElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLBoxWhiskerChartVisualizationElement: {
+        prototype: HTMLBoxWhiskerChartVisualizationElement;
+        new (): HTMLBoxWhiskerChartVisualizationElement;
     };
     interface HTMLBubbleChartVisualizationElementEventMap {
         "filterChange": FilterChangeEventDetail;
@@ -479,6 +504,7 @@ declare global {
     interface HTMLElementTagNameMap {
         "bar-chart-visualization": HTMLBarChartVisualizationElement;
         "base-widget": HTMLBaseWidgetElement;
+        "box-whisker-chart-visualization": HTMLBoxWhiskerChartVisualizationElement;
         "bubble-chart-visualization": HTMLBubbleChartVisualizationElement;
         "clustered-bar-chart-visualization": HTMLClusteredBarChartVisualizationElement;
         "correlation-analysis-widget": HTMLCorrelationAnalysisWidgetElement;
@@ -514,6 +540,11 @@ declare namespace LocalJSX {
         "widgetId"?: string;
         "widgetTitle"?: string;
         "width"?: number;
+    }
+    interface BoxWhiskerChartVisualization {
+        "config"?: DataWidgetConfig;
+        "data"?: VisualizationData;
+        "onFilterChange"?: (event: BoxWhiskerChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
     interface BubbleChartVisualization {
         "config"?: DataWidgetConfig;
@@ -648,6 +679,7 @@ declare namespace LocalJSX {
     interface IntrinsicElements {
         "bar-chart-visualization": BarChartVisualization;
         "base-widget": BaseWidget;
+        "box-whisker-chart-visualization": BoxWhiskerChartVisualization;
         "bubble-chart-visualization": BubbleChartVisualization;
         "clustered-bar-chart-visualization": ClusteredBarChartVisualization;
         "correlation-analysis-widget": CorrelationAnalysisWidget;
@@ -675,6 +707,7 @@ declare module "@stencil/core" {
         interface IntrinsicElements {
             "bar-chart-visualization": LocalJSX.BarChartVisualization & JSXBase.HTMLAttributes<HTMLBarChartVisualizationElement>;
             "base-widget": LocalJSX.BaseWidget & JSXBase.HTMLAttributes<HTMLBaseWidgetElement>;
+            "box-whisker-chart-visualization": LocalJSX.BoxWhiskerChartVisualization & JSXBase.HTMLAttributes<HTMLBoxWhiskerChartVisualizationElement>;
             "bubble-chart-visualization": LocalJSX.BubbleChartVisualization & JSXBase.HTMLAttributes<HTMLBubbleChartVisualizationElement>;
             "clustered-bar-chart-visualization": LocalJSX.ClusteredBarChartVisualization & JSXBase.HTMLAttributes<HTMLClusteredBarChartVisualizationElement>;
             "correlation-analysis-widget": LocalJSX.CorrelationAnalysisWidget & JSXBase.HTMLAttributes<HTMLCorrelationAnalysisWidgetElement>;

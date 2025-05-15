@@ -315,10 +315,7 @@ export class StackedBarChartVisualization {
               })}
               
               {/* For horizontal bar charts, show labels on the bars */}
-              {isHorizontal && bars.map((bar, i) => {
-                // Calculate total width
-                const totalWidth = bar.segments.reduce((sum, segment) => sum + segment.width, 0);
-                
+              {isHorizontal && bars.map((bar, i) => {                
                 // Truncate text based on available space
                 const displayText = bar.category.length > maxTextLength 
                   ? `${bar.category.substring(0, maxTextLength)}...` 

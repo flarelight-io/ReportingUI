@@ -332,14 +332,50 @@ export class ReportDemo {
         }
       },
       
+      // Statistical Charts
+      {
+        id: 'stats-section',
+        type: 'text',
+        title: '',
+        x: 0,
+        y: 16,
+        w: 12,
+        h: 1,
+        config: {
+          text: '## Statistical Charts',
+          fontSize: 'medium',
+          textAlign: 'left',
+          enableFormatting: true,
+          hideTitle: true
+        }
+      },
+      {
+        id: 'box-whisker-chart',
+        type: 'data',
+        title: 'Box and Whisker Plot',
+        x: 0,
+        y: 17,
+        w: 6,
+        h: 3,
+        config: {
+          sourceId: 'sample-box-whisker',
+          visualizationType: 'box-whisker',
+          groupByField: 'group',
+          valueField: 'value',
+          showGrid: true,
+          showLabels: true,
+          showLegend: true
+        }
+      },
+      
       // Complex Charts
       {
         id: 'sunburst-chart',
         type: 'data',
         title: 'Sunburst Chart',
-        x: 0,
-        y: 16,
-        w: 4,
+        x: 6,
+        y: 17,
+        w: 6,
         h: 3,
         config: {
           sourceId: 'sample-hierarchy',
@@ -357,8 +393,8 @@ export class ReportDemo {
         id: 'bubble-chart',
         type: 'data',
         title: 'Bubble Chart',
-        x: 4,
-        y: 16,
+        x: 0,
+        y: 20,
         w: 4,
         h: 3,
         config: {
@@ -377,8 +413,8 @@ export class ReportDemo {
         id: 'descriptive-analysis',
         type: 'descriptiveAnalysis',
         title: 'Descriptive Statistics',
-        x: 8,
-        y: 16,
+        x: 4,
+        y: 20,
         w: 4,
         h: 3,
         config: {
@@ -390,9 +426,9 @@ export class ReportDemo {
         id: 'correlation-analysis',
         type: 'correlationAnalysis',
         title: 'Correlation Analysis',
-        x: 0,
-        y: 19,
-        w: 12,
+        x: 8,
+        y: 20,
+        w: 4,
         h: 3,
         config: {
           analysisId: 'sample-correlation',
@@ -501,6 +537,15 @@ export class ReportDemo {
         name: 'Correlation Analysis',
         type: 'analysis',
         analysisType: 'correlation'
+      },
+      {
+        id: 'sample-box-whisker',
+        name: 'Statistical Distribution Data',
+        type: 'mock',
+        fields: [
+          { name: 'group', displayName: 'Group', type: 'string' },
+          { name: 'value', displayName: 'Value', type: 'number' }
+        ]
       }
     ]
   };
@@ -598,6 +643,35 @@ export class ReportDemo {
           { value: 1250000 }
         ];
         
+      case 'sample-box-whisker':
+        // Generate data with different statistical distributions for each group
+        const result = [];
+        
+        // Group A: Normal distribution around 50
+        for (let i = 0; i < 30; i++) {
+          result.push({ group: 'Group A', value: 50 + (Math.random() + Math.random() + Math.random() - 1.5) * 15 });
+        }
+        
+        // Group B: Normal distribution around 70 with wider spread
+        for (let i = 0; i < 30; i++) {
+          result.push({ group: 'Group B', value: 70 + (Math.random() + Math.random() + Math.random() - 1.5) * 25 });
+        }
+        
+        // Group C: Skewed right distribution
+        for (let i = 0; i < 30; i++) {
+          result.push({ group: 'Group C', value: 40 + Math.pow(Math.random(), 2) * 60 });
+        }
+        
+        // Group D: Bimodal distribution
+        for (let i = 0; i < 15; i++) {
+          result.push({ group: 'Group D', value: 30 + Math.random() * 15 });
+        }
+        for (let i = 0; i < 15; i++) {
+          result.push({ group: 'Group D', value: 70 + Math.random() * 15 });
+        }
+        
+        return result;
+      
       case 'sample-descriptive':
         return [
           { Statistic: 'Count', Value: 100 },
@@ -621,6 +695,10 @@ export class ReportDemo {
           ];
         }
         break;
+      
+      default:
+        console.warn(`No mock data available for source: ${request.sourceId}`);
+        return [];
     }
     
     return [];

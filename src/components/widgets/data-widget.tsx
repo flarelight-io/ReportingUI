@@ -5,7 +5,7 @@ import { FilterChangeEventDetail, VisualizationData } from './visualizations/bas
 export interface DataWidgetConfig {
   sourceId?: string;
   sourceName?: string;
-  visualizationType?: 'table' | 'bar' | 'line' | 'pie' | 'donut' | 'hbar' | 'scatter' | 'sunburst' | 'heatmap' | 'bubble' | 'kpi' | 'histogram' | 'stacked-bar' | 'stacked-hbar' | 'clustered-bar' | 'clustered-hbar' | 'lollipop' | 'lollipop-h';
+  visualizationType?: 'table' | 'bar' | 'line' | 'pie' | 'donut' | 'hbar' | 'scatter' | 'sunburst' | 'heatmap' | 'bubble' | 'kpi' | 'histogram' | 'stacked-bar' | 'stacked-hbar' | 'clustered-bar' | 'clustered-hbar' | 'lollipop' | 'lollipop-h' | 'box-whisker';
   fields?: string[];
   hideTitle?: boolean;
   showLabels?: boolean;
@@ -325,6 +325,14 @@ export class DataWidget {
       case 'bubble':
         return (
           <bubble-chart-visualization 
+            config={this.config} 
+            data={visualizationData}
+          />
+        );
+      
+      case 'box-whisker':
+        return (
+          <box-whisker-chart-visualization 
             config={this.config} 
             data={visualizationData}
           />
