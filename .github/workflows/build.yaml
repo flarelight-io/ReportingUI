@@ -22,6 +22,10 @@ jobs:
       with:
         node-version: '20'
 
+    - name: 📄 Configure .npmrc for GitHub Packages
+      run: |
+        echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+        
     - name: 📦 NPM CI
       run: npm ci
       env:
