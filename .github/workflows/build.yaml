@@ -13,9 +13,6 @@ jobs:
       contents: read
       packages: write
 
-    env:
-      npm_config_cache: ${{ github.workspace }}/.npm
-
     steps:
     - name: 🧾 Checkout Code
       uses: actions/checkout@v4
@@ -30,9 +27,7 @@ jobs:
          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
     - name: 📦 NPM Install
-      run: |
-        npm config set //npm.pkg.github.com/:_authToken $TOKEN
-        npm ci --no-cleanup
+      run: npm ci --no-cleanup
 
     - name: 🛠️ Build
       run: npm run build
