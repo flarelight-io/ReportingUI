@@ -28,6 +28,8 @@ jobs:
 
     - name: 📦 NPM Install
       run: npm ci --no-cleanup
+      env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     - name: 🛠️ Build
       run: npm run build
