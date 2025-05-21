@@ -1,4 +1,4 @@
-name: Build and Test
+name: Clean NPM Install
 
 on:
   push:
@@ -7,27 +7,29 @@ on:
 
 jobs:
   build:
-    name: Build Package
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
 
     steps:
     - name: 🧾 Checkout Code
       uses: actions/checkout@v4
 
-    - name: Setup Node.js environment
+    - name: 🟢 Setup Node.js
       uses: actions/setup-node@v3.9.1
       with:
         node-version: '22'
-        registry-url: 'https://registry.npmjs.org/'
-    
-    - run: npm i npm -g
-    - name: 🧹 Remove local .npmrc if present
-      run: rm -f .npmrc
-    
-    - run: npm ci
-    - run: npm run build
 
-          
+    - name: 🧹 Remove ALL npmrc files
+      run: |
+        rm -f ~/.npmrc
+        rm -f .npmrc
+
+    - name: 🔧 Force public registry and scope fallback
+      run: |
+        echo "registry=https://registry.npmjs.org/" > ~/.npmrc
+        echo "@flarelight-io:registry=https://registry.npmjs.org/" >> ~/.npmrc
+
+    - name: 🧪 Show .npmrc
+      run: cat ~/.npmrc
+
+    - name: 📦 Run npm install
+      run: npm install --verbose
