@@ -8,6 +8,9 @@
   "collection": "dist/collection/collection-manifest.json",
   "collection:main": "dist/collection/index.js",
   "unpkg": "dist/flarelight-reporting/flarelight-reporting.esm.js",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "exports": {
     ".": {
       "import": "./dist/flarelight-reporting/flarelight-reporting.esm.js",
@@ -28,8 +31,7 @@
     "start": "npx stencil build --dev --watch --serve",
     "test": "npx stencil test --spec --e2e",
     "test.watch": "npx stencil test --spec --e2e --watchAll",
-    "generate": "npx stencil generate",
-    "prepublishOnly": "npm run build"
+    "generate": "npx stencil generate"
   },
   "dependencies": {
     "chart.js": "^4.4.1",
