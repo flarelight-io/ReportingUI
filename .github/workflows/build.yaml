@@ -21,13 +21,14 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '20'
+        registry-url: 'https://registry.npmjs.org/'
+        scope: '@flarelight-io'
+        always-auth: true
 
     - name: 📄 Configure .npmrc for npmjs + GitHub Packages
       run: |
-        echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
-        echo "@flarelight-io:registry=https://npm.pkg.github.com/" >> ~/.npmrc
-        echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
-
+        echo "@flarelight-io:registry=https://npm.pkg.github.com/" >> .npmrc
+        echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
 
     - name: 📦 NPM CI
       run: npm ci
