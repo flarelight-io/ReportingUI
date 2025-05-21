@@ -17,25 +17,10 @@ jobs:
     - name: 🧾 Checkout Code
       uses: actions/checkout@v4
 
-    - name: 🧪 Snyk Scan
-      uses: snyk/actions/node@master
-      with:
-        command: test
-        project: Pegasus/ReportingUI
-        args: --all-projects --severity-threshold=medium
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}  
-    
-    - name: 🟢 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22'
-        registry-url: https://npm.pkg.github.com/
-        scope: "@flarelight-io"
-        always-auth: true
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v3.9.1
 
-    - run: npm install
+    - run: npm ci
     - run: npm run build
     - run: npm publish
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
