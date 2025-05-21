@@ -22,8 +22,8 @@ jobs:
       with:
         node-version: '22'
 
-    - name: 📦 NPM CI
-      run: npm ci
+    - name: 📦 NPM Install
+      run: npm install
 
     - name: 🛠️ Build
       run: npm run build
@@ -35,15 +35,12 @@ jobs:
         project: Pegasus/ReportingUI
         args: --all-projects --severity-threshold=medium
       env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-    - name: 📄 Configure .npmrc for npmjs + GitHub Packages
-      run: |
-        echo "@flarelight-io:registry=https://npm.pkg.github.com/" >> ~/.npmrc
-        echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc    
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}  
 
     - name: 📤 Publish Package (GitHub Packages)
       if: success()
-      run: npm publish
+      run: |
+        npm config set //npm.pkg.github.com/:_authToken $TOKEN
+        npm publish
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
