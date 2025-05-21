@@ -28,8 +28,5 @@ jobs:
         echo "registry=https://registry.npmjs.org/" > ~/.npmrc
         echo "@flarelight-io:registry=https://registry.npmjs.org/" >> ~/.npmrc
 
-    - name: 🧪 Show .npmrc
-      run: cat ~/.npmrc
-
     - name: 📦 Run npm install
       run: npm install --verbose
