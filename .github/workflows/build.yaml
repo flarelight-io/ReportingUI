@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build Package
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     env:
       npm_config_cache: ${{ github.workspace }}/.npm
@@ -23,7 +23,7 @@ jobs:
         node-version: '22'
 
     - name: 📦 NPM Install
-      run: npm install
+      run: npm ci --no-cleanup
 
     - name: 🛠️ Build
       run: npm run build
