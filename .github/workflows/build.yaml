@@ -22,10 +22,13 @@ jobs:
       with:
         node-version: '20'
 
-    - name: 📄 Configure .npmrc for GitHub Packages
+    - name: 📄 Configure .npmrc for npmjs + GitHub Packages
       run: |
-        echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
-        
+        echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
+        echo "@flarelight-io:registry=https://npm.pkg.github.com/" >> ~/.npmrc
+        echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+
+
     - name: 📦 NPM CI
       run: npm ci
       env:
