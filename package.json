@@ -19,10 +19,6 @@
       "types": "./loader/index.d.ts"
     }
   },
-  "repository": {
-    "type": "git",
-    "url": "https://dev.azure.com/goranstj/pegasus/_git/ReportingUI"
-  },
   "files": [
     "dist/",
     "loader/"
@@ -34,9 +30,6 @@
     "test.watch": "npx stencil test --spec --e2e --watchAll",
     "generate": "npx stencil generate",
     "prepublishOnly": "npm run build"
-  },
-  "publishConfig": {
-    "registry": "https://goranstj.pkgs.visualstudio.com/dbd3a592-3bd3-427d-81d2-1aef2f9e4a6f/_packaging/ee73f49f-5382-763e-af0f-83819e98acaa/npm/registry/"
   },
   "dependencies": {
     "chart.js": "^4.4.1",
