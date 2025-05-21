@@ -29,8 +29,13 @@ jobs:
         echo "registry=https://registry.npmjs.org/" > ~/.npmrc
         echo "@flarelight-io:registry=https://registry.npmjs.org/" >> ~/.npmrc
 
-    - name: 📦 Run npm install
-      run: npm install --verbose
+    - name: 🧹 Clean lockfile and modules
+      run: |
+        rm -rf node_modules package-lock.json
+        npm cache clean --force
+
+    - name: 📦 Fresh Install
+      run: npm install
 
     - name: 🛠️ Build
       run: npm run build
