@@ -17,10 +17,10 @@ jobs:
     - name: 🧾 Checkout Code
       uses: actions/checkout@v3
 
-    - name: 🟢 Setup Node.js with GitHub Package Registry
+    - name: 🟢 Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '20'
+        node-version: '22'
 
     - name: 📦 NPM CI
       run: npm ci
@@ -41,7 +41,7 @@ jobs:
       run: |
         echo "@flarelight-io:registry=https://npm.pkg.github.com/" >> ~/.npmrc
         echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc    
-        
+
     - name: 📤 Publish Package (GitHub Packages)
       if: success()
       run: npm publish
