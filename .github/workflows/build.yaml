@@ -9,21 +9,30 @@ jobs:
   build:
     name: Build Package
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     env:
       npm_config_cache: ${{ github.workspace }}/.npm
 
     steps:
     - name: 🧾 Checkout Code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: 🟢 Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '22'
+        registry-url: https://npm.pkg.github.com/
+        scope: "@flarelight-io"
+      env:
+         NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
     - name: 📦 NPM Install
-      run: npm ci --no-cleanup
+      run: |
+        npm config set //npm.pkg.github.com/:_authToken $TOKEN
+        npm ci --no-cleanup
 
     - name: 🛠️ Build
       run: npm run build
@@ -39,8 +48,6 @@ jobs:
 
     - name: 📤 Publish Package (GitHub Packages)
       if: success()
-      run: |
-        npm config set //npm.pkg.github.com/:_authToken $TOKEN
-        npm publish
+      run: npm publish
       env:
         TOKEN: ${{ secrets.GITHUB_TOKEN }}
