@@ -123,8 +123,16 @@ export class BoxWhiskerChartVisualization {
   private getColors() {
     // Default color palette
     return [
-      '#4e79a7', '#f28e2c', '#e15759', '#76b7b2', '#59a14f',
-      '#edc949', '#af7aa1', '#ff9da7', '#9c755f', '#bab0ab'
+      'var(--fl-chart-color-1, #4e79a7)', 
+      'var(--fl-chart-color-2, #f28e2c)', 
+      'var(--fl-chart-color-3, #e15759)', 
+      'var(--fl-chart-color-4, #76b7b2)', 
+      'var(--fl-chart-color-5, #59a14f)',
+      'var(--fl-chart-color-6, #edc949)', 
+      'var(--fl-chart-color-7, #af7aa1)', 
+      'var(--fl-chart-color-8, #ff9da7)', 
+      'var(--fl-chart-color-9, #9c755f)', 
+      'var(--fl-chart-color-10, #bab0ab)'
     ];
   }
   
@@ -336,7 +344,7 @@ export class BoxWhiskerChartVisualization {
                         y1={y} 
                         x2={viewBoxWidth - padding} 
                         y2={y} 
-                        stroke="#ccc" 
+                        stroke="var(--fl-chart-grid-color, #ccc)" 
                         stroke-width="0.5"
                         stroke-dasharray={i > 0 ? "1,1" : ""}
                       />
@@ -347,7 +355,7 @@ export class BoxWhiskerChartVisualization {
                           font-size="3.5" 
                           text-anchor="end" 
                           alignment-baseline="middle"
-                          fill="#666"
+                          fill="var(--fl-chart-text-color, #666)"
                         >
                           {value.toFixed(1)}
                         </text>
@@ -364,7 +372,7 @@ export class BoxWhiskerChartVisualization {
               y1={viewBoxHeight - padding} 
               x2={viewBoxWidth - padding} 
               y2={viewBoxHeight - padding} 
-              stroke="#333" 
+              stroke="var(--fl-chart-axis-color, #333)" 
               stroke-width="1" 
             />
             <line 
@@ -372,7 +380,7 @@ export class BoxWhiskerChartVisualization {
               y1={padding} 
               x2={padding} 
               y2={viewBoxHeight - padding} 
-              stroke="#333" 
+              stroke="var(--fl-chart-axis-color, #333)" 
               stroke-width="1" 
             />
             
@@ -386,7 +394,7 @@ export class BoxWhiskerChartVisualization {
                     y1={box.elements.upperWhisker.y1}
                     x2={box.elements.upperWhisker.x2} 
                     y2={box.elements.upperWhisker.y2}
-                    stroke={box.color}
+                    stroke="var(--fl-chart-axis-color, #555)"
                     stroke-width="0.5"
                   />
                   <line 
@@ -394,7 +402,7 @@ export class BoxWhiskerChartVisualization {
                     y1={box.elements.lowerWhisker.y1}
                     x2={box.elements.lowerWhisker.x2} 
                     y2={box.elements.lowerWhisker.y2}
-                    stroke={box.color}
+                    stroke="var(--fl-chart-axis-color, #555)"
                     stroke-width="0.5"
                   />
                   
@@ -404,7 +412,7 @@ export class BoxWhiskerChartVisualization {
                     y1={box.elements.upperCap.y1}
                     x2={box.elements.upperCap.x2} 
                     y2={box.elements.upperCap.y2}
-                    stroke={box.color}
+                    stroke="var(--fl-chart-axis-color, #555)"
                     stroke-width="0.5"
                   />
                   <line 
@@ -412,7 +420,7 @@ export class BoxWhiskerChartVisualization {
                     y1={box.elements.lowerCap.y1}
                     x2={box.elements.lowerCap.x2} 
                     y2={box.elements.lowerCap.y2}
-                    stroke={box.color}
+                    stroke="var(--fl-chart-axis-color, #555)"
                     stroke-width="0.5"
                   />
                   
@@ -423,7 +431,7 @@ export class BoxWhiskerChartVisualization {
                     width={box.elements.box.width}
                     height={box.elements.box.height}
                     fill={box.color}
-                    fill-opacity="0.5"
+                    fill-opacity="0.7"
                     stroke={box.color}
                     stroke-width="0.5"
                   />
@@ -434,7 +442,7 @@ export class BoxWhiskerChartVisualization {
                     y1={box.elements.median.y1}
                     x2={box.elements.median.x2} 
                     y2={box.elements.median.y2}
-                    stroke="#333"
+                    stroke="var(--fl-chart-text-color, #333)"
                     stroke-width="1"
                   />
                   
@@ -444,8 +452,8 @@ export class BoxWhiskerChartVisualization {
                       key={i}
                       cx={outlier.cx}
                       cy={outlier.cy}
-                      r={outlier.r}
-                      fill="#333"
+                      r="1"
+                      fill="var(--fl-chart-text-color, #333)"
                     />
                   ))}
                   
@@ -456,7 +464,7 @@ export class BoxWhiskerChartVisualization {
                       y={viewBoxHeight - (padding / 3)}
                       font-size="3.5"
                       text-anchor="middle"
-                      fill="#333"
+                      fill="var(--fl-chart-text-color, #333)"
                     >
                       {box.category}
                     </text>

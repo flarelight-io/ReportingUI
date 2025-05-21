@@ -7,6 +7,8 @@
   overflow: hidden;
   position: relative;
   box-sizing: border-box;
+  background-color: var(--fl-chart-background);
+  border: none;
   
   .visualization-container {
     flex: 1;
@@ -30,7 +32,7 @@
       height: 100%;
       width: 100%;
       font-size: 0.9rem;
-      color: #666;
+      color: var(--fl-text-color-secondary, #666);
     }
     
     .error-message {
@@ -40,7 +42,7 @@
       height: 100%;
       width: 100%;
       font-size: 0.9rem;
-      color: #d9534f;
+      color: var(--fl-error-color, #d9534f);
     }
     
     .empty-data {
@@ -50,13 +52,13 @@
       height: 100%;
       width: 100%;
       font-size: 0.9rem;
-      color: #666;
+      color: var(--fl-text-color-secondary, #666);
     }
     
     .tooltip {
       position: absolute;
-      background-color: rgba(255, 255, 255, 0.95);
-      border: 1px solid #ccc;
+      background-color: var(--fl-card-background, rgba(255, 255, 255, 0.95));
+      border: 1px solid var(--fl-border-color, #ccc);
       border-radius: 4px;
       padding: 8px;
       font-size: 0.8rem;
@@ -64,6 +66,7 @@
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       z-index: 1000;
       max-width: 200px;
+      color: var(--fl-text-color-primary);
       
       &:after {
         content: '';
@@ -74,7 +77,7 @@
         height: 0;
         border-left: 6px solid transparent;
         border-right: 6px solid transparent;
-        border-top: 6px solid rgba(255, 255, 255, 0.95);
+        border-top: 6px solid var(--fl-card-background, rgba(255, 255, 255, 0.95));
         transform: translateX(-50%);
       }
       
@@ -82,7 +85,7 @@
         font-weight: bold;
         margin-bottom: 5px;
         text-align: center;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid var(--fl-border-color, #eee);
         padding-bottom: 3px;
       }
       
@@ -98,12 +101,12 @@
           .tooltip-label {
             margin-right: 8px;
             font-weight: 500;
-            color: #666;
+            color: var(--fl-text-color-secondary, #666);
           }
           
           .tooltip-value {
             font-weight: 600;
-            color: #333;
+            color: var(--fl-text-color-primary, #333);
           }
         }
       }
@@ -115,7 +118,7 @@
     flex-wrap: wrap;
     justify-content: center;
     padding: 5px 0;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--fl-border-color, #eee);
     
     .legend-item {
       display: flex;
@@ -131,7 +134,7 @@
       
       .legend-label {
         font-size: 0.8rem;
-        color: #333;
+        color: var(--fl-text-color-primary, #333);
       }
     }
   }

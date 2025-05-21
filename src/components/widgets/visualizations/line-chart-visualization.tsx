@@ -147,42 +147,38 @@ export class LineChartVisualization {
             viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
             preserveAspectRatio="xMidYMid meet"
           >
+            {/* Draw grid lines if enabled */}
             {this.config.showGrid && (
-              <>
-                {/* Draw grid lines, adjusted for viewbox width */}
-                {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const y = viewBoxHeight - 5 - ratio * (viewBoxHeight - 10);
-                  return (
-                    <line 
-                      key={`h-${i}`}
-                      x1="5" 
-                      y1={y} 
-                      x2={viewBoxWidth - 5} 
-                      y2={y} 
-                      stroke="#ccc" 
-                      stroke-width="0.5"
-                      stroke-dasharray={i > 0 ? "1,1" : ""}
-                    />
-                  );
-                })}
+              <g>
+                {[0, 25, 50, 75, 100].map((pos, i) => (
+                  <line 
+                    key={`h-${i}`} 
+                    x1="5" 
+                    y1={pos} 
+                    x2={viewBoxWidth - 5} 
+                    y2={pos} 
+                    stroke="var(--fl-chart-grid-color, #ddd)" 
+                    stroke-width="0.5" 
+                    stroke-dasharray="2,2"
+                  />
+                ))}
                 
-                {/* Vertical grid lines */}
-                {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const x = 5 + ratio * (viewBoxWidth - 10);
+                {Array.from({length: 5}).map((_, i) => {
+                  const xPos = 5 + ((viewBoxWidth - 10) / 4) * i;
                   return (
                     <line 
-                      key={`v-${i}`}
-                      x1={x} 
+                      key={`v-${i}`} 
+                      x1={xPos} 
                       y1="5" 
-                      x2={x} 
+                      x2={xPos} 
                       y2={viewBoxHeight - 5} 
-                      stroke="#ccc" 
-                      stroke-width="0.5"
-                      stroke-dasharray={i > 0 ? "1,1" : ""}
+                      stroke="var(--fl-chart-grid-color, #ddd)" 
+                      stroke-width="0.5" 
+                      stroke-dasharray="2,2"
                     />
                   );
                 })}
-              </>
+              </g>
             )}
             
             {/* Draw line */}
@@ -201,22 +197,8 @@ export class LineChartVisualization {
             ))}
             
             {/* X and Y axis */}
-            <line 
-              x1="5" 
-              y1={viewBoxHeight - 5} 
-              x2={viewBoxWidth - 5} 
-              y2={viewBoxHeight - 5} 
-              stroke="#333" 
-              stroke-width="1" 
-            />
-            <line 
-              x1="5" 
-              y1="5" 
-              x2="5" 
-              y2={viewBoxHeight - 5} 
-              stroke="#333" 
-              stroke-width="1" 
-            />
+            <line x1="5" y1={viewBoxHeight - 5} x2={viewBoxWidth - 5} y2={viewBoxHeight - 5} stroke="var(--fl-chart-axis-color, #666)" stroke-width="1" />
+            <line x1="5" y1="5" x2="5" y2={viewBoxHeight - 5} stroke="var(--fl-chart-axis-color, #666)" stroke-width="1" />
             
             {/* Labels (only show if not too many points) */}
             {chartData.length <= 8 && (
@@ -268,7 +250,7 @@ export class LineChartVisualization {
               </>
             )}
             
-            {/* Y-axis value labels */}
+            {/* Y-axis labels */}
             {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
               const y = viewBoxHeight - 5 - ratio * (viewBoxHeight - 10);
               const value = Math.round(ratio * maxValue);
@@ -281,7 +263,7 @@ export class LineChartVisualization {
                   font-size="2.5" 
                   text-anchor="end" 
                   dominant-baseline="middle" 
-                  fill="#666"
+                  fill="var(--fl-chart-text-color, #666)"
                 >
                   {value}
                 </text>

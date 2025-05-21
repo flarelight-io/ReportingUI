@@ -155,13 +155,13 @@ export class HistogramChartVisualization {
                   return (
                     <line 
                       key={`h-${i}`}
-                      x1={padding} 
+                      x1="5" 
                       y1={y} 
-                      x2={viewBoxWidth - padding} 
+                      x2={viewBoxWidth - 5} 
                       y2={y} 
-                      stroke="#ccc" 
+                      stroke="var(--fl-chart-grid-color, #ccc)" 
                       stroke-width="0.5"
-                      stroke-dasharray={i > 0 ? "1,1" : ""}
+                      stroke-dasharray="1,1"
                     />
                   );
                 })}
@@ -171,34 +171,16 @@ export class HistogramChartVisualization {
                   <line 
                     key={`v-${i}`}
                     x1={bar.x + (bar.width / 2)} 
-                    y1={padding} 
+                    y1="5" 
                     x2={bar.x + (bar.width / 2)} 
-                    y2={viewBoxHeight - padding} 
-                    stroke="#ccc" 
+                    y2={viewBoxHeight - 5} 
+                    stroke="var(--fl-chart-grid-color, #ccc)" 
                     stroke-width="0.5"
                     stroke-dasharray="1,1"
                   />
                 ))}
               </>
             )}
-            
-            {/* Axes */}
-            <line 
-              x1={padding} 
-              y1={viewBoxHeight - padding} 
-              x2={viewBoxWidth - padding} 
-              y2={viewBoxHeight - padding} 
-              stroke="#333" 
-              stroke-width="1" 
-            />
-            <line 
-              x1={padding} 
-              y1={padding} 
-              x2={padding} 
-              y2={viewBoxHeight - padding} 
-              stroke="#333" 
-              stroke-width="1" 
-            />
             
             {/* Draw histogram bars */}
             {bars.map((bar, i) => (
@@ -211,9 +193,9 @@ export class HistogramChartVisualization {
                   x={bar.x} 
                   y={bar.y} 
                   width={bar.width} 
-                  height={bar.height} 
+                  height={bar.height || 0.1} // Ensure a minimum height for zero values
                   fill={bar.color}
-                  stroke="#fff"
+                  stroke="var(--fl-border-color, rgba(255, 255, 255, 0.2))"
                   stroke-width="0.2"
                 />
                 
@@ -224,13 +206,31 @@ export class HistogramChartVisualization {
                     y={bar.y - 2}
                     font-size="2.5"
                     text-anchor="middle"
-                    fill="#333"
+                    fill="var(--fl-chart-text-color, #666)"
                   >
                     {bar.bin.count}
                   </text>
                 )}
               </g>
             ))}
+            
+            {/* Axes */}
+            <line 
+              x1="5" 
+              y1={viewBoxHeight - padding} 
+              x2={viewBoxWidth - 5} 
+              y2={viewBoxHeight - padding} 
+              stroke="var(--fl-chart-axis-color, #333)" 
+              stroke-width="1" 
+            />
+            <line 
+              x1="5" 
+              y1="5" 
+              x2="5" 
+              y2={viewBoxHeight - padding} 
+              stroke="var(--fl-chart-axis-color, #333)" 
+              stroke-width="1" 
+            />
             
             {/* X-axis labels (only show a subset to avoid crowding) */}
             {bars.filter((_, i) => 
@@ -249,7 +249,7 @@ export class HistogramChartVisualization {
                   y={viewBoxHeight - 2}
                   font-size="2.5"
                   text-anchor="middle"
-                  fill="#333"
+                  fill="var(--fl-chart-text-color, #666)"
                 >
                   {truncatedLabel}
                 </text>
@@ -264,12 +264,12 @@ export class HistogramChartVisualization {
               return (
                 <text 
                   key={`y-label-${i}`}
-                  x={padding - 2}
+                  x="3"
                   y={y}
                   font-size="2.5"
                   text-anchor="end"
                   dominant-baseline="middle"
-                  fill="#333"
+                  fill="var(--fl-chart-text-color, #666)"
                 >
                   {value}
                 </text>
@@ -300,10 +300,16 @@ export class HistogramChartVisualization {
   
   private getColors(): string[] {
     return [
-      '#4299e1', '#48bb78', '#f6ad55', '#f56565', 
-      '#9f7aea', '#38b2ac', '#ed8936', '#667eea',
-      '#fc8181', '#68d391', '#cbd5e0', '#feb2b2',
-      '#90cdf4', '#c6f6d5', '#fbd38d', '#e9d8fd'
+      'var(--fl-chart-color-1, #4299e1)', 
+      'var(--fl-chart-color-2, #48bb78)', 
+      'var(--fl-chart-color-3, #f6ad55)', 
+      'var(--fl-chart-color-4, #f56565)', 
+      'var(--fl-chart-color-5, #9f7aea)', 
+      'var(--fl-chart-color-6, #38b2ac)', 
+      'var(--fl-chart-color-7, #ed8936)', 
+      'var(--fl-chart-color-8, #667eea)',
+      'var(--fl-chart-color-9, #fc8181)', 
+      'var(--fl-chart-color-10, #68d391)'
     ];
   }
 } 

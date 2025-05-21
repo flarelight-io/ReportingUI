@@ -10,7 +10,7 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: #6b7280;
+  color: var(--fl-text-color-secondary);
   font-size: 0.875rem;
 }
 
@@ -20,7 +20,7 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: #ef4444;
+  color: var(--fl-error-color, #ef4444);
   font-size: 0.875rem;
   text-align: center;
   padding: 16px;
@@ -32,7 +32,7 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: #6b7280;
+  color: var(--fl-text-color-secondary);
   font-size: 0.875rem;
 }
 
@@ -42,6 +42,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background-color: var(--fl-chart-background);
 }
 
 .visualization-container {
@@ -79,21 +80,21 @@
 
 .legend-text {
   font-size: 0.75rem;
-  color: #4b5563;
+  color: var(--fl-text-color-secondary);
   white-space: nowrap;
 }
 
 .chart-metadata {
   padding: 4px 8px;
   font-size: 0.6875rem;
-  color: #6b7280;
+  color: var(--fl-text-color-secondary);
   text-align: center;
   margin-top: 4px;
 }
 
 .chart-info {
   font-size: 0.6875rem;
-  color: #6b7280;
+  color: var(--fl-text-color-secondary);
 }
 
 .chart-placeholder {
@@ -103,7 +104,7 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  background-color: #f9fafb;
+  background-color: var(--fl-background-color);
   border-radius: 8px;
   padding: 16px;
   text-align: center;
@@ -112,7 +113,7 @@
     margin: 0 0 8px 0;
     font-size: 1rem;
     font-weight: 600;
-    color: #374151;
+    color: var(--fl-text-color-primary);
   }
 }
 
@@ -123,9 +124,9 @@
   margin: 16px 0;
   padding: 16px;
   position: relative;
-  background-color: #fff;
+  background-color: var(--fl-chart-background);
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--fl-border-color);
 }
 
 .chart-grid {
@@ -139,7 +140,7 @@
     left: 0;
     width: 1px;
     height: 100%;
-    background-color: #d1d5db;
+    background-color: var(--fl-chart-axis-color);
   }
   
   .x-axis {
@@ -148,7 +149,7 @@
     left: 0;
     width: 100%;
     height: 1px;
-    background-color: #d1d5db;
+    background-color: var(--fl-chart-axis-color);
   }
   
   .line-placeholder {

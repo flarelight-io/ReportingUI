@@ -263,7 +263,7 @@ export class ScatterChartVisualization {
                       y1={y} 
                       x2={viewBoxWidth - 5} 
                       y2={y} 
-                      stroke="#ccc" 
+                      stroke="var(--fl-chart-grid-color, #ccc)" 
                       stroke-width="0.5"
                       stroke-dasharray={i > 0 ? "1,1" : ""}
                     />
@@ -280,7 +280,7 @@ export class ScatterChartVisualization {
                       y1="5" 
                       x2={x} 
                       y2={viewBoxHeight - 5} 
-                      stroke="#ccc" 
+                      stroke="var(--fl-chart-grid-color, #ccc)" 
                       stroke-width="0.5"
                       stroke-dasharray={i > 0 ? "1,1" : ""}
                     />
@@ -326,7 +326,7 @@ export class ScatterChartVisualization {
               y1={viewBoxHeight - 5} 
               x2={viewBoxWidth - 5} 
               y2={viewBoxHeight - 5} 
-              stroke="#333" 
+              stroke="var(--fl-chart-axis-color, #333)" 
               stroke-width="1" 
             />
             <line 
@@ -334,7 +334,7 @@ export class ScatterChartVisualization {
               y1="5" 
               x2="5" 
               y2={viewBoxHeight - 5} 
-              stroke="#333" 
+              stroke="var(--fl-chart-axis-color, #333)" 
               stroke-width="1" 
             />
             
@@ -359,7 +359,7 @@ export class ScatterChartVisualization {
                       y={viewBoxHeight - 2} 
                       font-size="2.5" 
                       text-anchor="middle" 
-                      fill="#666"
+                      fill="var(--fl-chart-text-color, #666)"
                     >
                       {truncatedText}
                     </text>
@@ -379,7 +379,7 @@ export class ScatterChartVisualization {
                       y={point.y - 3} 
                       font-size="2.5" 
                       text-anchor="middle" 
-                      fill="#444"
+                      fill="var(--fl-chart-text-color, #444)"
                     >
                       {point.value}
                     </text>
@@ -401,7 +401,7 @@ export class ScatterChartVisualization {
                   font-size="2.5" 
                   text-anchor="end" 
                   dominant-baseline="middle" 
-                  fill="#666"
+                  fill="var(--fl-chart-text-color, #666)"
                 >
                   {value}
                 </text>

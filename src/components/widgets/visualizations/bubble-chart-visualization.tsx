@@ -267,7 +267,7 @@ export class BubbleChartVisualization {
                       y1={y} 
                       x2={viewBoxWidth - xPadding} 
                       y2={y} 
-                      stroke="#ccc" 
+                      stroke="var(--fl-chart-grid-color, #ccc)" 
                       stroke-width="0.5"
                       stroke-dasharray={i > 0 ? "1,1" : ""}
                     />
@@ -284,7 +284,7 @@ export class BubbleChartVisualization {
                       y1={yPadding} 
                       x2={x} 
                       y2={viewBoxHeight - yPadding} 
-                      stroke="#ccc" 
+                      stroke="var(--fl-chart-grid-color, #ccc)" 
                       stroke-width="0.5"
                       stroke-dasharray={i > 0 ? "1,1" : ""}
                     />
@@ -316,11 +316,12 @@ export class BubbleChartVisualization {
                 
                 {this.config.showLabels && (
                   <text 
+                    key={`value-${i}`} 
                     x="0" 
                     y={-bubble.r - 2} 
                     text-anchor="middle" 
                     font-size="3" 
-                    fill="#333"
+                    fill="var(--fl-chart-text-color, #333)"
                     class="bubble-label"
                   >
                     {typeof bubble.data.x === 'string' && bubble.data.x.length > 10 
@@ -337,7 +338,7 @@ export class BubbleChartVisualization {
               y1={viewBoxHeight - yPadding} 
               x2={viewBoxWidth - xPadding} 
               y2={viewBoxHeight - yPadding} 
-              stroke="#333" 
+              stroke="var(--fl-chart-axis-color, #333)" 
               stroke-width="1" 
             />
             <line 
@@ -345,7 +346,7 @@ export class BubbleChartVisualization {
               y1={yPadding} 
               x2={xPadding} 
               y2={viewBoxHeight - yPadding} 
-              stroke="#333" 
+              stroke="var(--fl-chart-axis-color, #333)" 
               stroke-width="1" 
             />
             
@@ -362,7 +363,7 @@ export class BubbleChartVisualization {
                   font-size="3" 
                   text-anchor="end" 
                   dominant-baseline="middle" 
-                  fill="#666"
+                  fill="var(--fl-chart-text-color, #666)"
                 >
                   {value.toFixed(value > 100 ? 0 : value > 10 ? 1 : 2)}
                 </text>
@@ -381,7 +382,7 @@ export class BubbleChartVisualization {
                   y={viewBoxHeight - yPadding + 3} 
                   font-size="3" 
                   text-anchor="middle" 
-                  fill="#666"
+                  fill="var(--fl-chart-text-color, #666)"
                 >
                   {value.toFixed(value > 100 ? 0 : value > 10 ? 1 : 2)}
                 </text>

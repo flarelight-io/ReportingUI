@@ -10,6 +10,7 @@
   height: 100%;
   width: 100%;
   overflow: auto;
+  color: var(--fl-text-color-primary);
 }
 
 /* Text alignment classes */
@@ -56,18 +57,21 @@
   font-size: 1.5rem;
   font-weight: bold;
   margin-bottom: 0.5rem;
+  color: var(--fl-text-color-primary);
 }
 
 .title-medium {
   font-size: 1.25rem;
   font-weight: bold;
   margin-bottom: 0.5rem;
+  color: var(--fl-text-color-primary);
 }
 
 .title-small {
   font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
+  color: var(--fl-text-color-primary);
 }
 
 /* Content layout with title */
@@ -81,7 +85,7 @@
 .content-divider {
   height: 1px;
   margin-bottom: 0.75rem;
-  background-color: #e5e7eb;
+  background-color: var(--fl-border-color, #e5e7eb);
 }
 
 .divider-solid {
@@ -100,6 +104,7 @@
 .text-content {
   white-space: pre-wrap;
   word-wrap: break-word;
+  color: var(--fl-text-color-primary);
   
   p {
     margin-bottom: 0.75rem;
@@ -119,7 +124,7 @@
   }
   
   a.text-link {
-    color: #3b82f6;
+    color: var(--fl-primary-color, #3b82f6);
     text-decoration: none;
     
     &:hover {

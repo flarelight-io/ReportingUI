@@ -149,17 +149,17 @@ export class HeatmapVisualization {
     // Use a color gradient from blue to red via white
     // Colors for the gradient
     const colors = [
-      '#313695', // Dark blue
-      '#4575b4', // Blue
-      '#74add1', // Light blue
-      '#abd9e9', // Very light blue
-      '#e0f3f8', // Pale blue
-      '#ffffbf', // Pale yellow
-      '#fee090', // Light orange
-      '#fdae61', // Orange
-      '#f46d43', // Dark orange
-      '#d73027', // Red
-      '#a50026'  // Dark red
+      'var(--fl-heatmap-color-1, #313695)', // Dark blue
+      'var(--fl-heatmap-color-2, #4575b4)', // Blue
+      'var(--fl-heatmap-color-3, #74add1)', // Light blue
+      'var(--fl-heatmap-color-4, #abd9e9)', // Very light blue
+      'var(--fl-heatmap-color-5, #e0f3f8)', // Pale blue
+      'var(--fl-heatmap-color-6, #ffffbf)', // Pale yellow
+      'var(--fl-heatmap-color-7, #fee090)', // Light orange
+      'var(--fl-heatmap-color-8, #fdae61)', // Orange
+      'var(--fl-heatmap-color-9, #f46d43)', // Dark orange
+      'var(--fl-heatmap-color-10, #d73027)', // Red
+      'var(--fl-heatmap-color-11, #a50026)'  // Dark red
     ];
     
     // If min and max are the same, return middle color
@@ -174,6 +174,14 @@ export class HeatmapVisualization {
     const index = Math.min(colors.length - 1, Math.floor(normalizedValue * colors.length));
     
     return colors[index];
+  }
+  
+  // Helper to determine text color based on background color
+  private getTextColor(value: number, min: number, max: number): string {
+    // If value is in the upper half of the range, use light text
+    // Otherwise use dark text for better contrast
+    const midPoint = (min + max) / 2;
+    return value > midPoint ? 'var(--fl-text-light, #fff)' : 'var(--fl-text-dark, #000)';
   }
   
   private formatValue(value: number): string {
@@ -277,6 +285,7 @@ export class HeatmapVisualization {
                 font-size="3"
                 text-anchor="end"
                 dominant-baseline="middle"
+                fill="var(--fl-chart-text-color, #333)"
               >
                 {label}
               </text>
@@ -292,6 +301,7 @@ export class HeatmapVisualization {
                 text-anchor="end"
                 dominant-baseline="middle"
                 transform={`rotate(-45, ${rowLabelPadding + (idx * cellWidth) + (cellWidth / 2)}, ${colLabelPadding - 5})`}
+                fill="var(--fl-chart-text-color, #333)"
               >
                 {label}
               </text>
@@ -322,7 +332,7 @@ export class HeatmapVisualization {
                   width={cellWidth}
                   height={cellHeight}
                   fill={cell.color}
-                  stroke="#fff"
+                  stroke="var(--fl-border-color, rgba(255, 255, 255, 0.2))"
                   stroke-width="0.5"
                 />
                 
@@ -334,7 +344,8 @@ export class HeatmapVisualization {
                     font-size="2.5"
                     text-anchor="middle"
                     dominant-baseline="middle"
-                    fill={cell.value > (heatmapData.minValue + heatmapData.maxValue) / 2 ? "#fff" : "#000"}
+                    fill={this.getTextColor(cell.value, heatmapData.minValue, heatmapData.maxValue)}
+                    font-weight="bold"
                   >
                     {this.formatValue(cell.value)}
                   </text>

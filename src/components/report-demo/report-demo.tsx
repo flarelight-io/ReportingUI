@@ -550,6 +550,13 @@ export class ReportDemo {
     ]
   };
 
+  @State() darkMode = false;
+
+  private toggleTheme = () => {
+    this.darkMode = !this.darkMode;
+    document.documentElement.setAttribute('data-theme', this.darkMode ? 'dark' : 'light');
+  };
+
   private fetchChartData = async (request) => {    
     // Mock data based on the source ID or chart type
     switch (request.sourceId) {
@@ -710,6 +717,11 @@ export class ReportDemo {
         <header class="demo-header">
           <h1>Flarelight Reporting Visualization Demo</h1>
           <p>A comprehensive showcase of all available chart types and visualizations</p>
+          <div class="theme-toggle">
+            <button onClick={this.toggleTheme} class="toggle-button">
+              {this.darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            </button>
+          </div>
         </header>
         
         <div class="report-container">

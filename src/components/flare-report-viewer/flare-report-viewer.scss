@@ -11,7 +11,7 @@
   padding: 10px;
   box-sizing: border-box;
   overflow: auto;
-  background-color: #f8f9fa;
+  background-color: var(--fl-background-color, #f8f9fa);
   
   .widget-grid {
     display: grid;
@@ -25,7 +25,7 @@
     grid-auto-rows: 80px;
     
     .widget-item {
-      background: #fff;
+      background: var(--fl-card-background, #fff);
       border-radius: 6px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       transition: box-shadow 0.3s ease;
@@ -41,14 +41,14 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      background: #f8f9fa;
+      background: var(--fl-background-color, #f8f9fa);
       border-radius: 6px;
       padding: 40px;
       text-align: center;
       
       p {
         font-size: 16px;
-        color: #6c757d;
+        color: var(--fl-text-color-secondary, #6c757d);
       }
     }
   }
@@ -63,16 +63,17 @@
   justify-content: center;
   align-items: center;
   padding: 16px;
-  background-color: #f5f5f5;
+  background-color: var(--fl-background-color, #f5f5f5);
   border-radius: 4px;
   text-align: center;
+  color: var(--fl-text-color-primary);
 }
 
 /* Error widget styling */
 .error-widget {
   padding: 1rem;
-  background-color: #fff0f0;
-  color: #e53935;
+  background-color: var(--fl-chart-background, #fff0f0);
+  color: var(--fl-error-color, #e53935);
   border-radius: 4px;
   text-align: center;
   height: 100%;

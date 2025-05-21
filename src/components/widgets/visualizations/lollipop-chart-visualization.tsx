@@ -33,16 +33,16 @@ export class LollipopChartVisualization {
 
   private getColors(): string[] {
     return [
-      '#4f46e5', // indigo-600
-      '#0ea5e9', // sky-500
-      '#10b981', // emerald-500
-      '#f59e0b', // amber-500
-      '#ef4444', // red-500
-      '#8b5cf6', // violet-500
-      '#ec4899', // pink-500
-      '#06b6d4', // cyan-500
-      '#84cc16', // lime-500
-      '#f97316'  // orange-500
+      'var(--fl-chart-color-1, #4f46e5)', // indigo-600
+      'var(--fl-chart-color-2, #0ea5e9)', // sky-500
+      'var(--fl-chart-color-3, #10b981)', // emerald-500
+      'var(--fl-chart-color-4, #f59e0b)', // amber-500
+      'var(--fl-chart-color-5, #ef4444)', // red-500
+      'var(--fl-chart-color-6, #8b5cf6)', // violet-500
+      'var(--fl-chart-color-7, #ec4899)', // pink-500
+      'var(--fl-chart-color-8, #06b6d4)', // cyan-500
+      'var(--fl-chart-color-9, #84cc16)', // lime-500
+      'var(--fl-chart-color-10, #f97316)'  // orange-500
     ];
   }
 
@@ -229,10 +229,10 @@ export class LollipopChartVisualization {
                 {/* Draw grid lines */}
                 {[0, 25, 50, 75, 100].map((pos, i) => (
                   <g key={i}>
-                    <line x1="5" y1={pos} x2={viewBoxWidth - 5} y2={pos} stroke="#ccc" stroke-width="0.5" />
+                    <line x1="5" y1={pos} x2={viewBoxWidth - 5} y2={pos} stroke="var(--fl-chart-grid-color, #ccc)" stroke-width="0.5" />
                     {Array.from({length: 5}).map((_, j) => {
                       const xPos = 5 + (j * (viewBoxWidth - 10) / 4);
-                      return <line key={`v-${j}`} x1={xPos} y1="5" x2={xPos} y2={viewBoxHeight - 5} stroke="#ccc" stroke-width="0.5" />
+                      return <line key={`v-${j}`} x1={xPos} y1="5" x2={xPos} y2={viewBoxHeight - 5} stroke="var(--fl-chart-grid-color, #ccc)" stroke-width="0.5" />
                     })}
                   </g>
                 ))}
@@ -269,8 +269,8 @@ export class LollipopChartVisualization {
             ))}
             
             {/* X and Y axis */}
-            <line x1="5" y1={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} x2={viewBoxWidth - 5} y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} stroke="#333" stroke-width="1" />
-            <line x1="5" y1="5" x2="5" y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} stroke="#333" stroke-width="1" />
+            <line x1="5" y1={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} x2={viewBoxWidth - 5} y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} stroke="var(--fl-chart-axis-color, #333)" stroke-width="1" />
+            <line x1="5" y1="5" x2="5" y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} stroke="var(--fl-chart-axis-color, #333)" stroke-width="1" />
             
             {/* Show values if enabled */}
             {this.config.showLabels && (
@@ -282,7 +282,7 @@ export class LollipopChartVisualization {
                     y={isHorizontal ? lollipop.circle.cy : lollipop.circle.cy - circleRadius - 2} 
                     font-size={fontSize * 0.8} 
                     text-anchor="middle" 
-                    fill="#555"
+                    fill="var(--fl-chart-text-color, #555)"
                     font-weight="bold"
                   >
                     {chartData[i].value}
@@ -316,7 +316,7 @@ export class LollipopChartVisualization {
                       y={105} 
                       font-size={adjustedFontSize}
                       text-anchor="middle"
-                      fill="#333"
+                      fill="var(--fl-chart-text-color, #333)"
                     >
                       {displayText}
                     </text>
@@ -342,7 +342,7 @@ export class LollipopChartVisualization {
                       font-size={fontSize} 
                       text-anchor="end"
                       dominant-baseline="middle" 
-                      fill="#555"
+                      fill="var(--fl-chart-text-color, #555)"
                     >
                       {displayText}
                     </text>

@@ -10,7 +10,7 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: #6b7280;
+  color: var(--fl-text-color-secondary, #6b7280);
   font-size: 0.875rem;
 }
 
@@ -20,7 +20,7 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: #ef4444;
+  color: var(--fl-error-color, #ef4444);
   font-size: 0.875rem;
   text-align: center;
   padding: 16px;
@@ -32,7 +32,7 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: #6b7280;
+  color: var(--fl-text-color-secondary, #6b7280);
   font-size: 0.875rem;
 }
 
@@ -41,6 +41,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  background-color: var(--fl-chart-background);
 }
 
 .visualization-container {
@@ -59,6 +60,8 @@
   padding: 0 8px;
   max-height: 80px;
   overflow-y: auto;
+  border-top: 1px solid var(--fl-border-color, rgba(209, 213, 219, 0.3));
+  padding-top: 6px;
 }
 
 .legend-item {
@@ -69,28 +72,30 @@
 }
 
 .color-indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
   margin-right: 8px;
   flex-shrink: 0;
+  border: 1px solid var(--fl-border-color, rgba(255, 255, 255, 0.2));
 }
 
 .legend-text {
   font-size: 0.75rem;
-  color: #4b5563;
+  color: var(--fl-chart-text-color, #4b5563);
   white-space: nowrap;
+  font-weight: 500;
 }
 
 .chart-metadata {
   padding: 4px 8px;
   font-size: 0.6875rem;
-  color: #6b7280;
+  color: var(--fl-text-color-secondary, #6b7280);
   text-align: center;
   margin-top: 4px;
 }
 
 .chart-info {
   font-size: 0.6875rem;
-  color: #6b7280;
+  color: var(--fl-text-color-secondary, #6b7280);
 } 

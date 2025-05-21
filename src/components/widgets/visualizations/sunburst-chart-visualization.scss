@@ -12,6 +12,7 @@
   overflow: hidden;
   box-sizing: border-box;
   font-family: var(--fl-font-family, 'Roboto', sans-serif);
+  background-color: var(--fl-chart-background);
 }
 
 .chart-area {
@@ -78,7 +79,7 @@
 .segment {
   cursor: pointer;
   transition: opacity 0.2s ease;
-  stroke: #fff;
+  stroke: var(--fl-chart-stroke-color, #fff);
   stroke-width: 0.5;
   
   &:hover {
@@ -122,7 +123,7 @@
 }
 
 .legend-text {
-  color: var(--fl-text-color, #202124);
+  color: var(--fl-text-color-primary, #202124);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

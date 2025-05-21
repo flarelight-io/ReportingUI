@@ -1,0 +1,84 @@
+:root {
+  /* Default theme (light) */
+  --fl-background-color: #f8fafc;
+  --fl-card-background: #ffffff;
+  --fl-text-color-primary: #333333;
+  --fl-text-color-secondary: #6b7280;
+  --fl-border-color: #e2e8f0;
+  
+  /* Chart specific colors */
+  --fl-chart-background: #ffffff;
+  --fl-chart-text-color: #333333;
+  --fl-chart-axis-color: #999999;
+  --fl-chart-grid-color: #eeeeee;
+  --fl-chart-stroke-color: #ffffff;
+  --fl-chart-alternate-row: rgba(243, 244, 246, 0.2);
+  --fl-hover-color: #f3f4f6;
+  
+  /* Text colors for dark/light backgrounds */
+  --fl-text-light: #ffffff;
+  --fl-text-dark: #000000;
+  
+  /* Correlation chart colors */
+  --fl-correlation-negative-strong: #3f00ff;
+  --fl-correlation-negative-moderate: #8280ff;
+  --fl-correlation-neutral: #e2e2ff;
+  --fl-correlation-positive-moderate: #ff8f80;
+  --fl-correlation-positive-strong: #ff0f00;
+  
+  /* Heatmap colors */
+  --fl-heatmap-color-1: #313695; /* Dark blue */
+  --fl-heatmap-color-2: #4575b4; /* Blue */
+  --fl-heatmap-color-3: #74add1; /* Light blue */
+  --fl-heatmap-color-4: #abd9e9; /* Very light blue */
+  --fl-heatmap-color-5: #e0f3f8; /* Pale blue */
+  --fl-heatmap-color-6: #ffffbf; /* Pale yellow */
+  --fl-heatmap-color-7: #fee090; /* Light orange */
+  --fl-heatmap-color-8: #fdae61; /* Orange */
+  --fl-heatmap-color-9: #f46d43; /* Dark orange */
+  --fl-heatmap-color-10: #d73027; /* Red */
+  --fl-heatmap-color-11: #a50026; /* Dark red */
+  
+  /* Status colors (consistent across themes) */
+  --fl-primary-color: #4285F4;
+  --fl-success-color: #34A853;
+  --fl-warning-color: #FBBC05;
+  --fl-error-color: #EA4335;
+}
+
+[data-theme="dark"] {
+  --fl-background-color: #1a1a1a;
+  --fl-card-background: #2d2d2d;
+  --fl-text-color-primary: #e0e0e0;
+  --fl-text-color-secondary: #a0a0a0;
+  --fl-border-color: #444444;
+  
+  /* Chart specific colors */
+  --fl-chart-background: #2d2d2d;
+  --fl-chart-text-color: #e0e0e0;
+  --fl-chart-axis-color: #777777;
+  --fl-chart-grid-color: #444444;
+  --fl-chart-stroke-color: #2d2d2d;
+  --fl-chart-alternate-row: rgba(60, 60, 60, 0.5);
+  --fl-hover-color: #3e3e3e;
+  
+  /* Correlation chart colors - adjusted for dark mode */
+  --fl-correlation-negative-strong: #5500ff;
+  --fl-correlation-negative-moderate: #8f8fff;
+  --fl-correlation-neutral: #464660;
+  --fl-correlation-positive-moderate: #ff7f6e;
+  --fl-correlation-positive-strong: #ff3c33;
+  
+  /* Heatmap colors - adjusted for dark mode */
+  --fl-heatmap-color-1: #1a237e; /* Darker blue */
+  --fl-heatmap-color-2: #303f9f; /* Dark blue */
+  --fl-heatmap-color-3: #5c6bc0; /* Medium blue */
+  --fl-heatmap-color-4: #7986cb; /* Light blue */
+  --fl-heatmap-color-5: #9fa8da; /* Lighter blue */
+  --fl-heatmap-color-6: #5d4037; /* Brown (neutral) */
+  --fl-heatmap-color-7: #a1887f; /* Light brown */
+  --fl-heatmap-color-8: #d7ccc8; /* Very light brown */
+  --fl-heatmap-color-9: #ffab91; /* Light orange */
+  --fl-heatmap-color-10: #ff5722; /* Orange */
+  --fl-heatmap-color-11: #bf360c; /* Dark orange */
+} 

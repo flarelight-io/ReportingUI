@@ -11,7 +11,7 @@
   height: 100%;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  background-color: white;
+  background-color: var(--fl-card-background, white);
   overflow: hidden;
 }
 
@@ -20,8 +20,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 16px;
-  background-color: #f4f4f5;
-  border-bottom: 1px solid #e4e4e7;
+  background-color: var(--fl-background-color, #f4f4f5);
+  border-bottom: 1px solid var(--fl-border-color, #e4e4e7);
 }
 
 .title-container {
@@ -34,6 +34,7 @@
   font-size: 14px;
   font-weight: 500;
   margin: 0;
+  color: var(--fl-text-color-primary);
 }
 
 .hidden-badge {
@@ -41,8 +42,8 @@
   font-size: 10px;
   padding: 2px 8px;
   border-radius: 16px;
-  background-color: #fef3c7;
-  color: #d97706;
+  background-color: rgba(251, 188, 5, 0.1);
+  color: var(--fl-warning-color, #d97706);
   font-weight: 500;
 }
 
@@ -60,13 +61,13 @@
   border-radius: 4px;
   padding: 4px;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--fl-text-color-secondary, #6b7280);
   transition: background-color 0.2s, color 0.2s;
 }
 
 .action-button:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  color: #374151;
+  background-color: var(--fl-border-color, rgba(0, 0, 0, 0.05));
+  color: var(--fl-text-color-primary, #374151);
 }
 
 .menu-dots {
@@ -78,6 +79,7 @@
 .widget-body {
   flex: 1;
   overflow: auto;
+  color: var(--fl-text-color-primary);
 }
 
 .widget-body.with-title {

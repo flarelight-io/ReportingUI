@@ -237,11 +237,11 @@ export class BarChartVisualization {
                 {[0, 25, 50, 75, 100].map((pos, i) => (
                   <g key={i}>
                     {/* Horizontal grid lines */}
-                    <line x1="5" y1={pos} x2={viewBoxWidth - 5} y2={pos} stroke="#ccc" stroke-width="0.5" />
+                    <line x1="5" y1={pos} x2={viewBoxWidth - 5} y2={pos} stroke="var(--fl-chart-grid-color, #ccc)" stroke-width="0.5" />
                     {/* Vertical grid lines - adjust based on viewbox width */}
                     {Array.from({length: 5}).map((_, j) => {
                       const xPos = 5 + (j * (viewBoxWidth - 10) / 4);
-                      return <line key={`v-${j}`} x1={xPos} y1="5" x2={xPos} y2={viewBoxHeight - 5} stroke="#ccc" stroke-width="0.5" />
+                      return <line key={`v-${j}`} x1={xPos} y1="5" x2={xPos} y2={viewBoxHeight - 5} stroke="var(--fl-chart-grid-color, #ccc)" stroke-width="0.5" />
                     })}
                   </g>
                 ))}
@@ -265,8 +265,8 @@ export class BarChartVisualization {
             ))}
             
             {/* X and Y axis */}
-            <line x1="5" y1={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} x2={viewBoxWidth - 5} y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} stroke="#333" stroke-width="1" />
-            <line x1="5" y1="5" x2="5" y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} stroke="#333" stroke-width="1" />
+            <line x1="5" y1={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} x2={viewBoxWidth - 5} y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} stroke="var(--fl-chart-axis-color, #333)" stroke-width="1" />
+            <line x1="5" y1="5" x2="5" y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} stroke="var(--fl-chart-axis-color, #333)" stroke-width="1" />
             
             {/* Show values on the bars if enabled */}
             {this.config.showLabels && (
@@ -297,7 +297,7 @@ export class BarChartVisualization {
                     y={bar.label.y} 
                     font-size={fontSize} 
                     dominant-baseline="middle" 
-                    fill="#555"
+                    fill="var(--fl-chart-text-color, #555)"
                   >
                     {bar.label.text.length > 15 ? `${bar.label.text.substring(0, 15)}...` : bar.label.text}
                   </text>
@@ -330,7 +330,7 @@ export class BarChartVisualization {
                       y={105} 
                       font-size={adjustedFontSize}
                       text-anchor="middle"
-                      fill="#333"
+                      fill="var(--fl-chart-text-color, #333)"
                     >
                       {displayText}
                     </text>

@@ -165,7 +165,7 @@ export class PieChartVisualization {
                   y1={centerY - radius}
                   x2={centerX}
                   y2={centerY - radius - 5}
-                  stroke="#555"
+                  stroke="var(--fl-chart-axis-color, #555)"
                   stroke-width="0.5"
                   stroke-dasharray="1,1"
                 />
@@ -176,7 +176,7 @@ export class PieChartVisualization {
                   text-anchor="middle"
                   dominant-baseline="middle"
                   font-size="4"
-                  fill="#333"
+                  fill="var(--fl-chart-text-color, #333)"
                   font-weight="bold"
                 >
                   {singleItem.category}
@@ -354,7 +354,7 @@ export class PieChartVisualization {
                       y1={segment.connectorY}
                       x2={segment.outerLabelX}
                       y2={segment.outerLabelY}
-                      stroke="#555"
+                      stroke="var(--fl-chart-axis-color, #555)"
                       stroke-width="0.5"
                       stroke-dasharray="1,1"
                     />
@@ -366,7 +366,7 @@ export class PieChartVisualization {
                       text-anchor={segment.textAnchor}
                       dominant-baseline="middle"
                       font-size={adjustedFontSize}
-                      fill="#333"
+                      fill="var(--fl-chart-text-color, #333)"
                       font-weight="bold"
                     >
                       {displayText}

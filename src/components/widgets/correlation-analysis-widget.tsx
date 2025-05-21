@@ -51,11 +51,11 @@ export class CorrelationAnalysisWidget {
   
   // Default colors for the heatmap
   private colorScale = [
-    '#3f00ff', // Strong negative (-1.0 to -0.7)
-    '#8280ff', // Moderate negative (-0.7 to -0.3)
-    '#e2e2ff', // Weak negative/positive (-0.3 to 0.3)
-    '#ff8f80', // Moderate positive (0.3 to 0.7)
-    '#ff0f00'  // Strong positive (0.7 to 1.0)
+    'var(--fl-correlation-negative-strong, #3f00ff)', // Strong negative (-1.0 to -0.7)
+    'var(--fl-correlation-negative-moderate, #8280ff)', // Moderate negative (-0.7 to -0.3)
+    'var(--fl-correlation-neutral, #e2e2ff)', // Weak negative/positive (-0.3 to 0.3)
+    'var(--fl-correlation-positive-moderate, #ff8f80)', // Moderate positive (0.3 to 0.7)
+    'var(--fl-correlation-positive-strong, #ff0f00)'  // Strong positive (0.7 to 1.0)
   ];
   
   componentWillLoad() {
@@ -312,6 +312,7 @@ export class CorrelationAnalysisWidget {
                 dominant-baseline="middle"
                 font-size={fontSize}
                 font-family="sans-serif"
+                fill="var(--fl-chart-text-color, #333)"
               >
                 {field}
               </text>
@@ -327,6 +328,7 @@ export class CorrelationAnalysisWidget {
                 dominant-baseline="middle"
                 font-size={fontSize}
                 font-family="sans-serif"
+                fill="var(--fl-chart-text-color, #333)"
                 transform={`rotate(-45, ${paddingLeft + i * cellSize + cellSize / 2}, ${paddingTop - field.length * fontSize * 0.1})`}
               >
                 {field}
@@ -349,8 +351,8 @@ export class CorrelationAnalysisWidget {
                       width={cellSize}
                       height={cellSize}
                       fill={this.getCorrelationColor(value)}
-                      stroke="#ffffff"
-                      stroke-width="1"
+                      stroke="var(--fl-border-color, rgba(255, 255, 255, 0.2))"
+                      stroke-width="0.5"
                     />
                     
                     {/* Show correlation values in cells if configured */}
@@ -362,7 +364,8 @@ export class CorrelationAnalysisWidget {
                         dominant-baseline="middle"
                         font-size={fontSize}
                         font-family="sans-serif"
-                        fill={Math.abs(value) > 0.5 ? "#ffffff" : "#000000"}
+                        fill={this.getTextColor(value)}
+                        font-weight="bold"
                       >
                         {this.formatCorrelationValue(value)}
                       </text>
@@ -391,27 +394,37 @@ export class CorrelationAnalysisWidget {
         <div class="color-legend">
           <div class="legend-item">
             <div class="color-box" style={{ backgroundColor: this.colorScale[0] }}></div>
-            <span>-1.0</span>
+            <span class="legend-text">-1.0</span>
           </div>
           <div class="legend-item">
             <div class="color-box" style={{ backgroundColor: this.colorScale[1] }}></div>
-            <span>-0.5</span>
+            <span class="legend-text">-0.5</span>
           </div>
           <div class="legend-item">
             <div class="color-box" style={{ backgroundColor: this.colorScale[2] }}></div>
-            <span>0</span>
+            <span class="legend-text">0</span>
           </div>
           <div class="legend-item">
             <div class="color-box" style={{ backgroundColor: this.colorScale[3] }}></div>
-            <span>0.5</span>
+            <span class="legend-text">0.5</span>
           </div>
           <div class="legend-item">
             <div class="color-box" style={{ backgroundColor: this.colorScale[4] }}></div>
-            <span>1.0</span>
+            <span class="legend-text">1.0</span>
           </div>
         </div>
       </div>
     );
+  }
+  
+  // Helper to determine text color based on background color
+  private getTextColor(value: number): string {
+    // Use light text on dark backgrounds and dark text on light backgrounds
+    if (Math.abs(value) > 0.5) {
+      return 'var(--fl-text-light, #ffffff)';
+    } else {
+      return 'var(--fl-text-dark, #000000)';
+    }
   }
   
   render() {

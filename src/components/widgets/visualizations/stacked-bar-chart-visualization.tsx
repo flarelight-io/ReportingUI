@@ -37,16 +37,16 @@ export class StackedBarChartVisualization {
 
   private getColors(): string[] {
     return [
-      '#4f46e5', // indigo-600
-      '#0ea5e9', // sky-500
-      '#10b981', // emerald-500
-      '#f59e0b', // amber-500
-      '#ef4444', // red-500
-      '#8b5cf6', // violet-500
-      '#ec4899', // pink-500
-      '#06b6d4', // cyan-500
-      '#84cc16', // lime-500
-      '#f97316'  // orange-500
+      'var(--fl-chart-color-1, #4f46e5)', // indigo-600
+      'var(--fl-chart-color-2, #0ea5e9)', // sky-500
+      'var(--fl-chart-color-3, #10b981)', // emerald-500
+      'var(--fl-chart-color-4, #f59e0b)', // amber-500
+      'var(--fl-chart-color-5, #ef4444)', // red-500
+      'var(--fl-chart-color-6, #8b5cf6)', // violet-500
+      'var(--fl-chart-color-7, #ec4899)', // pink-500
+      'var(--fl-chart-color-8, #06b6d4)', // cyan-500
+      'var(--fl-chart-color-9, #84cc16)', // lime-500
+      'var(--fl-chart-color-10, #f97316)'  // orange-500
     ];
   }
 
@@ -226,7 +226,7 @@ export class StackedBarChartVisualization {
                     // Horizontal grid lines for horizontal bar chart
                     Array.from({length: 5}).map((_, i) => {
                       const xPos = 40 + (i * availableWidth / 4);
-                      return <line key={`v-${i}`} x1={xPos} y1="30" x2={xPos} y2={viewBoxHeight - 10} stroke="#ccc" stroke-width="0.5" stroke-dasharray={i > 0 ? "1,1" : ""} />
+                      return <line key={`v-${i}`} x1={xPos} y1="30" x2={xPos} y2={viewBoxHeight - 10} stroke="var(--fl-chart-grid-color, #ccc)" stroke-width="0.5" stroke-dasharray={i > 0 ? "1,1" : ""} />
                     })
                   ) : (
                     // Grid lines for vertical bar chart - revised to align properly
@@ -241,7 +241,7 @@ export class StackedBarChartVisualization {
                             y1={yPos} 
                             x2={viewBoxWidth - 5} 
                             y2={yPos} 
-                            stroke="#ccc" 
+                            stroke="var(--fl-chart-grid-color, #ccc)" 
                             stroke-width="0.5"
                             stroke-dasharray={i > 0 ? "1,1" : ""}
                           />
@@ -258,7 +258,7 @@ export class StackedBarChartVisualization {
                             y1="5" 
                             x2={xPos} 
                             y2="95" 
-                            stroke="#ccc" 
+                            stroke="var(--fl-chart-grid-color, #ccc)" 
                             stroke-width="0.5"
                             stroke-dasharray={i > 0 ? "1,1" : ""}
                           />
@@ -307,7 +307,7 @@ export class StackedBarChartVisualization {
                     y={105} 
                     font-size={fontSize}
                     text-anchor="middle"
-                    fill="#333"
+                    fill="var(--fl-chart-text-color, #333)"
                   >
                     {displayText}
                   </text>
@@ -329,7 +329,7 @@ export class StackedBarChartVisualization {
                     font-size={fontSize} 
                     text-anchor="end"
                     dominant-baseline="middle" 
-                    fill="#555"
+                    fill="var(--fl-chart-text-color, #555)"
                   >
                     {displayText}
                   </text>
@@ -342,8 +342,8 @@ export class StackedBarChartVisualization {
               {isHorizontal ? (
                 // Axis for horizontal bar chart
                 <>
-                  <line x1="40" y1="30" x2="40" y2={viewBoxHeight - 10} stroke="#333" stroke-width="1.5" />
-                  <line x1="40" y1={viewBoxHeight - 10} x2={viewBoxWidth - 10} y2={viewBoxHeight - 10} stroke="#333" stroke-width="1.5" />
+                  <line x1="40" y1="30" x2="40" y2={viewBoxHeight - 10} stroke="var(--fl-chart-axis-color, #333)" stroke-width="1.5" />
+                  <line x1="40" y1={viewBoxHeight - 10} x2={viewBoxWidth - 10} y2={viewBoxHeight - 10} stroke="var(--fl-chart-axis-color, #333)" stroke-width="1.5" />
                   
                   {/* X-axis labels */}
                   {Array.from({length: 5}).map((_, i) => {
@@ -356,7 +356,7 @@ export class StackedBarChartVisualization {
                         y={viewBoxHeight - 5}
                         font-size={fontSize * 0.8}
                         text-anchor="middle"
-                        fill="#666"
+                        fill="var(--fl-chart-text-color, #666)"
                       >
                         {value}
                       </text>
@@ -366,8 +366,8 @@ export class StackedBarChartVisualization {
               ) : (
                 // Axis for vertical bar chart
                 <>
-                  <line x1="5" y1="95" x2={viewBoxWidth - 5} y2="95" stroke="#333" stroke-width="1.5" />
-                  <line x1="5" y1="5" x2="5" y2="95" stroke="#333" stroke-width="1.5" />
+                  <line x1="5" y1="95" x2={viewBoxWidth - 5} y2="95" stroke="var(--fl-chart-axis-color, #333)" stroke-width="1.5" />
+                  <line x1="5" y1="5" x2="5" y2="95" stroke="var(--fl-chart-axis-color, #333)" stroke-width="1.5" />
                   
                   {/* Y-axis labels */}
                   {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
@@ -381,7 +381,7 @@ export class StackedBarChartVisualization {
                         font-size={fontSize * 0.8}
                         text-anchor="end"
                         dominant-baseline="middle"
-                        fill="#666"
+                        fill="var(--fl-chart-text-color, #666)"
                       >
                         {value}
                       </text>
