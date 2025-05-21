@@ -17,18 +17,12 @@ jobs:
     - name: 🧾 Checkout Code
       uses: actions/checkout@v3
 
-    - name: 🟢 Setup Node.js
+    - name: 🟢 Setup Node.js with GitHub Package Registry
       uses: actions/setup-node@v3
       with:
         node-version: '20'
-        registry-url: 'https://registry.npmjs.org/'
+        registry-url: 'https://npm.pkg.github.com/'
         scope: '@flarelight-io'
-        always-auth: true
-
-    - name: 📄 Configure .npmrc for npmjs + GitHub Packages
-      run: |
-        echo "@flarelight-io:registry=https://npm.pkg.github.com/" >> .npmrc
-        echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
 
     - name: 📦 NPM CI
       run: npm ci
