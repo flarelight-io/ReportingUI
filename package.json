@@ -1,5 +1,5 @@
 {
-  "name": "@pegasus/reporting",
+  "name": "@flarelight/reporting",
   "version": "0.2.1",
   "description": "Report Viewer and Widgets packaged as Web Components",
   "main": "dist/index.cjs.js",
