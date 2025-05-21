@@ -1,4 +1,4 @@
-name: Clean NPM Install
+name: Build and Publish Package
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    name: Build Package
     runs-on: ubuntu-latest
 
     steps:
@@ -30,3 +31,12 @@ jobs:
 
     - name: 📦 Run npm install
       run: npm install --verbose
+
+    - name: 🛠️ Build
+      run: npm run build
+
+    - name: 📤 Publish Package (GitHub Packages)
+      if: success()
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
