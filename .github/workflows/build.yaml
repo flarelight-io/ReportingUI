@@ -20,9 +20,10 @@ jobs:
     - name: Setup Node.js environment
       uses: actions/setup-node@v3.9.1
       with:
-        node-version: '20'
+        node-version: '22'
         registry-url: 'https://registry.npmjs.org/'
     
+    - run: npm i npm -g
     - name: 🧹 Remove local .npmrc if present
       run: rm -f .npmrc
     
