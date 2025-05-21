@@ -24,6 +24,8 @@ jobs:
 
     - name: 📦 NPM CI
       run: npm ci
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 🛠️ Build
       run: npm run build
