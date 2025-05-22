@@ -721,14 +721,6 @@ export class ReportDemo {
     }
   }
 
-  private forceUpdate() {
-    // Trick to force a re-render
-    this.darkMode = !this.darkMode;
-    setTimeout(() => {
-      this.darkMode = !this.darkMode;
-    }, 0);
-  }
-
   private triggerDirectFilterChange = (filter: { sourceId: string; field: string; value: any } | null) => {
     // Prevent duplicate filter processing
     const now = Date.now();
@@ -790,120 +782,6 @@ export class ReportDemo {
     }
   };
   
-  private injectFilterIntoWidgets(filter: { sourceId: string; field: string; value: any } | null) {
-    try {
-      // Find all data widget elements
-      const dataWidgets = document.querySelectorAll('data-widget');
-      console.log(`Found ${dataWidgets.length} data widgets to update filters`);
-      
-      // Apply the filter to each widget
-      dataWidgets.forEach(widget => {
-        try {
-          if (filter) {
-            // Create a new filter array with this filter
-            const newFilters = [{ 
-              sourceId: filter.sourceId, 
-              field: filter.field, 
-              value: filter.value 
-            }];
-            
-            console.log(`Setting filters directly on widget:`, newFilters);
-            
-            // Set the filters directly on the widget
-            (widget as any).activeFilters = newFilters;
-            
-            // Trigger a data update
-            widget.dispatchEvent(new CustomEvent('dataUpdate', {
-              detail: null, // null will trigger a re-fetch
-              bubbles: false
-            }));
-            
-            // Also try to find and update the widget's children
-            const visualizations = widget.shadowRoot?.querySelectorAll('[class*="visualization"]');
-            if (visualizations && visualizations.length > 0) {
-              console.log(`Found ${visualizations.length} visualizations in widget`);
-              
-              visualizations.forEach(viz => {
-                // Try to set filters directly on visualization
-                if (viz && 'activeFilters' in viz) {
-                  console.log('Setting filters directly on visualization');
-                  (viz as any).activeFilters = newFilters;
-                  
-                  // Try to force refresh the visualization
-                  if (typeof (viz as any).refreshData === 'function') {
-                    (viz as any).refreshData();
-                  }
-                }
-              });
-            }
-          } else {
-            // Clear filters
-            console.log('Clearing filters on widget');
-            (widget as any).activeFilters = [];
-            
-            // Trigger a data update with a special flag to ensure clearing
-            widget.dispatchEvent(new CustomEvent('dataUpdate', {
-              detail: {
-                _clearFilters: true
-              },
-              bubbles: false
-            }));
-            
-            // Also try to find and update the widget's children
-            const visualizations = widget.shadowRoot?.querySelectorAll('[class*="visualization"]');
-            if (visualizations && visualizations.length > 0) {
-              console.log(`Found ${visualizations.length} visualizations in widget to clear filters`);
-              
-              visualizations.forEach(viz => {
-                // Try to clear filters directly on visualization
-                if (viz && 'activeFilters' in viz) {
-                  console.log('Clearing filters directly on visualization');
-                  (viz as any).activeFilters = [];
-                  
-                  // Try to force refresh the visualization
-                  if (typeof (viz as any).refreshData === 'function') {
-                    (viz as any).refreshData();
-                  }
-                }
-              });
-            }
-          }
-        } catch (err) {
-          console.error('Error updating widget filters:', err);
-        }
-      });
-    } catch (err) {
-      console.error('Error in injectFilterIntoWidgets:', err);
-    }
-  }
-
-  private clearComponentFilters() {
-    if (!this.reportViewerRef) return;
-    
-    try {
-      if (DEBUG_MODE) console.log('Clearing all component filters');
-      
-      // Method 1: Use the component's activeFilters property
-      if ((this.reportViewerRef as any).activeFilters) {
-        if (DEBUG_MODE) console.log('Clearing existing filters:', (this.reportViewerRef as any).activeFilters);
-        
-        // Set directly to empty array
-        (this.reportViewerRef as any).activeFilters = [];
-        
-        // Use the wildcard to ensure everything is cleared
-        (this.reportViewerRef as any).handleFilterChange?.('*', '*', null);
-      }
-      
-      // Method 2: Reset widget data cache to force fresh data fetch
-      if ((this.reportViewerRef as any).widgetData) {
-        if (DEBUG_MODE) console.log('Clearing report viewer widget data cache');
-        (this.reportViewerRef as any).widgetData = {};
-      }
-    } catch (err) {
-      console.error('Error clearing component filters:', err);
-    }
-  }
-
   private forceReportRerendering() {
     if (DEBUG_MODE) console.log('Force report rerendering - complete rebuild');
     
@@ -957,9 +835,6 @@ export class ReportDemo {
 
   private fetchChartData = async (request: any) => {    
     if (DEBUG_MODE) console.log('Fetch chart data request:', request);
-    
-    // Create a unique request identifier to avoid duplicate processing
-    const requestId = `${request.sourceId}-${JSON.stringify(request.filters || [])}-${Date.now()}`;
     
     // Check if this is a filtered request
     const isFilteredRequest = request.filters && request.filters.length > 0;
@@ -1073,40 +948,7 @@ export class ReportDemo {
     // Return the filtered data
     return filteredData;
   };
-  
-  private getDataForRequest(request: any) {
-    const sourceId = request.sourceId;
     
-    // Use a more specific cache key that includes filter info
-    const cacheKey = this.activeFilter ? 
-      `${sourceId}-${this.activeFilter.field}-${this.activeFilter.value}` : 
-      sourceId;
-    
-    // Check if we have cached data for this specific request
-    if (this.filteredDataCache[cacheKey]) {
-      if (DEBUG_MODE) console.log(`Using cached filtered data for ${cacheKey}`);
-      return this.filteredDataCache[cacheKey];
-    }
-    
-    // Generate filtered data if needed
-    if (this.activeFilter) {
-      if (DEBUG_MODE) console.log(`Generating fresh filtered data for ${sourceId}`);
-      const baseData = this.getBaseData(sourceId);
-      
-      // Apply filter to create filtered data
-      const filteredData = this.filterDataByCategory(baseData, this.activeFilter.value);
-      
-      // Store in cache with specific key
-      this.filteredDataCache[cacheKey] = filteredData;
-      
-      // Return the filtered data
-      return filteredData;
-    }
-    
-    // Get base data if no filter is active
-    return this.getBaseData(sourceId);
-  }
-  
   private filterDataByCategory(data: any[], categoryValue: string) {
     if (!data || data.length === 0) return data;
     

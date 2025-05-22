@@ -3,7 +3,8 @@ name: Build and Publish Package
 on:
   push:
     branches:
-      - main
+      - '**'
+  pull_request:
 
 jobs:
   build:
@@ -39,14 +40,15 @@ jobs:
 
     - name: 🛠️ Build
       run: npm run build
-    
+
     - name: 🔐 Configure GitHub Packages Auth
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: |
         echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
         echo "registry=https://npm.pkg.github.com/" >> ~/.npmrc
-        
+
     - name: 📤 Publish Package (GitHub Packages)
-      if: success()
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

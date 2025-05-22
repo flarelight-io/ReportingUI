@@ -1,6 +1,6 @@
 import { Component, Prop, h, Host, State, Watch, Element, Listen } from '@stencil/core';
-import { ChartDataRequest, Filter } from '../../api/types/common';
 import { FilterChangeEventDetail, VisualizationData } from './visualizations/base-visualization';
+import { Filter } from '../../api/types/common';
 
 // Add debug flag at the top
 const DEBUG_MODE = false; // Set to true to enable verbose logging
