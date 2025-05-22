@@ -2,6 +2,8 @@ import { Component, Prop, h, State, Watch, Element, Listen } from '@stencil/core
 import { DataSource, Filter, ChartDataRequest } from '../../api/types/common';
 import { WidgetData } from '../widgets/base-widget';
 
+const DEBUG_MODE = false; // Set to true to enable verbose logging
+
 interface WidgetDataCache {
   [widgetId: string]: any;
 }
@@ -159,6 +161,19 @@ export class FlareReportViewer {
       // Get relevant filters for this source
       const sourceFilters = this.activeFilters.filter(f => f.sourceId === sourceId);
       
+      // Create cache key based on source and filters
+      const filterKey = sourceFilters.length > 0 ? 
+        JSON.stringify(sourceFilters.map(f => `${f.field}:${f.value}`).sort()) : 
+        'nofilters';
+      
+      const cacheKey = `${sourceId}:${filterKey}`;
+      
+      // Check if we already have this data in the cache
+      if (this.widgetData[widget.id] && !this.activeFilters.some(f => f.sourceId === sourceId)) {
+        if (DEBUG_MODE) console.log(`Using cached data for widget ${widget.id}`);
+        return this.widgetData[widget.id];
+      }
+      
       // Determine visualization type
       const visualizationType = widget.type === 'data'
         ? (widget.config?.visualizationType as string || 'table')
@@ -188,8 +203,14 @@ export class FlareReportViewer {
         widgetType: visualizationType
       };
       
+      // Add cache key to request as extra property outside the typed object
+      const requestWithCache = {
+        ...chartDataRequest,
+        _cacheKey: cacheKey
+      };
+      
       // Fetch the data
-      const response = await this.fetchChartData(chartDataRequest);
+      const response = await this.fetchChartData(requestWithCache);
       
       // Store in widget data cache
       this.widgetData = {
@@ -527,46 +548,140 @@ export class FlareReportViewer {
     return element;
   }
   
-  // Handle filter changes
-  @Listen('filter-change', { target: 'window' })
-  handleFilterChangeEvent(event: CustomEvent) {
-    const { sourceId, field, value } = event.detail;
-    this.handleFilterChange(sourceId, field, value);
+  // Handle filter changes  
+  @Listen('filter-change', { target: 'window' })  
+  handleFilterChangeEvent(event: CustomEvent) {    
+    if (DEBUG_MODE) console.log('Filter change event received in report viewer:', event.detail);    
+    const { sourceId, field, value } = event.detail;    
+    this.handleFilterChange(sourceId, field, value);  
   }
   
+  // Track active filter changes to prevent duplicate processing
+  private filterUpdateInProgress = false;
+  private lastFilterTimestamp = 0;
+
   handleFilterChange = (sourceId: string, field: string, value: any) => {
-    // Update filters
-    const existingFilterIndex = this.activeFilters.findIndex(
-      filter => filter.sourceId === sourceId && filter.field === field
-    );
+    // Prevent excessive filter updates
+    const now = Date.now();
+    if (now - this.lastFilterTimestamp < 300) {
+      if (DEBUG_MODE) console.log('Throttling filter changes - too frequent');
+      return;
+    }
+    this.lastFilterTimestamp = now;
     
-    const newFilters = [...this.activeFilters];
-    
-    if (existingFilterIndex >= 0) {
-      if (value === null || value === undefined) {
-        // Remove filter
-        newFilters.splice(existingFilterIndex, 1);
-      } else {
-        // Update filter
-        newFilters[existingFilterIndex] = { sourceId, field, value };
-      }
-    } else if (value !== null && value !== undefined) {
-      // Add new filter
-      newFilters.push({ sourceId, field, value });
+    // Prevent recursive filter processing
+    if (this.filterUpdateInProgress) {
+      if (DEBUG_MODE) console.log('Filter update already in progress, ignoring nested call');
+      return;
     }
     
-    this.activeFilters = newFilters;
+    this.filterUpdateInProgress = true;
     
-    // Reset cache and re-fetch data with new filters
-    this.widgetData = {};
-    this.dataFetchPromises = {};
-    
-    // Re-fetch data for all widgets
-    if (this.widgets.length > 0 && this.fetchChartData) {
-      this.prefetchWidgetData();
-    } else {
-      // If we can't fetch new data, just re-render with existing data
-      this.renderWidgets();
+    try {
+      if (DEBUG_MODE) console.log('Handling filter change in report viewer:', sourceId, field, value);
+      
+      // Special case for wildcard clearing
+      if (sourceId === '*' && field === '*' && (value === null || value === undefined)) {
+        if (DEBUG_MODE) console.log('Wildcard filter clearing detected, removing all filters');
+        this.activeFilters = [];
+        
+        // Reset widget data cache
+        this.widgetData = {};
+        this.dataFetchPromises = {};
+        
+        // Force render with empty filters
+        const forceRender = async () => {
+          // First, force fetch all data with no filters
+          await this.prefetchWidgetData();
+          
+          // Then completely rebuild the widget grid
+          if (this.gridContainer) {
+            // Clear the container
+            this.gridContainer.innerHTML = '';
+            
+            // Rebuild all widgets from scratch
+            this.renderWidgets();
+            
+            // Dispatch an event that filter clearing is complete
+            const event = new CustomEvent('filters-cleared', {
+              bubbles: true
+            });
+            this.el.dispatchEvent(event);
+            
+            if (DEBUG_MODE) console.log('Widget grid completely rebuilt after clearing all filters');
+          }
+        };
+        
+        // Start the rendering process
+        forceRender();
+        return;
+      }
+      
+      // Update filters
+      const existingFilterIndex = this.activeFilters.findIndex(
+        filter => filter.sourceId === sourceId && filter.field === field
+      );
+      
+      const newFilters = [...this.activeFilters];
+      
+      if (existingFilterIndex >= 0) {
+        if (value === null || value === undefined) {
+          // Remove filter
+          if (DEBUG_MODE) console.log('Removing existing filter');
+          newFilters.splice(existingFilterIndex, 1);
+        } else {
+          // Update filter
+          if (DEBUG_MODE) console.log('Updating existing filter');
+          newFilters[existingFilterIndex] = { sourceId, field, value };
+        }
+      } else if (value !== null && value !== undefined) {
+        // Add new filter
+        if (DEBUG_MODE) console.log('Adding new filter');
+        newFilters.push({ sourceId, field, value });
+      }
+      
+      if (DEBUG_MODE) console.log('New active filters:', newFilters);
+      this.activeFilters = newFilters;
+      
+      // Reset cache and re-fetch data with new filters
+      if (DEBUG_MODE) console.log('Clearing widget data cache');
+      this.widgetData = {};
+      this.dataFetchPromises = {};
+      
+      // Instead of trying to update existing widgets, completely recreate them
+      // First, prefetch data with the new filters
+      if (this.widgets.length > 0 && this.fetchChartData) {
+        if (DEBUG_MODE) console.log('Pre-fetching data for all widgets with new filters');
+        
+        // Rebuild the entire widget grid after data is fetched
+        this.prefetchWidgetData().then(() => {
+          if (DEBUG_MODE) console.log('Data pre-fetch complete, completely rebuilding widgets');
+          
+          // Force a complete rebuild of all widgets
+          if (this.gridContainer) {
+            // Clear the container
+            this.gridContainer.innerHTML = '';
+            
+            // Rebuild all widgets from scratch
+            this.renderWidgets();
+            
+            if (DEBUG_MODE) console.log('Widget grid completely rebuilt with new filters applied');
+            
+            // Dispatch event to notify that filters have been applied
+            const event = new CustomEvent('filters-applied', {
+              bubbles: true,
+              detail: { filters: this.activeFilters }
+            });
+            this.el.dispatchEvent(event);
+          }
+        });
+      } else {
+        // If we can't fetch new data, just re-render with existing data
+        if (DEBUG_MODE) console.log('Rendering widgets with existing data');
+        this.renderWidgets();
+      }
+    } finally {
+      this.filterUpdateInProgress = false;
     }
   }
   

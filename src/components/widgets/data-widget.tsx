@@ -2,6 +2,9 @@ import { Component, Prop, h, Host, State, Watch, Element, Listen } from '@stenci
 import { ChartDataRequest, Filter } from '../../api/types/common';
 import { FilterChangeEventDetail, VisualizationData } from './visualizations/base-visualization';
 
+// Add debug flag at the top
+const DEBUG_MODE = false; // Set to true to enable verbose logging
+
 export interface DataWidgetConfig {
   sourceId?: string;
   sourceName?: string;
@@ -55,6 +58,8 @@ export class DataWidget {
   
   private timeoutId: any = null;
   private isMounted: boolean = false;
+  private lastFetchTimestamp: number = 0; // Track last fetch time
+  private fetchInProgress: boolean = false; // Prevent duplicate fetches
   
   // Watch for changes to the data prop
   @Watch('data')
@@ -65,15 +70,41 @@ export class DataWidget {
     }
   }
   
+  // Add method to refresh data on demand
+  public refreshData() {
+    if (DEBUG_MODE) console.log('refreshData called for widget', this.widgetId);
+    // Reset any cache flags
+    this.lastFetchTimestamp = 0;
+    this.fetchInProgress = false;
+    // Force refetch data
+    this.fetchDataFromSource(true);
+  }
+  
   connectedCallback() {
     this.isMounted = true;
     
     // Setup listener for direct data updates via events
     this.el.addEventListener('dataUpdate', (event: CustomEvent) => {
+      if (DEBUG_MODE) console.log('dataUpdate event received', event.detail);
       if (event.detail) {
         this.internalData = [...event.detail];
         this.loading = false;
+      } else {
+        // If detail is null, it means we should refetch the data
+        if (DEBUG_MODE) console.log('Null data update event - refetching data');
+        this.fetchDataFromSource(true); // Force refresh
       }
+    });
+    
+    // Add listeners for filter clearing and application
+    window.addEventListener('filters-cleared', () => {
+      if (DEBUG_MODE) console.log('filters-cleared event received for widget', this.widgetId);
+      this.refreshData();
+    });
+    
+    window.addEventListener('filters-applied', () => {
+      if (DEBUG_MODE) console.log('filters-applied event received for widget', this.widgetId);
+      this.refreshData();
     });
     
     // If we already have data from props, use it
@@ -92,19 +123,26 @@ export class DataWidget {
       clearTimeout(this.timeoutId);
     }
     
-    // Remove event listener
+    // Clean up all event listeners
     this.el.removeEventListener('dataUpdate', null);
+    window.removeEventListener('filters-cleared', null);
+    window.removeEventListener('filters-applied', null);
   }
   
   @Watch('config')
-  @Watch('activeFilters')
   configChanged() {
+    if (DEBUG_MODE) console.log('Config changed for widget', this.widgetId);
+    this.fetchDataFromSource();
+  }
+  
+  @Watch('activeFilters')
+  activeFiltersChanged() {
+    if (DEBUG_MODE) console.log('Active filters changed for widget', this.widgetId, this.activeFilters);
     this.fetchDataFromSource();
   }
   
   @Listen('filterChange')
   handleFilterChangeEvent(event: CustomEvent<FilterChangeEventDetail>) {
-    console.log('handleFilterChangeEvent', event);
     const { sourceId, field, value } = event.detail;
     this.triggerFilterChange(sourceId, field, value);
   }
@@ -124,12 +162,30 @@ export class DataWidget {
     this.el.dispatchEvent(event);
   }
   
-  private async fetchDataFromSource() {
+  private async fetchDataFromSource(forceRefresh: boolean = false) {
+    if (DEBUG_MODE) console.log('fetchDataFromSource called for widget', this.widgetId, forceRefresh ? '(forced)' : '');
+    
+    // Throttle fetch calls and prevent concurrent fetches
+    const now = Date.now();
+    if (!forceRefresh && now - this.lastFetchTimestamp < 300) {
+      if (DEBUG_MODE) console.log('Throttling fetch - too soon after last fetch');
+      return;
+    }
+    
+    if (!forceRefresh && this.fetchInProgress) {
+      if (DEBUG_MODE) console.log('Fetch already in progress, skipping duplicate request');
+      return;
+    }
+    
+    this.lastFetchTimestamp = now;
+    this.fetchInProgress = true;
+    
     const { sourceId, visualizationType, valueField, groupByField, labelField, aggregation, fields } = this.config;
     
     // Skip if necessary conditions aren't met
     if (!sourceId || !this.isMounted) {
       this.loading = false;
+      this.fetchInProgress = false;
       return;
     }
     
@@ -138,6 +194,7 @@ export class DataWidget {
     if (!source) {
       this.error = 'Data source not found';
       this.loading = false;
+      this.fetchInProgress = false;
       return;
     }
     
@@ -147,9 +204,15 @@ export class DataWidget {
     try {
       // Get filters for this source
       const sourceFilters = this.activeFilters.filter(f => f.sourceId === sourceId);
+      if (DEBUG_MODE) console.log('Fetching data with filters:', sourceFilters);
       
-      // Create chart data request
-      const chartDataRequest: ChartDataRequest = {
+      // Create a cache key for this specific request
+      const filterKey = sourceFilters.length > 0 ? 
+        JSON.stringify(sourceFilters.map(f => `${f.field}:${f.value}`).sort()) : 
+        'nofilters';
+      
+      // Create chart data request with timestamp to bust cache
+      const request: any = {
         reportId: this.reportId,
         sourceId: sourceId,
         sourceType: source.type as 'DataImport' | 'DataPreparation' | 'AnalysisResult',
@@ -162,7 +225,9 @@ export class DataWidget {
           value: filter.value
         })),
         isViewer: this.isViewer,
-        widgetType: visualizationType
+        widgetType: visualizationType,
+        _cacheKey: `${sourceId}:${filterKey}:${this.widgetId}`,
+        _timestamp: now
       };
 
       // Handle value fields based on visualization type
@@ -172,7 +237,7 @@ export class DataWidget {
           visualizationType === 'clustered-hbar') {
         // For multi-series charts, use multiple value fields
         if (fields && fields.length > 0) {
-          chartDataRequest.valueFields = fields.map(field => ({
+          request.valueFields = fields.map(field => ({
             fieldName: field,
             aggregation: aggregation === 'none' ? undefined : aggregation
           }));
@@ -180,7 +245,7 @@ export class DataWidget {
       } else {
         // For standard charts, use single value field
         if (valueField) {
-          chartDataRequest.valueFields = [{
+          request.valueFields = [{
             fieldName: valueField,
             aggregation: aggregation === 'none' ? undefined : aggregation
           }];
@@ -189,7 +254,7 @@ export class DataWidget {
       
       // Fetch the data
       if (typeof this.fetchChartData === 'function') {
-        const response = await this.fetchChartData(chartDataRequest);
+        const response = await this.fetchChartData(request);
         if (this.isMounted) {
           // Process response
           const responseData = response || [];
@@ -208,6 +273,8 @@ export class DataWidget {
         this.error = 'Error loading data';
         this.loading = false;
       }
+    } finally {
+      this.fetchInProgress = false;
     }
   }
   
