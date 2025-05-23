@@ -463,8 +463,9 @@ export class BoxWhiskerChartVisualization {
                       x={box.elements.label.x} 
                       y={viewBoxHeight - (padding / 3)}
                       font-size="3.5"
-                      text-anchor="middle"
+                      text-anchor="end"
                       fill="var(--fl-chart-text-color, #333)"
+                      transform={`rotate(-45, ${box.elements.label.x}, ${viewBoxHeight - (padding / 3)})`}
                     >
                       {box.category}
                     </text>

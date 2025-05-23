@@ -101,4 +101,21 @@
 .chart-info {
   font-size: 0.6875rem;
   color: var(--fl-text-color-secondary, #6b7280);
+}
+
+/* Tooltip styling */
+.chart-tooltip {
+  position: absolute;
+  z-index: 10;
+  background-color: var(--fl-card-background, #fff);
+  backdrop-filter: blur(4px);
+  color: var(--fl-text-color-primary, #1f2937);
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid var(--fl-border-color, #d1d5db);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  font-size: 12px;
+  pointer-events: none;
+  white-space: pre-line;
+  max-width: 200px;
 } 

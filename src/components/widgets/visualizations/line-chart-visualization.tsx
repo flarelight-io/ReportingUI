@@ -1,9 +1,16 @@
-import { Component, Prop, h, Event, EventEmitter } from '@stencil/core';
+import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 
 interface LineDataPoint {
   x: string | number;
+  y: number;
+}
+
+interface TooltipState {
+  visible: boolean;
+  text: string;
+  x: number;
   y: number;
 }
 
@@ -16,6 +23,8 @@ export class LineChartVisualization {
   @Prop() config: DataWidgetConfig;
   @Prop() data: VisualizationData;
   
+  @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
+  
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
   private handleFilterClick(fieldName: string, value: any) {
@@ -26,6 +35,22 @@ export class LineChartVisualization {
         value: value
       });
     }
+  }
+
+  private handleMouseMove(event: MouseEvent, category: string | number, value: number) {
+    const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
+    if (svgRect) {
+      this.tooltip = {
+        visible: true,
+        text: `${category}: ${value}`,
+        x: event.clientX - svgRect.left,
+        y: event.clientY - svgRect.top
+      };
+    }
+  }
+
+  private handleMouseLeave() {
+    this.tooltip = { ...this.tooltip, visible: false };
   }
 
   private processData(): LineDataPoint[] {
@@ -191,6 +216,8 @@ export class LineChartVisualization {
                 transform={`translate(${point.x}, ${point.y})`}
                 style={{ cursor: 'pointer' }}
                 onClick={() => this.handleFilterClick(this.config.groupByField, point.category)}
+                onMouseEnter={(event) => this.handleMouseMove(event, point.category, point.value)}
+                onMouseLeave={() => this.handleMouseLeave()}
               >
                 <circle cx="0" cy="0" r="1.5" fill={colors[0]} />
               </g>
@@ -270,6 +297,20 @@ export class LineChartVisualization {
               );
             })}
           </svg>
+          
+          {/* Tooltip */}
+          {this.tooltip.visible && (
+            <div 
+              class="chart-tooltip"
+              style={{ 
+                left: `${this.tooltip.x}px`, 
+                top: `${this.tooltip.y}px`,
+                transform: 'translate(-50%, -100%)'
+              }}
+            >
+              {this.tooltip.text}
+            </div>
+          )}
         </div>
         
         {this.config.showLegend && (

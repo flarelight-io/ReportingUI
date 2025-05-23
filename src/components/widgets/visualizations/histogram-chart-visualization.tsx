@@ -1,4 +1,4 @@
-import { Component, Prop, h, Event, EventEmitter } from '@stencil/core';
+import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 
@@ -7,6 +7,13 @@ interface HistogramBin {
   count: number;
   binStart?: number;
   binEnd?: number;
+}
+
+interface TooltipState {
+  visible: boolean;
+  text: string;
+  x: number;
+  y: number;
 }
 
 @Component({
@@ -18,6 +25,8 @@ export class HistogramChartVisualization {
   @Prop() config: DataWidgetConfig;
   @Prop() data: VisualizationData;
   
+  @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
+  
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
   private handleFilterClick(fieldName: string, value: any) {
@@ -28,6 +37,22 @@ export class HistogramChartVisualization {
         value: value
       });
     }
+  }
+
+  private handleMouseMove(event: MouseEvent, label: string, count: number) {
+    const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
+    if (svgRect) {
+      this.tooltip = {
+        visible: true,
+        text: `${label}: ${count}`,
+        x: event.clientX - svgRect.left,
+        y: event.clientY - svgRect.top
+      };
+    }
+  }
+
+  private handleMouseLeave() {
+    this.tooltip = { ...this.tooltip, visible: false };
   }
 
   private processData(): HistogramBin[] {
@@ -188,6 +213,8 @@ export class HistogramChartVisualization {
                 key={i}
                 style={{ cursor: 'pointer' }}
                 onClick={() => this.handleFilterClick(this.config.valueField, bar.bin.label)}
+                onMouseMove={(event) => this.handleMouseMove(event, bar.bin.label, bar.bin.count)}
+                onMouseLeave={() => this.handleMouseLeave()}
               >
                 <rect 
                   x={bar.x} 
@@ -276,6 +303,20 @@ export class HistogramChartVisualization {
               );
             })}
           </svg>
+          
+          {/* Tooltip */}
+          {this.tooltip.visible && (
+            <div 
+              class="chart-tooltip"
+              style={{ 
+                left: `${this.tooltip.x}px`, 
+                top: `${this.tooltip.y}px`,
+                transform: 'translate(-50%, -100%)'
+              }}
+            >
+              {this.tooltip.text}
+            </div>
+          )}
         </div>
         
         {this.config.showLegend && (

@@ -1,4 +1,4 @@
-import { Component, Prop, h, Event, EventEmitter } from '@stencil/core';
+import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 
@@ -13,6 +13,13 @@ interface RegressionResult {
   r2: number;
 }
 
+interface TooltipState {
+  visible: boolean;
+  text: string;
+  x: number;
+  y: number;
+}
+
 @Component({
   tag: 'scatter-chart-visualization',
   styleUrl: 'scatter-chart-visualization.scss',
@@ -21,6 +28,8 @@ interface RegressionResult {
 export class ScatterChartVisualization {
   @Prop() config: DataWidgetConfig;
   @Prop() data: VisualizationData;
+  
+  @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
@@ -32,6 +41,22 @@ export class ScatterChartVisualization {
         value: value
       });
     }
+  }
+
+  private handleMouseMove(event: MouseEvent, category: string | number, value: number) {
+    const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
+    if (svgRect) {
+      this.tooltip = {
+        visible: true,
+        text: `${category}: ${value}`,
+        x: event.clientX - svgRect.left,
+        y: event.clientY - svgRect.top
+      };
+    }
+  }
+
+  private handleMouseLeave() {
+    this.tooltip = { ...this.tooltip, visible: false };
   }
 
   private processData(): ScatterDataPoint[] {
@@ -309,6 +334,8 @@ export class ScatterChartVisualization {
                 transform={`translate(${point.x}, ${point.y})`}
                 style={{ cursor: 'pointer' }}
                 onClick={() => this.handleFilterClick(this.config.groupByField, point.category)}
+                onMouseMove={(event) => this.handleMouseMove(event, point.category, point.value)}
+                onMouseLeave={() => this.handleMouseLeave()}
               >
                 <circle 
                   cx="0" 
@@ -408,6 +435,20 @@ export class ScatterChartVisualization {
               );
             })}
           </svg>
+          
+          {/* Tooltip */}
+          {this.tooltip.visible && (
+            <div 
+              class="chart-tooltip"
+              style={{ 
+                left: `${this.tooltip.x}px`, 
+                top: `${this.tooltip.y}px`,
+                transform: 'translate(-50%, -100%)'
+              }}
+            >
+              {this.tooltip.text}
+            </div>
+          )}
         </div>
         
         {this.config.showLegend && (

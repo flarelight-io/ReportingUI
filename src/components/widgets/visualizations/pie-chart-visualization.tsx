@@ -1,4 +1,4 @@
-import { Component, Prop, h, Event, EventEmitter } from '@stencil/core';
+import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 
@@ -6,6 +6,13 @@ interface PieChartDataItem {
   category: string;
   value: number;
   percentage?: number;
+}
+
+interface TooltipState {
+  visible: boolean;
+  text: string;
+  x: number;
+  y: number;
 }
 
 @Component({
@@ -17,6 +24,8 @@ export class PieChartVisualization {
   @Prop() config: DataWidgetConfig;
   @Prop() data: VisualizationData;
   
+  @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
+  
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
   private handleFilterClick(fieldName: string, value: any) {
@@ -27,6 +36,22 @@ export class PieChartVisualization {
         value: value 
       });
     }
+  }
+
+  private handleMouseMove(event: MouseEvent, category: string, value: number, percentage: number) {
+    const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
+    if (svgRect) {
+      this.tooltip = {
+        visible: true,
+        text: `${category}: ${value} (${percentage}%)`,
+        x: event.clientX - svgRect.left,
+        y: event.clientY - svgRect.top
+      };
+    }
+  }
+
+  private handleMouseLeave() {
+    this.tooltip = { ...this.tooltip, visible: false };
   }
 
   private processData(): PieChartDataItem[] {
@@ -132,6 +157,8 @@ export class PieChartVisualization {
                     mask={`url(#donutHole-${this.config.sourceId || 'pie'})`}
                     style={{ cursor: 'pointer' }}
                     onClick={() => this.handleFilterClick(this.config.groupByField, singleItem.category)}
+                    onMouseMove={(event) => this.handleMouseMove(event, singleItem.category, singleItem.value, 100)}
+                    onMouseLeave={() => this.handleMouseLeave()}
                   />
                 </g>
               ) : (
@@ -142,6 +169,8 @@ export class PieChartVisualization {
                   fill={colors[0]}
                   style={{ cursor: 'pointer' }}
                   onClick={() => this.handleFilterClick(this.config.groupByField, singleItem.category)}
+                  onMouseMove={(event) => this.handleMouseMove(event, singleItem.category, singleItem.value, 100)}
+                  onMouseLeave={() => this.handleMouseLeave()}
                 />
               )}
               
@@ -183,6 +212,20 @@ export class PieChartVisualization {
                 </text>
               </g>
             </svg>
+            
+            {/* Tooltip */}
+            {this.tooltip.visible && (
+              <div 
+                class="chart-tooltip"
+                style={{ 
+                  left: `${this.tooltip.x}px`, 
+                  top: `${this.tooltip.y}px`,
+                  transform: 'translate(-50%, -100%)'
+                }}
+              >
+                {this.tooltip.text}
+              </div>
+            )}
           </div>
           
           {this.config.showLegend && (
@@ -306,6 +349,8 @@ export class PieChartVisualization {
                 fill={segment.color}
                 style={{ cursor: 'pointer' }}
                 onClick={() => this.handleFilterClick(this.config.groupByField, segment.category)}
+                onMouseMove={(event) => this.handleMouseMove(event, segment.category, segment.value, segment.displayPercentage)}
+                onMouseLeave={() => this.handleMouseLeave()}
               />
             ))}
             
@@ -375,6 +420,20 @@ export class PieChartVisualization {
                 );
             })}
           </svg>
+          
+          {/* Tooltip */}
+          {this.tooltip.visible && (
+            <div 
+              class="chart-tooltip"
+              style={{ 
+                left: `${this.tooltip.x}px`, 
+                top: `${this.tooltip.y}px`,
+                transform: 'translate(-50%, -100%)'
+              }}
+            >
+              {this.tooltip.text}
+            </div>
+          )}
         </div>
         
         {this.config.showLegend && (

@@ -1051,141 +1051,312 @@ export class ReportDemo {
     switch (sourceId) {
       case 'sample-categorical':
         return [
-          { category: 'Category A', value: 42 },
-          { category: 'Category B', value: 28 },
-          { category: 'Category C', value: 35 },
-          { category: 'Category D', value: 49 },
-          { category: 'Category E', value: 22 }
+          { category: 'Enterprise Software Solutions & Cloud Services', value: 142 },
+          { category: 'Healthcare Technology & Medical Devices', value: 98 },
+          { category: 'Financial Services & Banking Technology', value: 125 },
+          { category: 'E-commerce & Digital Marketing Platforms', value: 89 },
+          { category: 'Manufacturing & Industrial Automation', value: 167 },
+          { category: 'Transportation & Logistics Management', value: 134 },
+          { category: 'Education Technology & Learning Platforms', value: 76 },
+          { category: 'Renewable Energy & Sustainability Solutions', value: 203 },
+          { category: 'Telecommunications & Network Infrastructure', value: 156 },
+          { category: 'Real Estate & Property Management Systems', value: 91 },
+          { category: 'Food & Beverage Industry Technologies', value: 118 },
+          { category: 'Retail & Customer Experience Solutions', value: 145 },
+          { category: 'Media & Entertainment Content Platforms', value: 82 },
+          { category: 'Automotive & Smart Vehicle Technologies', value: 178 },
+          { category: 'Agriculture & Smart Farming Solutions', value: 94 }
         ];
         
       case 'sample-time-series':
         return [
-          { date: '2023-01-01', value: 10 },
-          { date: '2023-02-01', value: 25 },
-          { date: '2023-03-01', value: 15 },
-          { date: '2023-04-01', value: 30 },
-          { date: '2023-05-01', value: 18 },
-          { date: '2023-06-01', value: 40 }
+          { date: '2023-01-01', value: 145 },
+          { date: '2023-01-15', value: 178 },
+          { date: '2023-02-01', value: 156 },
+          { date: '2023-02-15', value: 189 },
+          { date: '2023-03-01', value: 234 },
+          { date: '2023-03-15', value: 198 },
+          { date: '2023-04-01', value: 267 },
+          { date: '2023-04-15', value: 245 },
+          { date: '2023-05-01', value: 289 },
+          { date: '2023-05-15', value: 312 },
+          { date: '2023-06-01', value: 298 },
+          { date: '2023-06-15', value: 334 },
+          { date: '2023-07-01', value: 367 },
+          { date: '2023-07-15', value: 345 },
+          { date: '2023-08-01', value: 389 },
+          { date: '2023-08-15', value: 412 },
+          { date: '2023-09-01', value: 398 },
+          { date: '2023-09-15', value: 434 },
+          { date: '2023-10-01', value: 456 },
+          { date: '2023-10-15', value: 423 },
+          { date: '2023-11-01', value: 478 },
+          { date: '2023-11-15', value: 489 },
+          { date: '2023-12-01', value: 512 },
+          { date: '2023-12-15', value: 534 }
         ];
         
       case 'sample-scatter':
-        return [
-          { x: 10, y: 8 },
-          { x: 15, y: 12 },
-          { x: 20, y: 18 },
-          { x: 25, y: 20 },
-          { x: 30, y: 25 },
-          { x: 35, y: 29 },
-          { x: 40, y: 33 },
-          { x: 45, y: 36 },
-          { x: 50, y: 42 }
-        ];
+        const scatterData = [];
+        for (let i = 0; i < 50; i++) {
+          scatterData.push({
+            x: 10 + Math.random() * 90,
+            y: 15 + Math.random() * 85 + (i * 0.5), // Add some correlation
+          });
+        }
+        return scatterData;
         
       case 'sample-histogram':
         return [
-          { bin: '0-10', frequency: 5 },
-          { bin: '10-20', frequency: 12 },
-          { bin: '20-30', frequency: 25 },
-          { bin: '30-40', frequency: 18 },
-          { bin: '40-50', frequency: 10 },
-          { bin: '50-60', frequency: 3 }
+          { bin: 'Very Low Performance (0-10%)', frequency: 12 },
+          { bin: 'Below Average Performance (10-20%)', frequency: 24 },
+          { bin: 'Low Average Performance (20-30%)', frequency: 45 },
+          { bin: 'Average Performance (30-40%)', frequency: 67 },
+          { bin: 'Above Average Performance (40-50%)', frequency: 89 },
+          { bin: 'Good Performance (50-60%)', frequency: 76 },
+          { bin: 'Very Good Performance (60-70%)', frequency: 54 },
+          { bin: 'Excellent Performance (70-80%)', frequency: 38 },
+          { bin: 'Outstanding Performance (80-90%)', frequency: 23 },
+          { bin: 'Exceptional Performance (90-100%)', frequency: 15 },
+          { bin: 'Peak Performance (100%+)', frequency: 8 }
         ];
         
       case 'sample-heatmap':
-        return [
-          { x: 'A', y: '1', value: 10 },
-          { x: 'A', y: '2', value: 25 },
-          { x: 'A', y: '3', value: 5 },
-          { x: 'B', y: '1', value: 15 },
-          { x: 'B', y: '2', value: 30 },
-          { x: 'B', y: '3', value: 12 },
-          { x: 'C', y: '1', value: 8 },
-          { x: 'C', y: '2', value: 20 },
-          { x: 'C', y: '3', value: 35 }
+        const heatmapData = [];
+        const xLabels = [
+          'North American Markets', 'European Union Markets', 'Asian Pacific Markets', 
+          'Latin American Markets', 'Middle Eastern Markets', 'African Markets',
+          'Oceanian Markets', 'Nordic Markets', 'Eastern European Markets'
         ];
+        const yLabels = [
+          'Q1 Sales Performance', 'Q2 Sales Performance', 'Q3 Sales Performance', 
+          'Q4 Sales Performance', 'Annual Growth Rate', 'Market Share Percentage',
+          'Customer Satisfaction Score', 'Revenue per Customer'
+        ];
+        
+        xLabels.forEach(x => {
+          yLabels.forEach(y => {
+            heatmapData.push({
+              x: x,
+              y: y,
+              value: Math.floor(Math.random() * 100) + 10
+            });
+          });
+        });
+        return heatmapData;
         
       case 'sample-hierarchy':
         return [
-          { id: '1', parentId: null, name: 'Root', displayName: 'Main Root', value: 100 },
-          { id: '2', parentId: '1', name: 'Branch A', displayName: 'Branch Alpha', value: 60 },
-          { id: '3', parentId: '1', name: 'Branch B', displayName: 'Branch Beta', value: 40 },
-          { id: '4', parentId: '2', name: 'Leaf A1', displayName: 'Leaf A-1', value: 30 },
-          { id: '5', parentId: '2', name: 'Leaf A2', displayName: 'Leaf A-2', value: 30 },
-          { id: '6', parentId: '3', name: 'Leaf B1', displayName: 'Leaf B-1', value: 25 },
-          { id: '7', parentId: '3', name: 'Leaf B2', displayName: 'Leaf B-2', value: 15 }
+          { id: '1', parentId: null, name: 'Global Corporation Headquarters', displayName: 'Global Corporation HQ - Executive Leadership', value: 2500 },
+          { id: '2', parentId: '1', name: 'North American Operations Division', displayName: 'North American Ops - Regional Management', value: 1200 },
+          { id: '3', parentId: '1', name: 'European Operations Division', displayName: 'European Ops - Regional Management', value: 800 },
+          { id: '4', parentId: '1', name: 'Asia Pacific Operations Division', displayName: 'Asia Pacific Ops - Regional Management', value: 500 },
+          { id: '5', parentId: '2', name: 'US East Coast Sales Territory', displayName: 'US East Coast - Sales & Marketing', value: 600 },
+          { id: '6', parentId: '2', name: 'US West Coast Sales Territory', displayName: 'US West Coast - Sales & Marketing', value: 400 },
+          { id: '7', parentId: '2', name: 'Canadian Operations Territory', displayName: 'Canadian Ops - Sales & Distribution', value: 200 },
+          { id: '8', parentId: '3', name: 'Western European Sales Region', displayName: 'Western Europe - Sales & Customer Success', value: 450 },
+          { id: '9', parentId: '3', name: 'Eastern European Sales Region', displayName: 'Eastern Europe - Sales & Market Development', value: 250 },
+          { id: '10', parentId: '3', name: 'Nordic Countries Sales Region', displayName: 'Nordic Region - Sales & Strategic Partnerships', value: 100 },
+          { id: '11', parentId: '4', name: 'Japanese Market Operations', displayName: 'Japan - Sales & Technology Services', value: 200 },
+          { id: '12', parentId: '4', name: 'Chinese Market Operations', displayName: 'China - Sales & Manufacturing Support', value: 180 },
+          { id: '13', parentId: '4', name: 'Southeast Asian Markets', displayName: 'Southeast Asia - Sales & Regional Expansion', value: 120 },
+          { id: '14', parentId: '5', name: 'New York Metropolitan Area', displayName: 'NYC Metro - Enterprise Sales Division', value: 300 },
+          { id: '15', parentId: '5', name: 'Boston Financial District', displayName: 'Boston - Financial Services Sales', value: 200 },
+          { id: '16', parentId: '5', name: 'Washington DC Government Sector', displayName: 'DC - Government & Public Sector Sales', value: 100 },
+          { id: '17', parentId: '6', name: 'Silicon Valley Technology Hub', displayName: 'Silicon Valley - Tech Industry Sales', value: 250 },
+          { id: '18', parentId: '6', name: 'Los Angeles Entertainment Industry', displayName: 'LA - Media & Entertainment Sales', value: 150 }
         ];
         
       case 'sample-bubble':
-        return [
-          { x: 10, y: 20, size: 15, category: 'Group 1' },
-          { x: 25, y: 35, size: 25, category: 'Group 1' },
-          { x: 40, y: 15, size: 10, category: 'Group 1' },
-          { x: 30, y: 40, size: 30, category: 'Group 2' },
-          { x: 15, y: 30, size: 20, category: 'Group 2' },
-          { x: 35, y: 25, size: 15, category: 'Group 3' },
-          { x: 20, y: 10, size: 25, category: 'Group 3' }
+        const bubbleData = [];
+        const categories = [
+          'Technology & Innovation Sector', 'Healthcare & Life Sciences', 'Financial Services & Banking',
+          'Manufacturing & Industrial', 'Retail & Consumer Goods', 'Energy & Utilities',
+          'Transportation & Logistics', 'Real Estate & Construction', 'Education & Training',
+          'Media & Entertainment', 'Telecommunications', 'Agriculture & Food Production'
         ];
+        
+        categories.forEach(category => {
+          for (let i = 0; i < 3; i++) {
+            bubbleData.push({
+              x: 10 + Math.random() * 80,
+              y: 10 + Math.random() * 80,
+              size: 10 + Math.random() * 40,
+              category: category
+            });
+          }
+        });
+        return bubbleData;
         
       case 'sample-multi-series':
         return [
-          { category: 'Category A', series1: 30, series2: 40, series3: 20 },
-          { category: 'Category B', series1: 20, series2: 30, series3: 35 },
-          { category: 'Category C', series1: 40, series2: 25, series3: 30 },
-          { category: 'Category D', series1: 35, series2: 20, series3: 25 }
+          { 
+            category: 'Enterprise Software & Cloud Solutions', 
+            series1: 145, series2: 189, series3: 167 
+          },
+          { 
+            category: 'Healthcare Technology & Medical Devices', 
+            series1: 132, series2: 156, series3: 198 
+          },
+          { 
+            category: 'Financial Services & Banking Technology', 
+            series1: 178, series2: 134, series3: 145 
+          },
+          { 
+            category: 'E-commerce & Digital Marketing Platforms', 
+            series1: 156, series2: 189, series3: 123 
+          },
+          { 
+            category: 'Manufacturing & Industrial Automation', 
+            series1: 189, series2: 167, series3: 178 
+          },
+          { 
+            category: 'Transportation & Logistics Management', 
+            series1: 134, series2: 145, series3: 189 
+          },
+          { 
+            category: 'Education Technology & Learning Platforms', 
+            series1: 167, series2: 198, series3: 134 
+          },
+          { 
+            category: 'Renewable Energy & Sustainability Solutions', 
+            series1: 198, series2: 123, series3: 156 
+          },
+          { 
+            category: 'Telecommunications & Network Infrastructure', 
+            series1: 123, series2: 178, series3: 189 
+          },
+          { 
+            category: 'Real Estate & Property Management Systems', 
+            series1: 145, series2: 189, series3: 167 
+          }
         ];
       
       case 'sample-kpi':
         return [
-          { value: 1250000 }
+          { value: 12750000 }
         ];
         
       case 'sample-box-whisker':
         // Generate data with different statistical distributions for each group
         const result = [];
         
-        // Group A: Normal distribution around 50
-        for (let i = 0; i < 30; i++) {
-          result.push({ group: 'Group A', value: 50 + (Math.random() + Math.random() + Math.random() - 1.5) * 15 });
-        }
+        const groups = [
+          'North American Regional Performance Metrics',
+          'European Union Market Performance Indicators', 
+          'Asia Pacific Growth & Development Statistics',
+          'Latin American Expansion Performance Data',
+          'Middle Eastern Market Penetration Analysis',
+          'African Markets Development Indicators',
+          'Global Digital Transformation Metrics'
+        ];
         
-        // Group B: Normal distribution around 70 with wider spread
-        for (let i = 0; i < 30; i++) {
-          result.push({ group: 'Group B', value: 70 + (Math.random() + Math.random() + Math.random() - 1.5) * 25 });
-        }
-        
-        // Group C: Skewed right distribution
-        for (let i = 0; i < 30; i++) {
-          result.push({ group: 'Group C', value: 40 + Math.pow(Math.random(), 2) * 60 });
-        }
-        
-        // Group D: Bimodal distribution
-        for (let i = 0; i < 15; i++) {
-          result.push({ group: 'Group D', value: 30 + Math.random() * 15 });
-        }
-        for (let i = 0; i < 15; i++) {
-          result.push({ group: 'Group D', value: 70 + Math.random() * 15 });
-        }
+        groups.forEach(group => {
+          // Generate 40-60 data points per group with different distributions
+          const numPoints = 40 + Math.floor(Math.random() * 21);
+          const baseValue = 30 + Math.random() * 40;
+          const spread = 10 + Math.random() * 20;
+          
+          for (let i = 0; i < numPoints; i++) {
+            let value;
+            if (group.includes('North American')) {
+              // Normal distribution
+              value = baseValue + (Math.random() + Math.random() + Math.random() - 1.5) * spread;
+            } else if (group.includes('European')) {
+              // Slightly skewed distribution
+              value = baseValue + Math.pow(Math.random(), 1.5) * spread * 2;
+            } else if (group.includes('Asia Pacific')) {
+              // Higher variance distribution
+              value = baseValue + (Math.random() + Math.random() - 1) * spread * 1.5;
+            } else {
+              // Mixed distribution
+              value = baseValue + (Math.random() - 0.5) * spread * 2;
+            }
+            
+            result.push({ 
+              group: group, 
+              value: Math.max(0, value) // Ensure non-negative values
+            });
+          }
+        });
         
         return result;
       
       case 'sample-descriptive':
         return [
-          { Statistic: 'Count', Value: 100 },
-          { Statistic: 'Mean', Value: 35.42 },
-          { Statistic: 'Median', Value: 33.5 },
-          { Statistic: 'Mode', Value: 32 },
-          { Statistic: 'Std Dev', Value: 12.65 },
-          { Statistic: 'Min', Value: 10 },
-          { Statistic: 'Max', Value: 75 },
-          { Statistic: 'Range', Value: 65 }
+          { Statistic: 'Total Sample Count (N)', Value: 2847 },
+          { Statistic: 'Arithmetic Mean (Average)', Value: 156.73 },
+          { Statistic: 'Median Value (50th Percentile)', Value: 142.8 },
+          { Statistic: 'Mode (Most Frequent Value)', Value: 138.5 },
+          { Statistic: 'Standard Deviation (σ)', Value: 45.29 },
+          { Statistic: 'Sample Variance (σ²)', Value: 2051.19 },
+          { Statistic: 'Minimum Observed Value', Value: 23.4 },
+          { Statistic: 'Maximum Observed Value', Value: 287.6 },
+          { Statistic: 'Range (Max - Min)', Value: 264.2 },
+          { Statistic: 'First Quartile (Q1)', Value: 118.7 },
+          { Statistic: 'Third Quartile (Q3)', Value: 189.4 },
+          { Statistic: 'Interquartile Range (IQR)', Value: 70.7 },
+          { Statistic: 'Skewness Coefficient', Value: 0.34 },
+          { Statistic: 'Kurtosis Coefficient', Value: -0.12 },
+          { Statistic: 'Coefficient of Variation (%)', Value: 28.9 }
         ];
         
       case 'sample-correlation':
         return [
-          { Name: 'Variable A', 'Variable A': 1.00, 'Variable B': 0.72, 'Variable C': -0.35, 'Variable D': 0.18 },
-          { Name: 'Variable B', 'Variable A': 0.72, 'Variable B': 1.00, 'Variable C': -0.28, 'Variable D': 0.25 },
-          { Name: 'Variable C', 'Variable A': -0.35, 'Variable B': -0.28, 'Variable C': 1.00, 'Variable D': -0.56 },
-          { Name: 'Variable D', 'Variable A': 0.18, 'Variable B': 0.25, 'Variable C': -0.56, 'Variable D': 1.00 }
+          { 
+            Name: 'Customer Satisfaction Score', 
+            'Customer Satisfaction Score': 1.00, 
+            'Revenue Growth Rate': 0.78, 
+            'Market Share Percentage': 0.65, 
+            'Employee Engagement Index': 0.72,
+            'Digital Transformation Score': 0.58,
+            'Operational Efficiency Rating': 0.83
+          },
+          { 
+            Name: 'Revenue Growth Rate', 
+            'Customer Satisfaction Score': 0.78, 
+            'Revenue Growth Rate': 1.00, 
+            'Market Share Percentage': 0.89, 
+            'Employee Engagement Index': 0.45,
+            'Digital Transformation Score': 0.67,
+            'Operational Efficiency Rating': 0.76
+          },
+          { 
+            Name: 'Market Share Percentage', 
+            'Customer Satisfaction Score': 0.65, 
+            'Revenue Growth Rate': 0.89, 
+            'Market Share Percentage': 1.00, 
+            'Employee Engagement Index': 0.38,
+            'Digital Transformation Score': 0.72,
+            'Operational Efficiency Rating': 0.69
+          },
+          { 
+            Name: 'Employee Engagement Index', 
+            'Customer Satisfaction Score': 0.72, 
+            'Revenue Growth Rate': 0.45, 
+            'Market Share Percentage': 0.38, 
+            'Employee Engagement Index': 1.00,
+            'Digital Transformation Score': 0.29,
+            'Operational Efficiency Rating': 0.81
+          },
+          { 
+            Name: 'Digital Transformation Score', 
+            'Customer Satisfaction Score': 0.58, 
+            'Revenue Growth Rate': 0.67, 
+            'Market Share Percentage': 0.72, 
+            'Employee Engagement Index': 0.29,
+            'Digital Transformation Score': 1.00,
+            'Operational Efficiency Rating': 0.54
+          },
+          { 
+            Name: 'Operational Efficiency Rating', 
+            'Customer Satisfaction Score': 0.83, 
+            'Revenue Growth Rate': 0.76, 
+            'Market Share Percentage': 0.69, 
+            'Employee Engagement Index': 0.81,
+            'Digital Transformation Score': 0.54,
+            'Operational Efficiency Rating': 1.00
+          }
         ];
       
       default:

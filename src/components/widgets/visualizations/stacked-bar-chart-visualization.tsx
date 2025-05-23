@@ -306,8 +306,9 @@ export class StackedBarChartVisualization {
                     x={bars[i].center} 
                     y={105} 
                     font-size={fontSize}
-                    text-anchor="middle"
+                    text-anchor="end"
                     fill="var(--fl-chart-text-color, #333)"
+                    transform={`rotate(-45, ${bars[i].center}, 105)`}
                   >
                     {displayText}
                   </text>
