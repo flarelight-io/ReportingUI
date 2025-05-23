@@ -1,4 +1,4 @@
-import { Component, Prop, h, Event, EventEmitter } from '@stencil/core';
+import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 
@@ -28,6 +28,13 @@ interface HierarchyNode {
   originalValue: number;
 }
 
+interface TooltipState {
+  visible: boolean;
+  text: string;
+  x: number;
+  y: number;
+}
+
 @Component({
   tag: 'sunburst-chart-visualization',
   styleUrl: 'sunburst-chart-visualization.scss',
@@ -36,6 +43,8 @@ interface HierarchyNode {
 export class SunburstChartVisualization {
   @Prop() config: DataWidgetConfig;
   @Prop() data: VisualizationData;
+  
+  @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
@@ -47,6 +56,22 @@ export class SunburstChartVisualization {
         value: value
       });
     }
+  }
+
+  private handleMouseMove(event: MouseEvent, name: string, value: number) {
+    const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
+    if (svgRect) {
+      this.tooltip = {
+        visible: true,
+        text: `${name}: ${value.toLocaleString()}`,
+        x: event.clientX - svgRect.left,
+        y: event.clientY - svgRect.top
+      };
+    }
+  }
+
+  private handleMouseLeave() {
+    this.tooltip = { ...this.tooltip, visible: false };
   }
 
   private processData(): SunburstNode[] {
@@ -396,6 +421,8 @@ export class SunburstChartVisualization {
             class="segment"
             style={{ fill: node.color }}
             onClick={() => this.handleFilterClick(this.config.groupByField, node.name)}
+            onMouseMove={(event) => this.handleMouseMove(event, node.name, node.value)}
+            onMouseLeave={() => this.handleMouseLeave()}
           >
             <title>{tooltipContent}</title>
           </path>
@@ -462,6 +489,20 @@ export class SunburstChartVisualization {
           <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
             {arcPaths}
           </svg>
+          
+          {/* Tooltip */}
+          {this.tooltip.visible && (
+            <div 
+              class="chart-tooltip"
+              style={{ 
+                left: `${this.tooltip.x}px`, 
+                top: `${this.tooltip.y}px`,
+                transform: 'translate(-50%, -100%)'
+              }}
+            >
+              {this.tooltip.text}
+            </div>
+          )}
         </div>
         {legend}
       </div>

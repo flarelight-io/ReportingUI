@@ -315,8 +315,9 @@ export class LollipopChartVisualization {
                       x={lollipop.label.x} 
                       y={105} 
                       font-size={adjustedFontSize}
-                      text-anchor="middle"
+                      text-anchor="end"
                       fill="var(--fl-chart-text-color, #333)"
+                      transform={`rotate(-45, ${lollipop.label.x}, 105)`}
                     >
                       {displayText}
                     </text>

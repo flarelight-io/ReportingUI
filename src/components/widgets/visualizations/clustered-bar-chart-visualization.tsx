@@ -349,8 +349,9 @@ export class ClusteredBarChartVisualization {
                     x={bar.center} 
                     y={105} 
                     font-size={fontSize}
-                    text-anchor="middle"
+                    text-anchor="end"
                     fill="var(--fl-chart-text-color, #333)"
+                    transform={`rotate(-45, ${bar.center}, 105)`}
                   >
                     {displayText}
                   </text>

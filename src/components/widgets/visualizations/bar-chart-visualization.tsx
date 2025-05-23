@@ -329,8 +329,9 @@ export class BarChartVisualization {
                       x={bar.label.x} 
                       y={105} 
                       font-size={adjustedFontSize}
-                      text-anchor="middle"
+                      text-anchor="end"
                       fill="var(--fl-chart-text-color, #333)"
+                      transform={`rotate(-45, ${bar.label.x}, 105)`}
                     >
                       {displayText}
                     </text>

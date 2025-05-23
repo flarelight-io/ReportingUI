@@ -23,8 +23,7 @@ export class HeatmapVisualization {
   
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
   
-  // Reference to the SVG element
-  private svgRef?: SVGSVGElement;
+  private svgRef: SVGElement;
 
   private handleFilterClick(fieldName: string, value: any) {
     if (this.config.sourceId && fieldName) {
@@ -193,12 +192,13 @@ export class HeatmapVisualization {
   }
   
   private handleMouseMove(e: MouseEvent, rowIdx: number, colIdx: number, value: number, heatmapData: HeatmapMatrix) {
+    const tooltipText = `${heatmapData.rowLabels[rowIdx]} × ${heatmapData.colLabels[colIdx]}: ${this.formatValue(value)}`;
+    
     if (this.svgRef) {
       const svgRect = this.svgRef.getBoundingClientRect();
-      
       this.tooltip = {
         visible: true,
-        text: `${heatmapData.rowLabels[rowIdx]} × ${heatmapData.colLabels[colIdx]}: ${this.formatValue(value)}`,
+        text: tooltipText,
         x: e.clientX - svgRect.left,
         y: e.clientY - svgRect.top
       };
@@ -233,7 +233,7 @@ export class HeatmapVisualization {
     
     // Base padding for row and column labels - reduce colLabelPadding to remove excess whitespace
     const rowLabelPadding = Math.min(maxTextLength * 5, 80);
-    const colLabelPadding = 20; // Reduced from 40 to eliminate excess top space
+    const colLabelPadding = 60; // Increased to provide space for rotated labels
     
     // Calculate cell size constraints
     const cellWidth = 30;
@@ -274,7 +274,7 @@ export class HeatmapVisualization {
             height="100%" 
             viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
             preserveAspectRatio="xMidYMid meet"
-            ref={(el) => this.svgRef = el as SVGSVGElement}
+            ref={(el) => this.svgRef = el}
           >
             {/* Row labels (y-axis) */}
             {heatmapData.rowLabels.map((label, idx) => (
@@ -296,11 +296,11 @@ export class HeatmapVisualization {
               <text
                 key={`col-${idx}`}
                 x={rowLabelPadding + (idx * cellWidth) + (cellWidth / 2)}
-                y={colLabelPadding - 5}
+                y={colLabelPadding - 15}
                 font-size="3"
-                text-anchor="end"
+                text-anchor="start"
                 dominant-baseline="middle"
-                transform={`rotate(-45, ${rowLabelPadding + (idx * cellWidth) + (cellWidth / 2)}, ${colLabelPadding - 5})`}
+                transform={`rotate(-45, ${rowLabelPadding + (idx * cellWidth) + (cellWidth / 2)}, ${colLabelPadding - 15})`}
                 fill="var(--fl-chart-text-color, #333)"
               >
                 {label}
@@ -357,10 +357,10 @@ export class HeatmapVisualization {
           {/* Tooltip */}
           {this.tooltip.visible && (
             <div 
-              class="tooltip"
+              class="heatmap-tooltip"
               style={{ 
                 left: `${this.tooltip.x}px`, 
-                top: `${this.tooltip.y}px`,
+                top: `${this.tooltip.y}px`
               }}
             >
               {this.tooltip.text}

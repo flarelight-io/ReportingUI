@@ -1,4 +1,4 @@
-import { Component, Prop, h, Event, EventEmitter } from '@stencil/core';
+import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 
@@ -10,6 +10,13 @@ interface BubbleDataPoint {
   originalData: any;
 }
 
+interface TooltipState {
+  visible: boolean;
+  text: string;
+  x: number;
+  y: number;
+}
+
 @Component({
   tag: 'bubble-chart-visualization',
   styleUrl: 'bubble-chart-visualization.scss',
@@ -18,6 +25,8 @@ interface BubbleDataPoint {
 export class BubbleChartVisualization {
   @Prop() config: DataWidgetConfig;
   @Prop() data: VisualizationData;
+  
+  @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
@@ -29,6 +38,22 @@ export class BubbleChartVisualization {
         value: value
       });
     }
+  }
+
+  private handleMouseMove(event: MouseEvent, category: string | number, value: number, size: any) {
+    const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
+    if (svgRect) {
+      this.tooltip = {
+        visible: true,
+        text: `${category}: ${value} (Size: ${size})`,
+        x: event.clientX - svgRect.left,
+        y: event.clientY - svgRect.top
+      };
+    }
+  }
+
+  private handleMouseLeave() {
+    this.tooltip = { ...this.tooltip, visible: false };
   }
 
   private processData(): BubbleDataPoint[] {
@@ -300,6 +325,8 @@ export class BubbleChartVisualization {
                 transform={`translate(${bubble.x}, ${bubble.y})`}
                 style={{ cursor: 'pointer' }}
                 onClick={() => this.handleFilterClick(this.config.groupByField, bubble.data.x)}
+                onMouseMove={(event) => this.handleMouseMove(event, bubble.data.x, bubble.data.y, bubble.data.size)}
+                onMouseLeave={() => this.handleMouseLeave()}
               >
                 <circle 
                   cx="0" 
@@ -311,7 +338,6 @@ export class BubbleChartVisualization {
                   stroke-width="1"
                   class="bubble"
                 >
-                  <title>{bubble.tooltip}</title>
                 </circle>
                 
                 {this.config.showLabels && (
@@ -389,6 +415,20 @@ export class BubbleChartVisualization {
               );
             })}
           </svg>
+          
+          {/* Tooltip */}
+          {this.tooltip.visible && (
+            <div 
+              class="chart-tooltip"
+              style={{ 
+                left: `${this.tooltip.x}px`, 
+                top: `${this.tooltip.y}px`,
+                transform: 'translate(-50%, -100%)'
+              }}
+            >
+              {this.tooltip.text}
+            </div>
+          )}
         </div>
         
         {/* Legend */}
