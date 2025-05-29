@@ -94,6 +94,9 @@ export class FlareReportViewer {
         console.log('🔥 Data prefetch complete after fetchChartData update');
         if (this.gridContainer) {
           this.renderWidgets();
+          // Ensure grid dimensions are correct after rendering
+          console.log('🔥 Calling setEqualGridDimensions after fetchChartData update');
+          this.setEqualGridDimensions();
         }
       });
     }
@@ -149,6 +152,7 @@ export class FlareReportViewer {
     
     if (this.gridContainer) {
       // Set equal row height to column width
+      console.log('🔥 componentDidLoad: calling setEqualGridDimensions');
       this.setEqualGridDimensions();
       
       // If we already have widget data pre-fetched, render widgets
@@ -162,12 +166,18 @@ export class FlareReportViewer {
           if (this.gridContainer) {
             console.log('🔥 Rendering widgets after data prefetch');
             this.renderWidgets();
+            // Call setEqualGridDimensions again after rendering in case container size changed
+            console.log('🔥 Calling setEqualGridDimensions after rendering');
+            this.setEqualGridDimensions();
           }
         });
       } else {
         // Otherwise just render widgets (will show empty/loading state)
         console.log('🔥 Rendering widgets without data (may show loading/empty state)');
         this.renderWidgets();
+        // Call setEqualGridDimensions again after rendering
+        console.log('🔥 Calling setEqualGridDimensions after initial render');
+        this.setEqualGridDimensions();
       }
       
       // Add resize observer to update grid dimensions when window resizes
@@ -457,10 +467,26 @@ export class FlareReportViewer {
       const w = widget.w || 6; // Default width of 6 grid units
       const h = widget.h || 4; // Default height of 4 grid units
       
+      console.log(`🔥 Widget ${widget.id} positioning: x=${x}, y=${y}, w=${w}, h=${h}`);
+      console.log(`🔥 Widget ${widget.id} raw values: x=${widget.x}, y=${widget.y}, w=${widget.w}, h=${widget.h}`);
+      
       // Set both size (span) and position (start)
       // Add 1 to x and y because CSS grid is 1-based, but our coordinates are 0-based
-      widgetContainer.style.gridColumn = `${x + 1} / span ${w}`;
-      widgetContainer.style.gridRow = `${y + 1} / span ${h}`;
+      const gridColumn = `${x + 1} / span ${w}`;
+      const gridRow = `${y + 1} / span ${h}`;
+      
+      console.log(`🔥 Widget ${widget.id} grid styles: gridColumn="${gridColumn}", gridRow="${gridRow}"`);
+      
+      widgetContainer.style.gridColumn = gridColumn;
+      widgetContainer.style.gridRow = gridRow;
+      
+      // Debug: Log computed styles
+      console.log(`🔥 Widget ${widget.id} container styles:`, {
+        gridColumn: widgetContainer.style.gridColumn,
+        gridRow: widgetContainer.style.gridRow,
+        display: getComputedStyle(widgetContainer).display,
+        position: getComputedStyle(widgetContainer).position
+      });
       
       // Create the widget element
       const widgetElement = this.createWidgetElement(widget);
@@ -470,6 +496,19 @@ export class FlareReportViewer {
       
       // Add to grid
       this.gridContainer.appendChild(widgetContainer);
+      
+      // After adding to DOM, log the grid container styles
+      if (index === this.widgets.length - 1) {
+        // Only log once for the last widget
+        console.log(`🔥 Grid container computed styles:`, {
+          display: getComputedStyle(this.gridContainer).display,
+          gridTemplateColumns: getComputedStyle(this.gridContainer).gridTemplateColumns,
+          gridAutoRows: getComputedStyle(this.gridContainer).gridAutoRows,
+          gap: getComputedStyle(this.gridContainer).gap,
+          width: getComputedStyle(this.gridContainer).width,
+          height: getComputedStyle(this.gridContainer).height
+        });
+      }
     });
   }
   
@@ -878,14 +917,30 @@ export class FlareReportViewer {
     // Get the width of the grid
     const gridWidth = this.gridContainer.offsetWidth;
     
+    console.log(`🔥 setEqualGridDimensions: gridWidth=${gridWidth}`);
+    
+    // If grid width is 0 or very small, try again after a short delay
+    if (gridWidth < 100) {
+      console.log(`🔥 setEqualGridDimensions: gridWidth too small (${gridWidth}), retrying in 100ms`);
+      setTimeout(() => {
+        this.setEqualGridDimensions();
+      }, 100);
+      return;
+    }
+    
     // Calculate column width (account for gap)
     const numColumns = 12;
     const gapSize = 15; // Should match the gap size in CSS
     const totalGapWidth = gapSize * (numColumns - 1);
     const columnWidth = (gridWidth - totalGapWidth) / numColumns;
     
+    console.log(`🔥 setEqualGridDimensions: numColumns=${numColumns}, gapSize=${gapSize}, totalGapWidth=${totalGapWidth}, columnWidth=${columnWidth}`);
+    
     // Set the row height to match column width
-    this.gridContainer.style.gridAutoRows = `${columnWidth}px`;
+    const rowHeight = `${columnWidth}px`;
+    this.gridContainer.style.gridAutoRows = rowHeight;
+    
+    console.log(`🔥 setEqualGridDimensions: setting gridAutoRows to ${rowHeight}`);
   }
   
   private startConfigurationPolling() {
