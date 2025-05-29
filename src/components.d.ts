@@ -28,8 +28,17 @@ export namespace Components {
     }
     interface BaseWidget {
         "height"?: number;
+        /**
+          * @default false
+         */
         "hideTitle": boolean;
+        /**
+          * @default false
+         */
         "isInEditor": boolean;
+        /**
+          * @default false
+         */
         "readOnly": boolean;
         "widgetId": string;
         "widgetTitle": string;
@@ -48,12 +57,27 @@ export namespace Components {
         "data": VisualizationData;
     }
     interface CorrelationAnalysisWidget {
+        /**
+          * @default {}
+         */
         "config": CorrelationAnalysisWidgetConfig;
+        /**
+          * @default []
+         */
         "data": any[];
         "fetchChartData": Function;
         "height"?: number;
+        /**
+          * @default false
+         */
         "isInEditor": boolean;
+        /**
+          * @default false
+         */
         "isViewer": boolean;
+        /**
+          * @default false
+         */
         "readOnly": boolean;
         "reportId"?: string;
         "widgetId": string;
@@ -61,14 +85,35 @@ export namespace Components {
         "width"?: number;
     }
     interface DataWidget {
+        /**
+          * @default []
+         */
         "activeFilters": Filter[];
+        /**
+          * @default []
+         */
         "availableSources": any[];
+        /**
+          * @default {     visualizationType: 'table'   }
+         */
         "config": DataWidgetConfig1;
+        /**
+          * @default []
+         */
         "data": any[];
         "fetchChartData": Function;
         "height"?: number;
+        /**
+          * @default false
+         */
         "isInEditor": boolean;
+        /**
+          * @default false
+         */
         "isViewer": boolean;
+        /**
+          * @default false
+         */
         "readOnly": boolean;
         "reportId"?: string;
         "widgetId": string;
@@ -76,12 +121,27 @@ export namespace Components {
         "width"?: number;
     }
     interface DescriptiveAnalysisWidget {
+        /**
+          * @default {}
+         */
         "config": DescriptiveAnalysisWidgetConfig;
+        /**
+          * @default null
+         */
         "data": any;
         "fetchChartData": Function;
         "height"?: number;
+        /**
+          * @default false
+         */
         "isInEditor": boolean;
+        /**
+          * @default false
+         */
         "isViewer": boolean;
+        /**
+          * @default false
+         */
         "readOnly": boolean;
         "reportId"?: string;
         "widgetId": string;
@@ -91,9 +151,18 @@ export namespace Components {
     interface FlareReportViewer {
         "configuration": any;
         "fetchChartData": Function;
+        /**
+          * @default false
+         */
         "isFullscreen": boolean;
+        /**
+          * @default false
+         */
         "isViewer": boolean;
         "reportId": string;
+        /**
+          * @default true
+         */
         "showPlaceholder": boolean;
     }
     interface HeatmapVisualization {
@@ -127,10 +196,22 @@ export namespace Components {
         "data": VisualizationData;
     }
     interface SourceInfoWidget {
+        /**
+          * @default []
+         */
         "availableSources": DataSource[];
+        /**
+          * @default {      sourceId: '',     hideTitle: false,     showFieldList: true    }
+         */
         "config": SourceInfoWidgetConfig;
         "height"?: number;
+        /**
+          * @default false
+         */
         "isInEditor": boolean;
+        /**
+          * @default false
+         */
         "readOnly": boolean;
         "widgetId": string;
         "widgetTitle": string;
@@ -149,9 +230,18 @@ export namespace Components {
         "data": VisualizationData;
     }
     interface TextWidget {
+        /**
+          * @default {      text: 'Text content goes here',      fontSize: 'medium',      textAlign: 'left',     verticalAlign: 'top',     enableFormatting: false,     titleText: '',     titleSize: 'h2',     showDivider: false,     dividerStyle: 'solid'   }
+         */
         "config": TextWidgetConfig;
         "height"?: number;
+        /**
+          * @default false
+         */
         "isInEditor": boolean;
+        /**
+          * @default false
+         */
         "readOnly": boolean;
         "widgetId": string;
         "widgetTitle": string;
@@ -534,8 +624,17 @@ declare namespace LocalJSX {
     }
     interface BaseWidget {
         "height"?: number;
+        /**
+          * @default false
+         */
         "hideTitle"?: boolean;
+        /**
+          * @default false
+         */
         "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
         "readOnly"?: boolean;
         "widgetId"?: string;
         "widgetTitle"?: string;
@@ -557,12 +656,27 @@ declare namespace LocalJSX {
         "onFilterChange"?: (event: ClusteredBarChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
     interface CorrelationAnalysisWidget {
+        /**
+          * @default {}
+         */
         "config"?: CorrelationAnalysisWidgetConfig;
+        /**
+          * @default []
+         */
         "data"?: any[];
         "fetchChartData"?: Function;
         "height"?: number;
+        /**
+          * @default false
+         */
         "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
         "isViewer"?: boolean;
+        /**
+          * @default false
+         */
         "readOnly"?: boolean;
         "reportId"?: string;
         "widgetId"?: string;
@@ -570,14 +684,35 @@ declare namespace LocalJSX {
         "width"?: number;
     }
     interface DataWidget {
+        /**
+          * @default []
+         */
         "activeFilters"?: Filter[];
+        /**
+          * @default []
+         */
         "availableSources"?: any[];
+        /**
+          * @default {     visualizationType: 'table'   }
+         */
         "config"?: DataWidgetConfig1;
+        /**
+          * @default []
+         */
         "data"?: any[];
         "fetchChartData"?: Function;
         "height"?: number;
+        /**
+          * @default false
+         */
         "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
         "isViewer"?: boolean;
+        /**
+          * @default false
+         */
         "readOnly"?: boolean;
         "reportId"?: string;
         "widgetId"?: string;
@@ -585,12 +720,27 @@ declare namespace LocalJSX {
         "width"?: number;
     }
     interface DescriptiveAnalysisWidget {
+        /**
+          * @default {}
+         */
         "config"?: DescriptiveAnalysisWidgetConfig;
+        /**
+          * @default null
+         */
         "data"?: any;
         "fetchChartData"?: Function;
         "height"?: number;
+        /**
+          * @default false
+         */
         "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
         "isViewer"?: boolean;
+        /**
+          * @default false
+         */
         "readOnly"?: boolean;
         "reportId"?: string;
         "widgetId"?: string;
@@ -600,9 +750,18 @@ declare namespace LocalJSX {
     interface FlareReportViewer {
         "configuration"?: any;
         "fetchChartData"?: Function;
+        /**
+          * @default false
+         */
         "isFullscreen"?: boolean;
+        /**
+          * @default false
+         */
         "isViewer"?: boolean;
         "reportId"?: string;
+        /**
+          * @default true
+         */
         "showPlaceholder"?: boolean;
     }
     interface HeatmapVisualization {
@@ -643,10 +802,22 @@ declare namespace LocalJSX {
         "onFilterChange"?: (event: ScatterChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
     interface SourceInfoWidget {
+        /**
+          * @default []
+         */
         "availableSources"?: DataSource[];
+        /**
+          * @default {      sourceId: '',     hideTitle: false,     showFieldList: true    }
+         */
         "config"?: SourceInfoWidgetConfig;
         "height"?: number;
+        /**
+          * @default false
+         */
         "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
         "readOnly"?: boolean;
         "widgetId"?: string;
         "widgetTitle"?: string;
@@ -668,9 +839,18 @@ declare namespace LocalJSX {
         "onFilterChange"?: (event: TableVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
     interface TextWidget {
+        /**
+          * @default {      text: 'Text content goes here',      fontSize: 'medium',      textAlign: 'left',     verticalAlign: 'top',     enableFormatting: false,     titleText: '',     titleSize: 'h2',     showDivider: false,     dividerStyle: 'solid'   }
+         */
         "config"?: TextWidgetConfig;
         "height"?: number;
+        /**
+          * @default false
+         */
         "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
         "readOnly"?: boolean;
         "widgetId"?: string;
         "widgetTitle"?: string;

@@ -2,8 +2,6 @@ import { Component, Prop, h, State, Watch, Element, Listen } from '@stencil/core
 import { DataSource, Filter, ChartDataRequest } from '../../api/types/common';
 import { WidgetData } from '../widgets/base-widget';
 
-const DEBUG_MODE = false; // Set to true to enable verbose logging
-
 interface WidgetDataCache {
   [widgetId: string]: any;
 }
@@ -32,6 +30,8 @@ export class FlareReportViewer {
   private dataFetchPromises: { [widgetId: string]: Promise<any> } = {};
   private isMounted: boolean = false;
   private resizeObserver: ResizeObserver | null = null;
+  private configurationPollingInterval?: number;
+  private lastConfiguration?: any;
   private handleResize = () => {
     if (this.isMounted && this.gridContainer) {
       this.setEqualGridDimensions();
@@ -39,9 +39,21 @@ export class FlareReportViewer {
   };
   
   @Watch('configuration')
-  onConfigurationChange() {
-    if (this.configuration) {
-      this.parseConfiguration(this.configuration);
+  onConfigurationChange(newValue: any) {
+    let parsedConfig = newValue;
+    
+    // Handle string configuration (from setAttribute)
+    if (typeof newValue === 'string') {
+      try {
+        parsedConfig = JSON.parse(newValue);
+      } catch (e) {
+        console.error('Failed to parse configuration string:', e);
+        return;
+      }
+    }
+    
+    if (parsedConfig) {
+      this.parseConfiguration(parsedConfig);
       // Reset widget data cache when configuration changes
       this.widgetData = {};
       // Rerender widgets when configuration changes
@@ -49,16 +61,62 @@ export class FlareReportViewer {
     }
   }
   
+  @Watch('fetchChartData')
+  onFetchChartDataChange(newValue: Function) {
+    // If we now have fetchChartData and widgets, re-process them
+    if (newValue && this.widgets && this.widgets.length > 0) {
+      // Reset widget data cache and prefetch data
+      this.widgetData = {};
+      this.dataFetchPromises = {};
+      
+      // Pre-fetch data and re-render
+      this.prefetchWidgetData().then(() => {
+        if (this.gridContainer) {
+          this.renderWidgets();
+          // Ensure grid dimensions are correct after rendering
+          this.setEqualGridDimensions();
+        }
+      });
+    }
+  }
+  
   connectedCallback() {
     if (this.configuration) {
-      this.parseConfiguration(this.configuration);
+      let parsedConfig = this.configuration;
+      if (typeof this.configuration === 'string') {
+        try {
+          parsedConfig = JSON.parse(this.configuration);
+        } catch (e) {
+          console.error('Failed to parse configuration string in connectedCallback:', e);
+          return;
+        }
+      }
+      
+      this.parseConfiguration(parsedConfig);
     }
   }
   
   componentDidLoad() {
     this.isMounted = true;
+    
     // Get the grid container element
     this.gridContainer = this.el.querySelector('.widget-grid');
+    
+    // Check for configuration again in case it was set after connected but before didLoad
+    if (this.configuration && this.widgets.length === 0) {
+      let parsedConfig = this.configuration;
+      if (typeof this.configuration === 'string') {
+        try {
+          parsedConfig = JSON.parse(this.configuration);
+        } catch (e) {
+          console.error('Failed to parse configuration string in componentDidLoad:', e);
+        }
+      }
+      
+      if (parsedConfig) {
+        this.parseConfiguration(parsedConfig);
+      }
+    }
     
     if (this.gridContainer) {
       // Set equal row height to column width
@@ -70,13 +128,17 @@ export class FlareReportViewer {
       } else if (this.widgets.length > 0 && this.fetchChartData) {
         // If no data yet but widgets exist, fetch data first
         this.prefetchWidgetData().then(() => {
-          if (this.isMounted) {
+          if (this.gridContainer) {
             this.renderWidgets();
+            // Call setEqualGridDimensions again after rendering in case container size changed
+            this.setEqualGridDimensions();
           }
         });
       } else {
         // Otherwise just render widgets (will show empty/loading state)
         this.renderWidgets();
+        // Call setEqualGridDimensions again after rendering
+        this.setEqualGridDimensions();
       }
       
       // Add resize observer to update grid dimensions when window resizes
@@ -90,10 +152,19 @@ export class FlareReportViewer {
     } else {
       console.error('Could not find grid container element');
     }
+    
+    // Add a polling mechanism to check for configuration changes
+    this.startConfigurationPolling();
   }
   
   disconnectedCallback() {
     this.isMounted = false;
+    
+    // Clean up configuration polling
+    if (this.configurationPollingInterval) {
+      clearInterval(this.configurationPollingInterval);
+      this.configurationPollingInterval = undefined;
+    }
     
     // Clean up resize observer
     if (this.resizeObserver) {
@@ -106,25 +177,87 @@ export class FlareReportViewer {
   }
   
   private parseConfiguration(config: any) {
-    // Parse widgets and data sources
-    if (config.widgets && Array.isArray(config.widgets)) {
-      this.widgets = config.widgets;
-    } else {
-      console.warn('No widgets found in configuration');
-      this.widgets = [];
-    }
-    
+    // Parse data sources first
     if (config.sources && Array.isArray(config.sources)) {
       this.dataSources = config.sources;
     } else {
       console.warn('No data sources found in configuration');
       this.dataSources = [];
     }
+
+    // Handle both legacy format (direct widgets) and new format (layouts + widgets)
+    let widgets: WidgetData[] = [];
     
+    if (config.layouts && config.widgets) {
+      // New format: merge layout positioning with widget definitions
+      const layoutWidgets = this.extractWidgetsFromLayouts(config.layouts);
+      const widgetDefinitions = config.widgets;
+      
+      // Merge layout positioning with widget definitions
+      widgets = layoutWidgets.map(layoutWidget => {
+        const widgetDef = widgetDefinitions.find((w: any) => w.id === layoutWidget.id);
+        if (widgetDef) {
+          return {
+            ...layoutWidget, // Layout positioning (x, y, w, h) first
+            ...widgetDef,    // Widget definition (type, config, title) overrides placeholder values
+            // Keep layout positioning if not specified in widget definition
+            x: widgetDef.x !== undefined ? widgetDef.x : layoutWidget.x,
+            y: widgetDef.y !== undefined ? widgetDef.y : layoutWidget.y,
+            w: widgetDef.w !== undefined ? widgetDef.w : layoutWidget.w,
+            h: widgetDef.h !== undefined ? widgetDef.h : layoutWidget.h
+          };
+        } else {
+          console.warn(`Widget definition not found for layout widget ${layoutWidget.id}`);
+          return layoutWidget;
+        }
+      });
+    } else if (config.widgets && Array.isArray(config.widgets)) {
+      // Legacy format: widgets contain both positioning and definitions
+      widgets = config.widgets;
+    } else {
+      console.warn('No widgets found in configuration');
+      widgets = [];
+    }
+    
+    this.widgets = widgets;
+
     // Pre-fetch data for all widgets
     if (this.widgets.length > 0 && this.fetchChartData) {
       this.prefetchWidgetData();
     }
+  }
+  
+  private extractWidgetsFromLayouts(layouts: any): WidgetData[] {
+    // For PDF generation and server-side rendering, prefer 'lg' layout
+    // as it's typically the desktop/full-width layout
+    let selectedLayout: any[] = [];
+    
+    // Priority order: lg -> md -> sm -> xs
+    if (layouts.lg) {
+      selectedLayout = layouts.lg;
+    } else if (layouts.md) {
+      selectedLayout = layouts.md;
+    } else if (layouts.sm) {
+      selectedLayout = layouts.sm;
+    } else if (layouts.xs) {
+      selectedLayout = layouts.xs;
+    } else {
+      console.warn('No valid layout found in layouts object');
+      return [];
+    }
+    
+    // Convert layout items to widget data format
+    return selectedLayout.map((item: any) => ({
+      id: item.i, // Layout uses 'i' for id
+      x: item.x,
+      y: item.y,
+      w: item.w,
+      h: item.h,
+      // These will be merged with actual widget definitions later
+      type: 'placeholder',
+      title: '',
+      config: {}
+    }));
   }
   
   private async prefetchWidgetData() {
@@ -170,7 +303,6 @@ export class FlareReportViewer {
       
       // Check if we already have this data in the cache
       if (this.widgetData[widget.id] && !this.activeFilters.some(f => f.sourceId === sourceId)) {
-        if (DEBUG_MODE) console.log(`Using cached data for widget ${widget.id}`);
         return this.widgetData[widget.id];
       }
       
@@ -237,10 +369,6 @@ export class FlareReportViewer {
       return;
     }
     
-    if (!this.isMounted) {
-      return;
-    }
-    
     // Clear existing content
     this.gridContainer.innerHTML = '';
     
@@ -272,8 +400,11 @@ export class FlareReportViewer {
       
       // Set both size (span) and position (start)
       // Add 1 to x and y because CSS grid is 1-based, but our coordinates are 0-based
-      widgetContainer.style.gridColumn = `${x + 1} / span ${w}`;
-      widgetContainer.style.gridRow = `${y + 1} / span ${h}`;
+      const gridColumn = `${x + 1} / span ${w}`;
+      const gridRow = `${y + 1} / span ${h}`;
+      
+      widgetContainer.style.gridColumn = gridColumn;
+      widgetContainer.style.gridRow = gridRow;
       
       // Create the widget element
       const widgetElement = this.createWidgetElement(widget);
@@ -551,7 +682,6 @@ export class FlareReportViewer {
   // Handle filter changes  
   @Listen('filter-change', { target: 'window' })  
   handleFilterChangeEvent(event: CustomEvent) {    
-    if (DEBUG_MODE) console.log('Filter change event received in report viewer:', event.detail);    
     const { sourceId, field, value } = event.detail;    
     this.handleFilterChange(sourceId, field, value);  
   }
@@ -564,25 +694,20 @@ export class FlareReportViewer {
     // Prevent excessive filter updates
     const now = Date.now();
     if (now - this.lastFilterTimestamp < 300) {
-      if (DEBUG_MODE) console.log('Throttling filter changes - too frequent');
       return;
     }
     this.lastFilterTimestamp = now;
     
     // Prevent recursive filter processing
     if (this.filterUpdateInProgress) {
-      if (DEBUG_MODE) console.log('Filter update already in progress, ignoring nested call');
       return;
     }
     
     this.filterUpdateInProgress = true;
     
     try {
-      if (DEBUG_MODE) console.log('Handling filter change in report viewer:', sourceId, field, value);
-      
       // Special case for wildcard clearing
       if (sourceId === '*' && field === '*' && (value === null || value === undefined)) {
-        if (DEBUG_MODE) console.log('Wildcard filter clearing detected, removing all filters');
         this.activeFilters = [];
         
         // Reset widget data cache
@@ -607,8 +732,6 @@ export class FlareReportViewer {
               bubbles: true
             });
             this.el.dispatchEvent(event);
-            
-            if (DEBUG_MODE) console.log('Widget grid completely rebuilt after clearing all filters');
           }
         };
         
@@ -627,45 +750,32 @@ export class FlareReportViewer {
       if (existingFilterIndex >= 0) {
         if (value === null || value === undefined) {
           // Remove filter
-          if (DEBUG_MODE) console.log('Removing existing filter');
           newFilters.splice(existingFilterIndex, 1);
         } else {
           // Update filter
-          if (DEBUG_MODE) console.log('Updating existing filter');
           newFilters[existingFilterIndex] = { sourceId, field, value };
         }
       } else if (value !== null && value !== undefined) {
         // Add new filter
-        if (DEBUG_MODE) console.log('Adding new filter');
         newFilters.push({ sourceId, field, value });
       }
       
-      if (DEBUG_MODE) console.log('New active filters:', newFilters);
       this.activeFilters = newFilters;
       
       // Reset cache and re-fetch data with new filters
-      if (DEBUG_MODE) console.log('Clearing widget data cache');
       this.widgetData = {};
       this.dataFetchPromises = {};
       
       // Instead of trying to update existing widgets, completely recreate them
       // First, prefetch data with the new filters
       if (this.widgets.length > 0 && this.fetchChartData) {
-        if (DEBUG_MODE) console.log('Pre-fetching data for all widgets with new filters');
-        
-        // Rebuild the entire widget grid after data is fetched
         this.prefetchWidgetData().then(() => {
-          if (DEBUG_MODE) console.log('Data pre-fetch complete, completely rebuilding widgets');
-          
-          // Force a complete rebuild of all widgets
           if (this.gridContainer) {
             // Clear the container
             this.gridContainer.innerHTML = '';
             
             // Rebuild all widgets from scratch
             this.renderWidgets();
-            
-            if (DEBUG_MODE) console.log('Widget grid completely rebuilt with new filters applied');
             
             // Dispatch event to notify that filters have been applied
             const event = new CustomEvent('filters-applied', {
@@ -677,7 +787,6 @@ export class FlareReportViewer {
         });
       } else {
         // If we can't fetch new data, just re-render with existing data
-        if (DEBUG_MODE) console.log('Rendering widgets with existing data');
         this.renderWidgets();
       }
     } finally {
@@ -691,6 +800,14 @@ export class FlareReportViewer {
     // Get the width of the grid
     const gridWidth = this.gridContainer.offsetWidth;
     
+    // If grid width is 0 or very small, try again after a short delay
+    if (gridWidth < 100) {
+      setTimeout(() => {
+        this.setEqualGridDimensions();
+      }, 100);
+      return;
+    }
+    
     // Calculate column width (account for gap)
     const numColumns = 12;
     const gapSize = 15; // Should match the gap size in CSS
@@ -698,7 +815,39 @@ export class FlareReportViewer {
     const columnWidth = (gridWidth - totalGapWidth) / numColumns;
     
     // Set the row height to match column width
-    this.gridContainer.style.gridAutoRows = `${columnWidth}px`;
+    const rowHeight = `${columnWidth}px`;
+    this.gridContainer.style.gridAutoRows = rowHeight;
+  }
+  
+  private startConfigurationPolling() {
+    // Check for configuration changes every 500ms
+    this.configurationPollingInterval = window.setInterval(() => {
+      if (this.configuration && this.configuration !== this.lastConfiguration) {
+        this.lastConfiguration = this.configuration;
+        
+        let parsedConfig = this.configuration;
+        if (typeof this.configuration === 'string') {
+          try {
+            parsedConfig = JSON.parse(this.configuration);
+          } catch (e) {
+            console.error('Failed to parse configuration string in polling:', e);
+            return;
+          }
+        }
+        
+        this.parseConfiguration(parsedConfig);
+        this.widgetData = {};
+        this.renderWidgets();
+      }
+    }, 500);
+    
+    // Stop polling after 10 seconds
+    setTimeout(() => {
+      if (this.configurationPollingInterval) {
+        clearInterval(this.configurationPollingInterval);
+        this.configurationPollingInterval = undefined;
+      }
+    }, 10000);
   }
   
   render() {

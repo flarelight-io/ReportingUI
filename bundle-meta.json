@@ -1,0 +1,141 @@
+{
+  "inputs": {
+    "dist/esm/kpi-visualization-C8FTMuYW.js": {
+      "bytes": 170840,
+      "imports": [
+        {
+          "path": "dist/esm/index-D95YCnWK.js",
+          "kind": "import-statement",
+          "original": "./index-D95YCnWK.js"
+        },
+        {
+          "path": "<runtime>",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "dist/esm/bar-chart-visualization_22.entry.js": {
+      "bytes": 165193,
+      "imports": [
+        {
+          "path": "dist/esm/kpi-visualization-C8FTMuYW.js",
+          "kind": "import-statement",
+          "original": "./kpi-visualization-C8FTMuYW.js"
+        },
+        {
+          "path": "dist/esm/index-D95YCnWK.js",
+          "kind": "import-statement",
+          "original": "./index-D95YCnWK.js"
+        },
+        {
+          "path": "<runtime>",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "dist/esm/index-D95YCnWK.js": {
+      "bytes": 74570,
+      "imports": [
+        {
+          "path": "<runtime>",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "./**/*.entry.js",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "dist/esm/app-globals-DQuL1Twl.js": {
+      "bytes": 162,
+      "imports": [],
+      "format": "esm"
+    },
+    "dist/esm/loader.js": {
+      "bytes": 4108,
+      "imports": [
+        {
+          "path": "dist/esm/index-D95YCnWK.js",
+          "kind": "import-statement",
+          "original": "./index-D95YCnWK.js"
+        },
+        {
+          "path": "dist/esm/index-D95YCnWK.js",
+          "kind": "import-statement",
+          "original": "./index-D95YCnWK.js"
+        },
+        {
+          "path": "dist/esm/app-globals-DQuL1Twl.js",
+          "kind": "import-statement",
+          "original": "./app-globals-DQuL1Twl.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "loader/index.js": {
+      "bytes": 359,
+      "imports": [
+        {
+          "path": "dist/esm/loader.js",
+          "kind": "import-statement",
+          "original": "../dist/esm/loader.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "temp-bundle-entry.js": {
+      "bytes": 5141,
+      "imports": [
+        {
+          "path": "loader/index.js",
+          "kind": "import-statement",
+          "original": "./loader/index.js"
+        },
+        {
+          "path": "<runtime>",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "flarelight-reporting-esbuild.js": {
+      "imports": [],
+      "exports": [],
+      "entryPoint": "temp-bundle-entry.js",
+      "inputs": {
+        "dist/esm/kpi-visualization-C8FTMuYW.js": {
+          "bytesInOutput": 155442
+        },
+        "dist/esm/bar-chart-visualization_22.entry.js": {
+          "bytesInOutput": 155400
+        },
+        "dist/esm/index-D95YCnWK.js": {
+          "bytesInOutput": 85801
+        },
+        "dist/esm/loader.js": {
+          "bytesInOutput": 4296
+        },
+        "dist/esm/app-globals-DQuL1Twl.js": {
+          "bytesInOutput": 35
+        },
+        "loader/index.js": {
+          "bytesInOutput": 414
+        },
+        "temp-bundle-entry.js": {
+          "bytesInOutput": 4548
+        }
+      },
+      "bytes": 408165
+    }
+  }
+}

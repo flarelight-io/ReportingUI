@@ -19,7 +19,9 @@
     gap: 15px;
     width: 100%;
     position: relative;
-    grid-auto-flow: dense;
+    
+    // Remove grid-auto-flow: dense as it might interfere with explicit positioning
+    // grid-auto-flow: dense;
     
     // Default row height until JavaScript sets the exact value
     grid-auto-rows: 80px;
@@ -30,6 +32,10 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       transition: box-shadow 0.3s ease;
       overflow: hidden;
+      
+      // Ensure proper grid item behavior
+      display: block;
+      position: relative;
       
       &:hover {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -89,9 +95,11 @@
       gap: 10px;
       
       /* Let widgets take more space on smaller screens */
+      /* Temporarily disable this as it might interfere with PDF generation
       .widget-item {
-        grid-column: span 12 !important; /* Force single column layout on mobile */
+        grid-column: span 12 !important; // Force single column layout on mobile
       }
+      */
     }
   }
 }

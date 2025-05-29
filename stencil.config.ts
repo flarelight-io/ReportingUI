@@ -16,6 +16,11 @@ export const config: Config = {
       type: 'dist-custom-elements',
       customElementsExportBehavior: 'auto-define-custom-elements',
       externalRuntime: false,
+      generateTypeDeclarations: true,
+    },
+    {
+      type: 'dist-hydrate-script',
+      dir: 'dist/hydrate',
     },
     {
       type: 'docs-readme',
@@ -23,6 +28,11 @@ export const config: Config = {
     {
       type: 'www',
       serviceWorker: null, // disable service workers
+      copy: [
+        {
+          src: '**/*.html'
+        }
+      ]
     },
   ],
   testing: {

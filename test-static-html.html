@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Static HTML Test - Flarelight Reporting</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        #status.ready {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Static HTML Test - Flarelight Reporting</h1>
+        <p>This page tests the same pattern you use: static HTML with flare-report-viewer custom elements.</p>
+        
+        <div id="status">⏳ Loading components...</div>
+        
+        <div class="test-section">
+            <h3>Test 1: Report Viewer with Static Configuration</h3>
+            <flare-report-viewer id="viewer1"
+                                 report-id="test-report-1"
+                                 is-viewer="true">
+            </flare-report-viewer>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 2: Report Viewer with JavaScript Injection</h3>
+            <flare-report-viewer id="viewer2"
+                                 report-id="test-report-2"
+                                 is-viewer="true">
+            </flare-report-viewer>
+        </div>
+    </div>
+
+    <!-- Include the bundle -->
+    <script src="flarelight-reporting-esbuild.js"></script>
+    
+    <script>
+        console.log('Script loaded, FlarelightReporting:', window.FlarelightReporting);
+        console.log('FlarelightReporting.isReady:', window.FlarelightReporting?.isReady);
+        
+        // Listen for components ready event
+        window.addEventListener('flarelight-components-ready', () => {
+            console.log('🎉 Components are ready!');
+            
+            // Update status
+            const status = document.getElementById('status');
+            status.className = 'ready';
+            status.innerHTML = '✅ Components loaded and ready!';
+            
+            // Inject configuration for viewer1 - this mimics your pattern
+            const viewer1 = document.getElementById('viewer1');
+            console.log('Viewer1 element:', viewer1);
+            
+            // Set fetchChartData FIRST, before configuration
+            viewer1.fetchChartData = async (request) => {
+                console.log('fetchChartData called with request:', request);
+                
+                // Return sample data based on sourceId
+                if (request.sourceId === 'sample') {
+                    return [
+                        { category: "Electronics", amount: 25000 },
+                        { category: "Clothing", amount: 18000 },
+                        { category: "Books", amount: 8000 },
+                        { category: "Home", amount: 15000 }
+                    ];
+                }
+                return [];
+            };
+            
+            console.log('fetchChartData function set BEFORE configuration');
+
+            const config1 = {
+                // Use the same format as report-demo.tsx - direct widgets array with positioning
+                widgets: [
+                    {
+                        id: "kpi1",
+                        type: "data",
+                        title: "Total Revenue",
+                        x: 0,
+                        y: 0,
+                        w: 6,
+                        h: 3,
+                        config: {
+                            sourceId: "sample",
+                            visualizationType: "kpi",
+                            valueField: "amount",
+                            kpiFormatType: "currency"
+                        }
+                    },
+                    {
+                        id: "chart1", 
+                        type: "data",
+                        title: "Sales by Category",
+                        x: 6,
+                        y: 0,
+                        w: 6,
+                        h: 6,
+                        config: {
+                            sourceId: "sample",
+                            visualizationType: "bar",
+                            groupByField: "category",
+                            valueField: "amount"
+                        }
+                    }
+                ],
+                sources: [{
+                    id: "sample",
+                    name: "Sample Data",
+                    type: "static",
+                    data: [
+                        { category: "Electronics", amount: 25000 },
+                        { category: "Clothing", amount: 18000 },
+                        { category: "Books", amount: 8000 },
+                        { category: "Home", amount: 15000 }
+                    ]
+                }]
+            };
+            
+            console.log('Setting configuration:', config1);
+            console.log('config1.widgets:', config1.widgets);
+            console.log('Array.isArray(config1.widgets):', Array.isArray(config1.widgets));
+            
+            // This is how you inject configuration
+            viewer1.configuration = config1;
+            
+            console.log('Configuration set, viewer1.configuration:', viewer1.configuration);
+            
+            // Try calling parseConfiguration manually
+            if (viewer1.parseConfiguration) {
+                console.log('Calling parseConfiguration manually...');
+                viewer1.parseConfiguration(config1);
+            } else {
+                console.log('parseConfiguration method not found on viewer1');
+            }
+            
+            // Let's also try to access the component instance more directly
+            console.log('viewer1 keys:', Object.keys(viewer1));
+            console.log('viewer1 prototype:', Object.getPrototypeOf(viewer1));
+            console.log('viewer1.__proto__:', viewer1.__proto__);
+            
+            // Try to manually trigger the @Watch by calling the method directly
+            if (viewer1.onConfigurationChange) {
+                console.log('Calling onConfigurationChange manually...');
+                viewer1.onConfigurationChange();
+            } else {
+                console.log('onConfigurationChange method not found');
+            }
+            
+            // Try setting configuration via setAttribute as well
+            console.log('Setting configuration via setAttribute...');
+            viewer1.setAttribute('configuration', JSON.stringify(config1));
+            
+            // Try dispatching a property change event
+            console.log('Dispatching configurationChange event...');
+            const configChangeEvent = new CustomEvent('configurationChange', {
+                detail: config1,
+                bubbles: true
+            });
+            viewer1.dispatchEvent(configChangeEvent);
+            
+            // Try to access internal Stencil instance
+            console.log('Checking for __stencilInternal:', viewer1.__stencilInternal);
+            console.log('Checking for __stencil:', viewer1.__stencil);
+            console.log('Checking for componentInstance:', viewer1.componentInstance);
+            
+            // Force a re-render by calling forceUpdate if available
+            if (viewer1.forceUpdate) {
+                console.log('Calling forceUpdate...');
+                viewer1.forceUpdate();
+            } else if (viewer1.componentInstance && viewer1.componentInstance.forceUpdate) {
+                console.log('Calling componentInstance.forceUpdate...');
+                viewer1.componentInstance.forceUpdate();
+            } else {
+                console.log('forceUpdate not available');
+            }
+            
+            // Add some debugging to see what happens inside the component
+            setTimeout(() => {
+                console.log('After timeout - viewer1.widgets:', viewer1.widgets);
+                console.log('viewer1.dataSources:', viewer1.dataSources);
+                console.log('viewer1.widgetData:', viewer1.widgetData);
+                
+                // Try to access the internal state
+                if (viewer1.shadowRoot) {
+                    console.log('Shadow root found');
+                    const gridContainer = viewer1.shadowRoot.querySelector('.widget-grid');
+                    console.log('Grid container:', gridContainer);
+                    if (gridContainer) {
+                        console.log('Grid container children:', gridContainer.children.length);
+                        console.log('Grid container innerHTML:', gridContainer.innerHTML);
+                    }
+                } else {
+                    console.log('No shadow root, looking for direct children');
+                    const gridContainer = viewer1.querySelector('.widget-grid');
+                    console.log('Grid container:', gridContainer);
+                    if (gridContainer) {
+                        console.log('Grid container children:', gridContainer.children.length);
+                        console.log('Grid container innerHTML:', gridContainer.innerHTML);
+                    }
+                }
+            }, 2000);
+            
+            // Configure viewer2 with different data
+            const viewer2 = document.getElementById('viewer2');
+            console.log('Viewer2 element:', viewer2);
+            
+            const config2 = {
+                // Use the same format as report-demo.tsx - direct widgets array with positioning
+                widgets: [
+                    {
+                        id: "pie1",
+                        type: "data",
+                        title: "Market Share",
+                        x: 0,
+                        y: 0,
+                        w: 12,
+                        h: 6,
+                        config: {
+                            sourceId: "market",
+                            visualizationType: "pie",
+                            groupByField: "product",
+                            valueField: "share"
+                        }
+                    }
+                ],
+                sources: [{
+                    id: "market",
+                    name: "Market Data",
+                    type: "static",
+                    data: [
+                        { product: "Product A", share: 35 },
+                        { product: "Product B", share: 25 },
+                        { product: "Product C", share: 40 }
+                    ]
+                }]
+            };
+            
+            viewer2.configuration = config2;
+            viewer2.fetchChartData = async (request) => {
+                console.log('fetchChartData called for viewer2 with request:', request);
+                
+                if (request.sourceId === 'market') {
+                    return [
+                        { product: "Product A", share: 35 },
+                        { product: "Product B", share: 25 },
+                        { product: "Product C", share: 40 }
+                    ];
+                }
+                return [];
+            };
+            
+            console.log('✅ Report viewers configured successfully');
+        });
+        
+        // Fallback timeout with more debugging
+        setTimeout(() => {
+            console.log('Timeout check - FlarelightReporting.isReady:', window.FlarelightReporting?.isReady);
+            if (!window.FlarelightReporting?.isReady) {
+                console.log('⏱️ Timeout reached, forcing component initialization...');
+                window.FlarelightReporting?.initialize();
+            } else {
+                console.log('Components appear to be ready, manually firing event...');
+                window.dispatchEvent(new CustomEvent('flarelight-components-ready'));
+            }
+        }, 3000);
+        
+        // Additional debugging - check every second for status
+        const checkInterval = setInterval(() => {
+            console.log('Status check:', {
+                isReady: window.FlarelightReporting?.isReady,
+                viewer1Config: document.getElementById('viewer1')?.configuration,
+                viewer2Config: document.getElementById('viewer2')?.configuration
+            });
+        }, 1000);
+        
+        // Stop checking after 10 seconds
+        setTimeout(() => clearInterval(checkInterval), 10000);
+    </script>
+</body>
+</html> 
