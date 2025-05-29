@@ -1,7 +1,7 @@
 {
   "inputs": {
-    "dist/esm/kpi-visualization-CSKWzgir.js": {
-      "bytes": 178116,
+    "dist/esm/kpi-visualization-C8FTMuYW.js": {
+      "bytes": 170840,
       "imports": [
         {
           "path": "dist/esm/index-D95YCnWK.js",
@@ -20,9 +20,9 @@
       "bytes": 165193,
       "imports": [
         {
-          "path": "dist/esm/kpi-visualization-CSKWzgir.js",
+          "path": "dist/esm/kpi-visualization-C8FTMuYW.js",
           "kind": "import-statement",
-          "original": "./kpi-visualization-CSKWzgir.js"
+          "original": "./kpi-visualization-C8FTMuYW.js"
         },
         {
           "path": "dist/esm/index-D95YCnWK.js",
@@ -113,14 +113,14 @@
       "exports": [],
       "entryPoint": "temp-bundle-entry.js",
       "inputs": {
-        "dist/esm/kpi-visualization-CSKWzgir.js": {
-          "bytesInOutput": 162695
+        "dist/esm/kpi-visualization-C8FTMuYW.js": {
+          "bytesInOutput": 155442
         },
         "dist/esm/bar-chart-visualization_22.entry.js": {
-          "bytesInOutput": 155436
+          "bytesInOutput": 155400
         },
         "dist/esm/index-D95YCnWK.js": {
-          "bytesInOutput": 85840
+          "bytesInOutput": 85801
         },
         "dist/esm/loader.js": {
           "bytesInOutput": 4296
@@ -135,7 +135,7 @@
           "bytesInOutput": 4548
         }
       },
-      "bytes": 415493
+      "bytes": 408165
     }
   }
 }
