@@ -1,4 +1,4 @@
-name: Build and Publish Package
+name: Reporting UI Library
 
 on:
   push:
