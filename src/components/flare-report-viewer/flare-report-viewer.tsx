@@ -332,7 +332,8 @@ export class FlareReportViewer {
           value: filter.value
         })),
         isViewer: this.isViewer,
-        widgetType: visualizationType
+        widgetType: visualizationType,
+        widgetId: widget.id
       };
       
       // Add cache key to request as extra property outside the typed object

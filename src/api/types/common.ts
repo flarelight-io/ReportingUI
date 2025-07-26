@@ -9,6 +9,7 @@ export interface ChartDataRequest {
   pagination?: Pagination;
   isViewer: boolean;
   widgetType?: string;
+  widgetId: string;
 }
 
 export interface ChartField {
