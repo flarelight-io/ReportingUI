@@ -144,7 +144,8 @@ export class CorrelationAnalysisWidget {
         labelFields: [],
         filters: [],
         isViewer: this.isViewer || false,
-        widgetType: 'correlationAnalysis'
+        widgetType: 'correlationAnalysis',
+        widgetId: this.widgetId
       };
       
       const data = await this.fetchChartData(chartDataRequest);

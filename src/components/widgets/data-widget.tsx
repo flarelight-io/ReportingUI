@@ -226,6 +226,7 @@ export class DataWidget {
         })),
         isViewer: this.isViewer,
         widgetType: visualizationType,
+        widgetId: this.widgetId,
         _cacheKey: `${sourceId}:${filterKey}:${this.widgetId}`,
         _timestamp: now
       };
