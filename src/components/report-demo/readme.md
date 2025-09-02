@@ -19,6 +19,7 @@ graph TD;
   flare-report-viewer --> source-info-widget
   flare-report-viewer --> descriptive-analysis-widget
   flare-report-viewer --> correlation-analysis-widget
+  flare-report-viewer --> one-sample-hypothesis-test-widget
   flare-report-viewer --> data-widget
   text-widget --> base-widget
   source-info-widget --> base-widget
@@ -40,6 +41,7 @@ graph TD;
   data-widget --> box-whisker-chart-visualization
   data-widget --> base-widget
   correlation-analysis-widget --> base-widget
+  one-sample-hypothesis-test-widget --> base-widget
   style report-demo fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

@@ -32,7 +32,7 @@ This will add the necessary credentials to your .npmrc file.
 ### 3. Install the package
 
 ```bash
-npm install @pegasus/reporting --save
+npm install @flarelight-io/reporting --save
 ```
 
 ## Integration into plain JavaScript
@@ -46,7 +46,7 @@ You can include the Flarelight Reporting library in your HTML file using one of 
 ```html
 <!-- In your HTML file -->
 <script type="module">
-  import { defineCustomElements } from 'https://unpkg.com/@pegasus/reporting/loader/index.js';
+  import { defineCustomElements } from 'https://unpkg.com/@flarelight-io/reporting/loader/index.js';
   defineCustomElements();
 </script>
 ```
@@ -57,7 +57,7 @@ If you're using a bundler like Webpack, you can import it in your JavaScript fil
 
 ```javascript
 // In your main JavaScript file
-import { defineCustomElements } from '@pegasus/reporting/loader';
+import { defineCustomElements } from '@flarelight-io/reporting/loader';
 defineCustomElements();
 ```
 
@@ -65,7 +65,7 @@ defineCustomElements();
 
 ```html
 <!-- In your HTML file -->
-<script type="module" src="node_modules/@pegasus/reporting/dist/flarelight-reporting/flarelight-reporting.esm.js"></script>
+<script type="module" src="node_modules/@flarelight-io/reporting/dist/flarelight-reporting/flarelight-reporting.esm.js"></script>
 ```
 
 ### 2. Create HTML structure for your report
@@ -98,7 +98,7 @@ defineCustomElements();
   </div>
 
   <script type="module">
-    import { defineCustomElements } from '@pegasus/reporting/loader';
+    import { defineCustomElements } from '@flarelight-io/reporting/loader';
     defineCustomElements();
     
     // Your initialization code will go here
@@ -333,7 +333,7 @@ Here's a complete example that you can use as a starting point:
   </div>
 
   <script type="module">
-    import { defineCustomElements } from '@pegasus/reporting/loader';
+    import { defineCustomElements } from '@flarelight-io/reporting/loader';
     defineCustomElements();
     
     document.addEventListener('DOMContentLoaded', () => {

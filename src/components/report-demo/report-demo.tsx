@@ -439,6 +439,19 @@ export class ReportDemo {
           analysisName: 'Sample Correlation Analysis',
           showLabels: true
         }
+      },
+      {
+        id: 'hypothesis-test',
+        type: 'oneSampleHypothesisTest',
+        title: 'IQ Analysis',
+        x: 0,
+        y: 23,
+        w: 6,
+        h: 4,
+        config: {
+          analysisId: 'sample-hypothesis-test',
+          analysisName: 'IQ Analysis'
+        }
       }
     ],
     sources: [
@@ -541,6 +554,12 @@ export class ReportDemo {
         name: 'Correlation Analysis',
         type: 'analysis',
         analysisType: 'correlation'
+      },
+      {
+        id: 'sample-hypothesis-test',
+        name: 'Hypothesis Test Analysis',
+        type: 'analysis',
+        analysisType: 'oneSampleHypothesisTest'
       },
       {
         id: 'sample-box-whisker',
@@ -1358,6 +1377,22 @@ export class ReportDemo {
             'Operational Efficiency Rating': 1.00
           }
         ];
+      
+      case 'sample-hypothesis-test':
+        return [{
+          sampleSize: 5,
+          sampleMean: 85.2,
+          sampleStdDev: 12.4,
+          populationStdDev: null,
+          populationMean: 100,
+          confidenceLevel: 95,
+          dataSourceName: "IQ",
+          sampleSourceName: "Results",
+          testName: "Left Tailed",
+          uCL: 0,
+          lCL: 73.927,
+          nullReject: false
+        }];
       
       default:
         console.warn(`No mock data available for source: ${sourceId}`);

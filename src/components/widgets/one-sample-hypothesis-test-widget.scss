@@ -1,0 +1,233 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.hypothesis-test-widget-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--fl-chart-background);
+  color: var(--fl-text-color-primary);
+  overflow: hidden;
+  align-items: stretch;
+}
+
+.hypothesis-test-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 12px;
+  overflow: hidden;
+  box-sizing: border-box;
+  align-items: stretch;
+}
+
+/* Result Banner */
+.result-banner {
+  background-color: var(--fl-primary-color);
+  color: var(--fl-text-light);
+  padding: 8px 12px;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.result-text {
+  display: block;
+}
+
+/* Test Parameters */
+.test-parameters {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.parameter-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--fl-border-color);
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.parameter-row:last-child {
+  border-bottom: none;
+}
+
+.parameter-label {
+  font-weight: 500;
+  color: var(--fl-text-color-secondary);
+  font-size: 14px;
+}
+
+.parameter-value {
+  font-weight: 600;
+  color: var(--fl-text-color-primary);
+  font-size: 14px;
+  text-align: right;
+}
+
+.lcl-value,
+.ucl-value {
+  text-decoration: underline;
+  cursor: pointer;
+  color: var(--fl-primary-color);
+  transition: color 0.2s ease;
+}
+
+.lcl-value:hover,
+.ucl-value:hover {
+  opacity: 0.8;
+}
+
+/* Visual Range */
+.visual-range-container {
+  margin-top: auto;
+  padding: 8px 0;
+  flex-shrink: 0;
+}
+
+.range-line {
+  position: relative;
+  height: 32px;
+  background-color: var(--fl-border-color);
+  border-radius: 4px;
+  margin: 0;
+  width: 100%;
+}
+
+.marker-container {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.marker-line {
+  width: 2px;
+  height: 16px;
+  background-color: var(--fl-text-color-secondary);
+  border-radius: 1px;
+}
+
+.population-mean-line {
+  background-color: var(--fl-primary-color);
+  width: 3px;
+  height: 20px;
+  position: relative;
+}
+
+.population-mean-line::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  background-color: var(--fl-primary-color);
+  border-radius: 50%;
+  border: 2px solid var(--fl-chart-background);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.marker-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--fl-text-color-primary);
+  white-space: nowrap;
+  background-color: var(--fl-chart-background);
+  padding: 1px 4px;
+  border-radius: 2px;
+  border: 1px solid var(--fl-border-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Empty data state styling */
+.empty-data {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  color: var(--fl-text-color-secondary);
+  text-align: center;
+  font-size: 1rem;
+  padding: 1rem;
+}
+
+/* Loading spinner styling */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  
+  &::after {
+    content: "";
+    width: 30px;
+    height: 30px;
+    border: 4px solid var(--fl-border-color);
+    border-top: 4px solid var(--fl-primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .hypothesis-test-container {
+    padding: 12px;
+    gap: 8px;
+  }
+  
+  .result-banner {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  
+  .parameter-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 4px 0;
+  }
+  
+  .parameter-value {
+    text-align: left;
+  }
+  
+  .range-line {
+    margin: 0;
+    height: 28px;
+  }
+  
+  .marker-label {
+    font-size: 10px;
+    padding: 1px 3px;
+  }
+}

@@ -11,6 +11,7 @@ import { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlatio
 import { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data-widget";
 import { DataSource, Filter } from "./api/types/common";
 import { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
+import { OneSampleHypothesisTestWidgetConfig } from "./components/widgets/one-sample-hypothesis-test-widget";
 import { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 import { TextWidgetConfig } from "./components/widgets/text-widget";
 export { DataWidgetConfig } from "./components/widgets/data-widget";
@@ -19,6 +20,7 @@ export { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlatio
 export { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data-widget";
 export { DataSource, Filter } from "./api/types/common";
 export { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
+export { OneSampleHypothesisTestWidgetConfig } from "./components/widgets/one-sample-hypothesis-test-widget";
 export { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 export { TextWidgetConfig } from "./components/widgets/text-widget";
 export namespace Components {
@@ -184,6 +186,34 @@ export namespace Components {
     interface LollipopChartVisualization {
         "config": DataWidgetConfig;
         "data": VisualizationData;
+    }
+    interface OneSampleHypothesisTestWidget {
+        /**
+          * @default {}
+         */
+        "config": OneSampleHypothesisTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data": any[];
+        "fetchChartData": Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor": boolean;
+        /**
+          * @default false
+         */
+        "isViewer": boolean;
+        /**
+          * @default false
+         */
+        "readOnly": boolean;
+        "reportId"?: string;
+        "widgetId": string;
+        "widgetTitle": string;
+        "width"?: number;
     }
     interface PieChartVisualization {
         "config": DataWidgetConfig;
@@ -488,6 +518,12 @@ declare global {
         prototype: HTMLLollipopChartVisualizationElement;
         new (): HTMLLollipopChartVisualizationElement;
     };
+    interface HTMLOneSampleHypothesisTestWidgetElement extends Components.OneSampleHypothesisTestWidget, HTMLStencilElement {
+    }
+    var HTMLOneSampleHypothesisTestWidgetElement: {
+        prototype: HTMLOneSampleHypothesisTestWidgetElement;
+        new (): HTMLOneSampleHypothesisTestWidgetElement;
+    };
     interface HTMLPieChartVisualizationElementEventMap {
         "filterChange": FilterChangeEventDetail;
     }
@@ -606,6 +642,7 @@ declare global {
         "kpi-visualization": HTMLKpiVisualizationElement;
         "line-chart-visualization": HTMLLineChartVisualizationElement;
         "lollipop-chart-visualization": HTMLLollipopChartVisualizationElement;
+        "one-sample-hypothesis-test-widget": HTMLOneSampleHypothesisTestWidgetElement;
         "pie-chart-visualization": HTMLPieChartVisualizationElement;
         "report-demo": HTMLReportDemoElement;
         "scatter-chart-visualization": HTMLScatterChartVisualizationElement;
@@ -789,6 +826,34 @@ declare namespace LocalJSX {
         "data"?: VisualizationData;
         "onFilterChange"?: (event: LollipopChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
+    interface OneSampleHypothesisTestWidget {
+        /**
+          * @default {}
+         */
+        "config"?: OneSampleHypothesisTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data"?: any[];
+        "fetchChartData"?: Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
+        "isViewer"?: boolean;
+        /**
+          * @default false
+         */
+        "readOnly"?: boolean;
+        "reportId"?: string;
+        "widgetId"?: string;
+        "widgetTitle"?: string;
+        "width"?: number;
+    }
     interface PieChartVisualization {
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
@@ -871,6 +936,7 @@ declare namespace LocalJSX {
         "kpi-visualization": KpiVisualization;
         "line-chart-visualization": LineChartVisualization;
         "lollipop-chart-visualization": LollipopChartVisualization;
+        "one-sample-hypothesis-test-widget": OneSampleHypothesisTestWidget;
         "pie-chart-visualization": PieChartVisualization;
         "report-demo": ReportDemo;
         "scatter-chart-visualization": ScatterChartVisualization;
@@ -899,6 +965,7 @@ declare module "@stencil/core" {
             "kpi-visualization": LocalJSX.KpiVisualization & JSXBase.HTMLAttributes<HTMLKpiVisualizationElement>;
             "line-chart-visualization": LocalJSX.LineChartVisualization & JSXBase.HTMLAttributes<HTMLLineChartVisualizationElement>;
             "lollipop-chart-visualization": LocalJSX.LollipopChartVisualization & JSXBase.HTMLAttributes<HTMLLollipopChartVisualizationElement>;
+            "one-sample-hypothesis-test-widget": LocalJSX.OneSampleHypothesisTestWidget & JSXBase.HTMLAttributes<HTMLOneSampleHypothesisTestWidgetElement>;
             "pie-chart-visualization": LocalJSX.PieChartVisualization & JSXBase.HTMLAttributes<HTMLPieChartVisualizationElement>;
             "report-demo": LocalJSX.ReportDemo & JSXBase.HTMLAttributes<HTMLReportDemoElement>;
             "scatter-chart-visualization": LocalJSX.ScatterChartVisualization & JSXBase.HTMLAttributes<HTMLScatterChartVisualizationElement>;
