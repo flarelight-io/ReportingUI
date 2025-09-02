@@ -447,7 +447,7 @@ export class ReportDemo {
         x: 0,
         y: 23,
         w: 6,
-        h: 4,
+        h: 5,
         config: {
           analysisId: 'sample-hypothesis-test',
           analysisName: 'IQ Analysis'
@@ -1380,18 +1380,18 @@ export class ReportDemo {
       
       case 'sample-hypothesis-test':
         return [{
-          sampleSize: 5,
-          sampleMean: 85.2,
-          sampleStdDev: 12.4,
-          populationStdDev: null,
-          populationMean: 100,
-          confidenceLevel: 95,
-          dataSourceName: "IQ",
-          sampleSourceName: "Results",
-          testName: "Left Tailed",
-          uCL: 0,
-          lCL: 73.927,
-          nullReject: false
+          SampleSize: 15,
+          SampleMean: 50.4000000000000000,
+          SampleStdDev: 2.0976176963403031,
+          PopulationStdDev: null,
+          PopulationMean: 50,
+          ConfidenceLevel: 95.0,
+          DataSourceName: "Two Tailed T-Test",
+          SampleSourceName: "value",
+          TestName: "TwoTailed",
+          LCL: 50.393435156908666,
+          UCL: 50.40656484309133,
+          NullReject: true
         }];
       
       default:

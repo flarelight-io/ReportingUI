@@ -8,18 +8,18 @@ export interface OneSampleHypothesisTestWidgetConfig {
 }
 
 export interface HypothesisTestData {
-  sampleSize: number;
-  sampleMean: number;
-  sampleStdDev: number;
-  populationStdDev: number | null;
-  populationMean: number;
-  confidenceLevel: number;
-  dataSourceName: string;
-  sampleSourceName: string;
-  testName: string;
-  uCL: number;
-  lCL: number;
-  nullReject: boolean;
+  SampleSize: number;
+  SampleMean: number;
+  SampleStdDev: number;
+  PopulationStdDev: number | null;
+  PopulationMean: number;
+  ConfidenceLevel: number;
+  DataSourceName: string;
+  SampleSourceName: string;
+  TestName: 'LeftTailed' | 'RightTailed' | 'TwoTailed';
+  UCL: number;
+  LCL: number;
+  NullReject: boolean;
 }
 
 @Component({
@@ -44,6 +44,7 @@ export class OneSampleHypothesisTestWidget {
   
   @State() loading: boolean = true;
   @State() testData: HypothesisTestData | null = null;
+  @State() error: string | null = null;
   
   componentWillLoad() {
     // Set up event listeners for direct data updates
@@ -92,9 +93,18 @@ export class OneSampleHypothesisTestWidget {
   
   // Process incoming data
   private processData(data: any[]) {
-    if (data && Array.isArray(data) && data.length > 0) {
-      // Extract the first element from the array (hypothesis test data)
-      this.testData = data[0];
+    try {
+      if (data && Array.isArray(data) && data.length > 0) {
+        // Extract the first element from the array (hypothesis test data)
+        this.testData = data[0];
+        this.loading = false;
+        this.error = null;
+      } else {
+        this.error = 'No data available';
+        this.loading = false;
+      }
+    } catch (err) {
+      this.error = 'Error processing data';
       this.loading = false;
     }
   }
@@ -126,6 +136,7 @@ export class OneSampleHypothesisTestWidget {
       this.processData(data);
     } catch (error) {
       console.error("Failed to fetch hypothesis test data:", error);
+      this.error = 'Failed to load data';
       this.loading = false;
     }
   }
@@ -134,32 +145,33 @@ export class OneSampleHypothesisTestWidget {
   private getTestTypeDisplay(): string {
     if (!this.testData) return '';
     
-    const testType = this.testData.populationStdDev ? 'z' : 't';
-    return `One-Sample ${testType}-test (${this.testData.testName})`;
+    const testType = this.testData.PopulationStdDev ? 'z' : 't';
+    return `One-Sample ${testType}-test (${this.testData.TestName})`;
   }
   
   // Get the result message
   private getResultMessage(): string {
     if (!this.testData) return '';
     
-    return this.testData.nullReject ? 'Significant difference' : 'No significant difference';
+    return this.testData.NullReject ? 'Significant difference' : 'No significant difference';
   }
   
   // Check if we should show LCL
   private shouldShowLCL(): boolean {
     if (!this.testData) return false;
-    return this.testData.testName === 'Left Tailed' || this.testData.testName === 'Two Tailed';
+    return this.testData.TestName === 'LeftTailed' || this.testData.TestName === 'TwoTailed';
   }
   
   // Check if we should show UCL
   private shouldShowUCL(): boolean {
     if (!this.testData) return false;
-    return this.testData.testName === 'Right Tailed' || this.testData.testName === 'Two Tailed';
+    return this.testData.TestName === 'RightTailed' || this.testData.TestName === 'TwoTailed';
   }
   
   // Format confidence level for display
   private formatConfidenceLevel(level: number): string {
-    return `${level}%`;
+    // Format percentage to 3 decimal places
+    return `${level.toFixed(3)}%`;
   }
   
   // Format number for display
@@ -171,25 +183,28 @@ export class OneSampleHypothesisTestWidget {
   private renderVisualRange() {
     if (!this.testData) return null;
     
-    const { lCL, uCL, populationMean } = this.testData;
+    const { LCL, UCL, PopulationMean } = this.testData;
     const showLCL = this.shouldShowLCL();
     const showUCL = this.shouldShowUCL();
     
     // Calculate the range for the visual
-    const minValue = showLCL ? Math.min(lCL, populationMean) : populationMean;
-    const maxValue = showUCL ? Math.max(uCL, populationMean) : populationMean;
+    const minValue = showLCL ? Math.min(LCL, PopulationMean) : PopulationMean;
+    const maxValue = showUCL ? Math.max(UCL, PopulationMean) : PopulationMean;
     const range = maxValue - minValue;
     
-    // Add some padding to the range (20% on each side)
-    const padding = Math.max(range * 0.2, 5);
+    // For very small ranges, use a minimum visual range to spread out close values
+    const minVisualRange = Math.max(range, Math.abs(PopulationMean) * 0.1, 1);
+    
+    // Add padding to the range (20% on each side, but ensure minimum spread)
+    const padding = Math.max(minVisualRange * 0.2, minVisualRange * 0.1);
     const visualMin = minValue - padding;
     const visualMax = maxValue + padding;
     const visualRange = visualMax - visualMin;
     
     // Calculate positions as percentages
-    const lCLPosition = showLCL ? ((lCL - visualMin) / visualRange) * 100 : 0;
-    const uCLPosition = showUCL ? ((uCL - visualMin) / visualRange) * 100 : 100;
-    const populationMeanPosition = ((populationMean - visualMin) / visualRange) * 100;
+    const lCLPosition = showLCL ? ((LCL - visualMin) / visualRange) * 100 : 0;
+    const uCLPosition = showUCL ? ((UCL - visualMin) / visualRange) * 100 : 100;
+    const populationMeanPosition = ((PopulationMean - visualMin) / visualRange) * 100;
     
     return (
       <div class="visual-range-container">
@@ -198,21 +213,21 @@ export class OneSampleHypothesisTestWidget {
           {showLCL && (
             <div class="marker-container" style={{ left: `${lCLPosition}%` }}>
               <div class="marker-line"></div>
-              <div class="marker-label">{this.formatNumber(lCL)}</div>
+              <div class="marker-label">{this.formatNumber(LCL)}</div>
             </div>
           )}
           
           {/* Population mean marker and label */}
           <div class="marker-container population-mean" style={{ left: `${populationMeanPosition}%` }}>
             <div class="marker-line population-mean-line"></div>
-            <div class="marker-label">{this.formatNumber(populationMean)}</div>
+            <div class="marker-label">{this.formatNumber(PopulationMean)}</div>
           </div>
           
           {/* UCL marker and label */}
           {showUCL && (
             <div class="marker-container" style={{ left: `${uCLPosition}%` }}>
               <div class="marker-line"></div>
-              <div class="marker-label">{this.formatNumber(uCL)}</div>
+              <div class="marker-label">{this.formatNumber(UCL)}</div>
             </div>
           )}
         </div>
@@ -225,6 +240,8 @@ export class OneSampleHypothesisTestWidget {
     
     if (this.loading) {
       content = <div class="loading-spinner">Loading...</div>;
+    } else if (this.error) {
+      content = <div class="error-message">{this.error}</div>;
     } else if (!this.testData) {
       content = <div class="empty-data">No hypothesis test data available</div>;
     } else {
@@ -242,12 +259,12 @@ export class OneSampleHypothesisTestWidget {
           <div class="test-parameters">
             <div class="parameter-row">
               <span class="parameter-label">Data Source:</span>
-              <span class="parameter-value">{this.testData.dataSourceName}</span>
+              <span class="parameter-value">{this.testData.DataSourceName}</span>
             </div>
             
             <div class="parameter-row">
               <span class="parameter-label">Sample Source:</span>
-              <span class="parameter-value">{this.testData.sampleSourceName}</span>
+              <span class="parameter-value">{this.testData.SampleSourceName}</span>
             </div>
             
             <div class="parameter-row">
@@ -257,30 +274,30 @@ export class OneSampleHypothesisTestWidget {
             
             <div class="parameter-row">
               <span class="parameter-label">Sample size:</span>
-              <span class="parameter-value">{this.testData.sampleSize}</span>
+              <span class="parameter-value">{this.testData.SampleSize}</span>
             </div>
             
             <div class="parameter-row">
               <span class="parameter-label">Confidence Level:</span>
-              <span class="parameter-value">{this.formatConfidenceLevel(this.testData.confidenceLevel)}</span>
+              <span class="parameter-value">{this.formatConfidenceLevel(this.testData.ConfidenceLevel)}</span>
             </div>
             
             <div class="parameter-row">
               <span class="parameter-label">Reference Mean:</span>
-              <span class="parameter-value">{this.formatNumber(this.testData.populationMean)}</span>
+              <span class="parameter-value">{this.formatNumber(this.testData.PopulationMean)}</span>
             </div>
             
             {this.shouldShowLCL() && (
               <div class="parameter-row">
                 <span class="parameter-label">Lower Confidence Limit (LCL):</span>
-                <span class="parameter-value lcl-value">{this.formatNumber(this.testData.lCL)}</span>
+                <span class="parameter-value lcl-value">{this.formatNumber(this.testData.LCL)}</span>
               </div>
             )}
             
             {this.shouldShowUCL() && (
               <div class="parameter-row">
                 <span class="parameter-label">Upper Confidence Limit (UCL):</span>
-                <span class="parameter-value ucl-value">{this.formatNumber(this.testData.uCL)}</span>
+                <span class="parameter-value ucl-value">{this.formatNumber(this.testData.UCL)}</span>
               </div>
             )}
           </div>
