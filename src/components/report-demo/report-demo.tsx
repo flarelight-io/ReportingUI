@@ -452,6 +452,19 @@ export class ReportDemo {
           analysisId: 'sample-hypothesis-test',
           analysisName: 'IQ Analysis'
         }
+      },
+      {
+        id: 'independent-two-sample-hypothesis-test',
+        type: 'independentTwoSampleHypothesisTest',
+        title: 'Group Comparison Analysis',
+        x: 6,
+        y: 23,
+        w: 6,
+        h: 6,
+        config: {
+          analysisId: 'sample-independent-two-sample-hypothesis-test',
+          analysisName: 'Group Comparison Analysis'
+        }
       }
     ],
     sources: [
@@ -560,6 +573,12 @@ export class ReportDemo {
         name: 'Hypothesis Test Analysis',
         type: 'analysis',
         analysisType: 'oneSampleHypothesisTest'
+      },
+      {
+        id: 'sample-independent-two-sample-hypothesis-test',
+        name: 'Independent Two-Sample Hypothesis Test Analysis',
+        type: 'analysis',
+        analysisType: 'independentTwoSampleHypothesisTest'
       },
       {
         id: 'sample-box-whisker',
@@ -1391,6 +1410,26 @@ export class ReportDemo {
           TestName: "TwoTailed",
           LCL: 50.393435156908666,
           UCL: 50.40656484309133,
+          NullReject: true
+        }];
+        
+      case 'sample-independent-two-sample-hypothesis-test':
+        return [{
+          SampleSizeGroup1: 25,
+          SampleSizeGroup2: 30,
+          SampleMeanGroup1: 82.3,
+          SampleMeanGroup2: 78.5,
+          SampleStdDevGroup1: 4.2,
+          SampleStdDevGroup2: 3.8,
+          PopulationStdDevGroup1: null,
+          PopulationStdDevGroup2: null,
+          ConfidenceLevel: 95.0,
+          DataSourceName: "Independent Two-Sample T-Test",
+          SampleSourceNameGroup1: "Treatment Group A",
+          SampleSourceNameGroup2: "Treatment Group B",
+          TestName: "TwoTailed",
+          LCL: 1.234,
+          UCL: 6.566,
           NullReject: true
         }];
       

@@ -11,6 +11,7 @@ import { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlatio
 import { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data-widget";
 import { DataSource, Filter } from "./api/types/common";
 import { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
+import { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/independent-two-sample-hypothesis-test-widget";
 import { OneSampleHypothesisTestWidgetConfig } from "./components/widgets/one-sample-hypothesis-test-widget";
 import { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 import { TextWidgetConfig } from "./components/widgets/text-widget";
@@ -20,6 +21,7 @@ export { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlatio
 export { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data-widget";
 export { DataSource, Filter } from "./api/types/common";
 export { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
+export { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/independent-two-sample-hypothesis-test-widget";
 export { OneSampleHypothesisTestWidgetConfig } from "./components/widgets/one-sample-hypothesis-test-widget";
 export { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 export { TextWidgetConfig } from "./components/widgets/text-widget";
@@ -174,6 +176,34 @@ export namespace Components {
     interface HistogramChartVisualization {
         "config": DataWidgetConfig;
         "data": VisualizationData;
+    }
+    interface IndependentTwoSampleHypothesisTestWidget {
+        /**
+          * @default {}
+         */
+        "config": IndependentTwoSampleHypothesisTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data": any[];
+        "fetchChartData": Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor": boolean;
+        /**
+          * @default false
+         */
+        "isViewer": boolean;
+        /**
+          * @default false
+         */
+        "readOnly": boolean;
+        "reportId"?: string;
+        "widgetId": string;
+        "widgetTitle": string;
+        "width"?: number;
     }
     interface KpiVisualization {
         "config": DataWidgetConfig;
@@ -467,6 +497,12 @@ declare global {
         prototype: HTMLHistogramChartVisualizationElement;
         new (): HTMLHistogramChartVisualizationElement;
     };
+    interface HTMLIndependentTwoSampleHypothesisTestWidgetElement extends Components.IndependentTwoSampleHypothesisTestWidget, HTMLStencilElement {
+    }
+    var HTMLIndependentTwoSampleHypothesisTestWidgetElement: {
+        prototype: HTMLIndependentTwoSampleHypothesisTestWidgetElement;
+        new (): HTMLIndependentTwoSampleHypothesisTestWidgetElement;
+    };
     interface HTMLKpiVisualizationElementEventMap {
         "filterChange": FilterChangeEventDetail;
     }
@@ -639,6 +675,7 @@ declare global {
         "flare-report-viewer": HTMLFlareReportViewerElement;
         "heatmap-visualization": HTMLHeatmapVisualizationElement;
         "histogram-chart-visualization": HTMLHistogramChartVisualizationElement;
+        "independent-two-sample-hypothesis-test-widget": HTMLIndependentTwoSampleHypothesisTestWidgetElement;
         "kpi-visualization": HTMLKpiVisualizationElement;
         "line-chart-visualization": HTMLLineChartVisualizationElement;
         "lollipop-chart-visualization": HTMLLollipopChartVisualizationElement;
@@ -811,6 +848,34 @@ declare namespace LocalJSX {
         "data"?: VisualizationData;
         "onFilterChange"?: (event: HistogramChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
+    interface IndependentTwoSampleHypothesisTestWidget {
+        /**
+          * @default {}
+         */
+        "config"?: IndependentTwoSampleHypothesisTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data"?: any[];
+        "fetchChartData"?: Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
+        "isViewer"?: boolean;
+        /**
+          * @default false
+         */
+        "readOnly"?: boolean;
+        "reportId"?: string;
+        "widgetId"?: string;
+        "widgetTitle"?: string;
+        "width"?: number;
+    }
     interface KpiVisualization {
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
@@ -933,6 +998,7 @@ declare namespace LocalJSX {
         "flare-report-viewer": FlareReportViewer;
         "heatmap-visualization": HeatmapVisualization;
         "histogram-chart-visualization": HistogramChartVisualization;
+        "independent-two-sample-hypothesis-test-widget": IndependentTwoSampleHypothesisTestWidget;
         "kpi-visualization": KpiVisualization;
         "line-chart-visualization": LineChartVisualization;
         "lollipop-chart-visualization": LollipopChartVisualization;
@@ -962,6 +1028,7 @@ declare module "@stencil/core" {
             "flare-report-viewer": LocalJSX.FlareReportViewer & JSXBase.HTMLAttributes<HTMLFlareReportViewerElement>;
             "heatmap-visualization": LocalJSX.HeatmapVisualization & JSXBase.HTMLAttributes<HTMLHeatmapVisualizationElement>;
             "histogram-chart-visualization": LocalJSX.HistogramChartVisualization & JSXBase.HTMLAttributes<HTMLHistogramChartVisualizationElement>;
+            "independent-two-sample-hypothesis-test-widget": LocalJSX.IndependentTwoSampleHypothesisTestWidget & JSXBase.HTMLAttributes<HTMLIndependentTwoSampleHypothesisTestWidgetElement>;
             "kpi-visualization": LocalJSX.KpiVisualization & JSXBase.HTMLAttributes<HTMLKpiVisualizationElement>;
             "line-chart-visualization": LocalJSX.LineChartVisualization & JSXBase.HTMLAttributes<HTMLLineChartVisualizationElement>;
             "lollipop-chart-visualization": LocalJSX.LollipopChartVisualization & JSXBase.HTMLAttributes<HTMLLollipopChartVisualizationElement>;
