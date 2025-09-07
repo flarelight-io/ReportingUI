@@ -7,15 +7,19 @@
 
 ## Properties
 
-| Property      | Attribute      | Description | Type               | Default                                                                                                                                                                                                                                        |
-| ------------- | -------------- | ----------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `config`      | `config`       |             | `TextWidgetConfig` | `{      text: 'Text content goes here',      fontSize: 'medium',      textAlign: 'left',     verticalAlign: 'top',     enableFormatting: false,     titleText: '',     titleSize: 'h2',     showDivider: false,     dividerStyle: 'solid'   }` |
-| `height`      | `height`       |             | `number`           | `undefined`                                                                                                                                                                                                                                    |
-| `isInEditor`  | `is-in-editor` |             | `boolean`          | `false`                                                                                                                                                                                                                                        |
-| `readOnly`    | `read-only`    |             | `boolean`          | `false`                                                                                                                                                                                                                                        |
-| `widgetId`    | `widget-id`    |             | `string`           | `undefined`                                                                                                                                                                                                                                    |
-| `widgetTitle` | `widget-title` |             | `string`           | `undefined`                                                                                                                                                                                                                                    |
-| `width`       | `width`        |             | `number`           | `undefined`                                                                                                                                                                                                                                    |
+| Property         | Attribute          | Description | Type                                       | Default     |
+| ---------------- | ------------------ | ----------- | ------------------------------------------ | ----------- |
+| `config`         | `config`           |             | `WelchTwoSampleHypothesisTestWidgetConfig` | `{}`        |
+| `data`           | `data`             |             | `any[]`                                    | `[]`        |
+| `fetchChartData` | `fetch-chart-data` |             | `Function`                                 | `undefined` |
+| `height`         | `height`           |             | `number`                                   | `undefined` |
+| `isInEditor`     | `is-in-editor`     |             | `boolean`                                  | `false`     |
+| `isViewer`       | `is-viewer`        |             | `boolean`                                  | `false`     |
+| `readOnly`       | `read-only`        |             | `boolean`                                  | `false`     |
+| `reportId`       | `report-id`        |             | `string`                                   | `undefined` |
+| `widgetId`       | `widget-id`        |             | `string`                                   | `undefined` |
+| `widgetTitle`    | `widget-title`     |             | `string`                                   | `undefined` |
+| `width`          | `width`            |             | `number`                                   | `undefined` |
 
 
 ## Dependencies
@@ -31,9 +35,9 @@
 ### Graph
 ```mermaid
 graph TD;
-  text-widget --> base-widget
-  flare-report-viewer --> text-widget
-  style text-widget fill:#f9f,stroke:#333,stroke-width:4px
+  welch-two-sample-hypothesis-test-widget --> base-widget
+  flare-report-viewer --> welch-two-sample-hypothesis-test-widget
+  style welch-two-sample-hypothesis-test-widget fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
 ----------------------------------------------

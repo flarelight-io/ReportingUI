@@ -465,6 +465,19 @@ export class ReportDemo {
           analysisId: 'sample-independent-two-sample-hypothesis-test',
           analysisName: 'Group Comparison Analysis'
         }
+      },
+      {
+        id: 'welch-two-sample-hypothesis-test',
+        type: 'welchTwoSampleHypothesisTest',
+        title: 'Welch&apos;s Two Sample Analysis',
+        x: 0,
+        y: 29,
+        w: 6,
+        h: 6,
+        config: {
+          analysisId: 'sample-welch-two-sample-hypothesis-test',
+          analysisName: 'Welch&apos;s Two Sample Analysis'
+        }
       }
     ],
     sources: [
@@ -579,6 +592,12 @@ export class ReportDemo {
         name: 'Independent Two-Sample Hypothesis Test Analysis',
         type: 'analysis',
         analysisType: 'independentTwoSampleHypothesisTest'
+      },
+      {
+        id: 'sample-welch-two-sample-hypothesis-test',
+        name: 'Welch&apos;s Two Sample Hypothesis Test Analysis',
+        type: 'analysis',
+        analysisType: 'welchTwoSampleHypothesisTest'
       },
       {
         id: 'sample-box-whisker',
@@ -1430,6 +1449,24 @@ export class ReportDemo {
           TestName: "TwoTailed",
           LCL: 1.234,
           UCL: 6.566,
+          NullReject: true
+        }];
+        
+      case 'sample-welch-two-sample-hypothesis-test':
+        return [{
+          SampleSizeGroup1: 28,
+          SampleSizeGroup2: 22,
+          SampleMeanGroup1: 85.7,
+          SampleMeanGroup2: 79.2,
+          SampleStdDevGroup1: 5.1,
+          SampleStdDevGroup2: 4.3,
+          ConfidenceLevel: 95.0,
+          DataSourceName: "Welch's Two Sample T-Test",
+          SampleSourceNameGroup1: "Experimental Group",
+          SampleSourceNameGroup2: "Control Group",
+          TestName: "TwoTailed",
+          LCL: 2.145,
+          UCL: 10.955,
           NullReject: true
         }];
       

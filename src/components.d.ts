@@ -15,6 +15,7 @@ import { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/wid
 import { OneSampleHypothesisTestWidgetConfig } from "./components/widgets/one-sample-hypothesis-test-widget";
 import { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 import { TextWidgetConfig } from "./components/widgets/text-widget";
+import { WelchTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/welch-two-sample-hypothesis-test-widget";
 export { DataWidgetConfig } from "./components/widgets/data-widget";
 export { FilterChangeEventDetail, VisualizationData } from "./components/widgets/visualizations/base-visualization";
 export { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlation-analysis-widget";
@@ -25,6 +26,7 @@ export { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/wid
 export { OneSampleHypothesisTestWidgetConfig } from "./components/widgets/one-sample-hypothesis-test-widget";
 export { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 export { TextWidgetConfig } from "./components/widgets/text-widget";
+export { WelchTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/welch-two-sample-hypothesis-test-widget";
 export namespace Components {
     interface BarChartVisualization {
         "config": DataWidgetConfig;
@@ -303,6 +305,34 @@ export namespace Components {
           * @default false
          */
         "readOnly": boolean;
+        "widgetId": string;
+        "widgetTitle": string;
+        "width"?: number;
+    }
+    interface WelchTwoSampleHypothesisTestWidget {
+        /**
+          * @default {}
+         */
+        "config": WelchTwoSampleHypothesisTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data": any[];
+        "fetchChartData": Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor": boolean;
+        /**
+          * @default false
+         */
+        "isViewer": boolean;
+        /**
+          * @default false
+         */
+        "readOnly": boolean;
+        "reportId"?: string;
         "widgetId": string;
         "widgetTitle": string;
         "width"?: number;
@@ -663,6 +693,12 @@ declare global {
         prototype: HTMLTextWidgetElement;
         new (): HTMLTextWidgetElement;
     };
+    interface HTMLWelchTwoSampleHypothesisTestWidgetElement extends Components.WelchTwoSampleHypothesisTestWidget, HTMLStencilElement {
+    }
+    var HTMLWelchTwoSampleHypothesisTestWidgetElement: {
+        prototype: HTMLWelchTwoSampleHypothesisTestWidgetElement;
+        new (): HTMLWelchTwoSampleHypothesisTestWidgetElement;
+    };
     interface HTMLElementTagNameMap {
         "bar-chart-visualization": HTMLBarChartVisualizationElement;
         "base-widget": HTMLBaseWidgetElement;
@@ -688,6 +724,7 @@ declare global {
         "sunburst-chart-visualization": HTMLSunburstChartVisualizationElement;
         "table-visualization": HTMLTableVisualizationElement;
         "text-widget": HTMLTextWidgetElement;
+        "welch-two-sample-hypothesis-test-widget": HTMLWelchTwoSampleHypothesisTestWidgetElement;
     }
 }
 declare namespace LocalJSX {
@@ -986,6 +1023,34 @@ declare namespace LocalJSX {
         "widgetTitle"?: string;
         "width"?: number;
     }
+    interface WelchTwoSampleHypothesisTestWidget {
+        /**
+          * @default {}
+         */
+        "config"?: WelchTwoSampleHypothesisTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data"?: any[];
+        "fetchChartData"?: Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
+        "isViewer"?: boolean;
+        /**
+          * @default false
+         */
+        "readOnly"?: boolean;
+        "reportId"?: string;
+        "widgetId"?: string;
+        "widgetTitle"?: string;
+        "width"?: number;
+    }
     interface IntrinsicElements {
         "bar-chart-visualization": BarChartVisualization;
         "base-widget": BaseWidget;
@@ -1011,6 +1076,7 @@ declare namespace LocalJSX {
         "sunburst-chart-visualization": SunburstChartVisualization;
         "table-visualization": TableVisualization;
         "text-widget": TextWidget;
+        "welch-two-sample-hypothesis-test-widget": WelchTwoSampleHypothesisTestWidget;
     }
 }
 export { LocalJSX as JSX };
@@ -1041,6 +1107,7 @@ declare module "@stencil/core" {
             "sunburst-chart-visualization": LocalJSX.SunburstChartVisualization & JSXBase.HTMLAttributes<HTMLSunburstChartVisualizationElement>;
             "table-visualization": LocalJSX.TableVisualization & JSXBase.HTMLAttributes<HTMLTableVisualizationElement>;
             "text-widget": LocalJSX.TextWidget & JSXBase.HTMLAttributes<HTMLTextWidgetElement>;
+            "welch-two-sample-hypothesis-test-widget": LocalJSX.WelchTwoSampleHypothesisTestWidget & JSXBase.HTMLAttributes<HTMLWelchTwoSampleHypothesisTestWidgetElement>;
         }
     }
 }

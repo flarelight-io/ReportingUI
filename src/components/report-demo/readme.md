@@ -21,6 +21,7 @@ graph TD;
   flare-report-viewer --> correlation-analysis-widget
   flare-report-viewer --> one-sample-hypothesis-test-widget
   flare-report-viewer --> independent-two-sample-hypothesis-test-widget
+  flare-report-viewer --> welch-two-sample-hypothesis-test-widget
   flare-report-viewer --> data-widget
   text-widget --> base-widget
   source-info-widget --> base-widget
@@ -44,6 +45,7 @@ graph TD;
   correlation-analysis-widget --> base-widget
   one-sample-hypothesis-test-widget --> base-widget
   independent-two-sample-hypothesis-test-widget --> base-widget
+  welch-two-sample-hypothesis-test-widget --> base-widget
   style report-demo fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

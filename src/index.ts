@@ -19,6 +19,8 @@ export * from './components/widgets/text-widget';
 export * from './components/widgets/source-info-widget';
 export * from './components/widgets/data-widget';
 export * from './components/widgets/one-sample-hypothesis-test-widget';
+export * from './components/widgets/independent-two-sample-hypothesis-test-widget';
+export * from './components/widgets/welch-two-sample-hypothesis-test-widget';
 // We will add other widget exports as they are converted
 
 // Export main report viewer component
@@ -34,6 +36,8 @@ export { DataWidget } from './components/widgets/data-widget';
 export { TextWidget } from './components/widgets/text-widget';
 export { SourceInfoWidget } from './components/widgets/source-info-widget';
 export { OneSampleHypothesisTestWidget } from './components/widgets/one-sample-hypothesis-test-widget';
+export { IndependentTwoSampleHypothesisTestWidget } from './components/widgets/independent-two-sample-hypothesis-test-widget';
+export { WelchTwoSampleHypothesisTestWidget } from './components/widgets/welch-two-sample-hypothesis-test-widget';
 
 // Visualization components
 export { TableVisualization } from './components/widgets/visualizations/table-visualization';
