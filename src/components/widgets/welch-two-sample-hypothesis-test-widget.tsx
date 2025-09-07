@@ -160,13 +160,13 @@ export class WelchTwoSampleHypothesisTestWidget {
   // Check if we should show LCL
   private shouldShowLCL(): boolean {
     if (!this.testData) return false;
-    return this.testData.TestName === 'LeftTailed' || this.testData.TestName === 'TwoTailed';
+    return this.testData.TestName === 'RightTailed' || this.testData.TestName === 'TwoTailed';
   }
   
   // Check if we should show UCL
   private shouldShowUCL(): boolean {
     if (!this.testData) return false;
-    return this.testData.TestName === 'RightTailed' || this.testData.TestName === 'TwoTailed';
+    return this.testData.TestName === 'LeftTailed' || this.testData.TestName === 'TwoTailed';
   }
   
   // Format confidence level for display
