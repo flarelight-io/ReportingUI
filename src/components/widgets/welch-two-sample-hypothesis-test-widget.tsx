@@ -171,13 +171,28 @@ export class WelchTwoSampleHypothesisTestWidget {
   
   // Format confidence level for display
   private formatConfidenceLevel(level: number): string {
-    // Format percentage to 3 decimal places
-    return `${level.toFixed(3)}%`;
+    // Format percentage to up to 3 significant decimal places
+    if (level % 1 === 0) {
+      // Whole number - no decimal places
+      return `${level}%`;
+    } else {
+      // Has decimal places - show up to 3 significant decimal places
+      const rounded = Math.round(level * 1000) / 1000;
+      return `${rounded}%`;
+    }
   }
   
   // Format number for display
   private formatNumber(value: number, decimals: number = 3): string {
-    return value.toFixed(decimals);
+    // Format to up to 3 significant decimal places
+    if (value % 1 === 0) {
+      // Whole number - no decimal places
+      return value.toString();
+    } else {
+      // Has decimal places - show up to 3 significant decimal places
+      const rounded = Math.round(value * 1000) / 1000;
+      return rounded.toString();
+    }
   }
   
   // Render the visual range/slider

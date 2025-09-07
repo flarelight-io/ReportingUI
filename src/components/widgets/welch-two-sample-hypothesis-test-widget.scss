@@ -82,18 +82,6 @@
   text-align: right;
 }
 
-.lcl-value,
-.ucl-value {
-  text-decoration: underline;
-  cursor: pointer;
-  color: var(--fl-primary-color);
-  transition: color 0.2s ease;
-}
-
-.lcl-value:hover,
-.ucl-value:hover {
-  opacity: 0.8;
-}
 
 /* Visual Range */
 .visual-range-container {

@@ -469,14 +469,14 @@ export class ReportDemo {
       {
         id: 'welch-two-sample-hypothesis-test',
         type: 'welchTwoSampleHypothesisTest',
-        title: 'Welch&apos;s Two Sample Analysis',
+        title: 'Welch\'s Two Sample Analysis',
         x: 0,
         y: 29,
         w: 6,
         h: 6,
         config: {
           analysisId: 'sample-welch-two-sample-hypothesis-test',
-          analysisName: 'Welch&apos;s Two Sample Analysis'
+          analysisName: 'Welch\'s Two Sample Analysis'
         }
       }
     ],
@@ -595,7 +595,7 @@ export class ReportDemo {
       },
       {
         id: 'sample-welch-two-sample-hypothesis-test',
-        name: 'Welch&apos;s Two Sample Hypothesis Test Analysis',
+        name: 'Welch\'s Two Sample Hypothesis Test Analysis',
         type: 'analysis',
         analysisType: 'welchTwoSampleHypothesisTest'
       },
