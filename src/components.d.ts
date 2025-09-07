@@ -13,6 +13,7 @@ import { DataSource, Filter } from "./api/types/common";
 import { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
 import { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/independent-two-sample-hypothesis-test-widget";
 import { OneSampleHypothesisTestWidgetConfig } from "./components/widgets/one-sample-hypothesis-test-widget";
+import { PairedTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/paired-two-sample-hypothesis-test-widget";
 import { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 import { TextWidgetConfig } from "./components/widgets/text-widget";
 import { WelchTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/welch-two-sample-hypothesis-test-widget";
@@ -24,6 +25,7 @@ export { DataSource, Filter } from "./api/types/common";
 export { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
 export { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/independent-two-sample-hypothesis-test-widget";
 export { OneSampleHypothesisTestWidgetConfig } from "./components/widgets/one-sample-hypothesis-test-widget";
+export { PairedTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/paired-two-sample-hypothesis-test-widget";
 export { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 export { TextWidgetConfig } from "./components/widgets/text-widget";
 export { WelchTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/welch-two-sample-hypothesis-test-widget";
@@ -224,6 +226,34 @@ export namespace Components {
           * @default {}
          */
         "config": OneSampleHypothesisTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data": any[];
+        "fetchChartData": Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor": boolean;
+        /**
+          * @default false
+         */
+        "isViewer": boolean;
+        /**
+          * @default false
+         */
+        "readOnly": boolean;
+        "reportId"?: string;
+        "widgetId": string;
+        "widgetTitle": string;
+        "width"?: number;
+    }
+    interface PairedTwoSampleHypothesisTestWidget {
+        /**
+          * @default {}
+         */
+        "config": PairedTwoSampleHypothesisTestWidgetConfig;
         /**
           * @default []
          */
@@ -590,6 +620,12 @@ declare global {
         prototype: HTMLOneSampleHypothesisTestWidgetElement;
         new (): HTMLOneSampleHypothesisTestWidgetElement;
     };
+    interface HTMLPairedTwoSampleHypothesisTestWidgetElement extends Components.PairedTwoSampleHypothesisTestWidget, HTMLStencilElement {
+    }
+    var HTMLPairedTwoSampleHypothesisTestWidgetElement: {
+        prototype: HTMLPairedTwoSampleHypothesisTestWidgetElement;
+        new (): HTMLPairedTwoSampleHypothesisTestWidgetElement;
+    };
     interface HTMLPieChartVisualizationElementEventMap {
         "filterChange": FilterChangeEventDetail;
     }
@@ -716,6 +752,7 @@ declare global {
         "line-chart-visualization": HTMLLineChartVisualizationElement;
         "lollipop-chart-visualization": HTMLLollipopChartVisualizationElement;
         "one-sample-hypothesis-test-widget": HTMLOneSampleHypothesisTestWidgetElement;
+        "paired-two-sample-hypothesis-test-widget": HTMLPairedTwoSampleHypothesisTestWidgetElement;
         "pie-chart-visualization": HTMLPieChartVisualizationElement;
         "report-demo": HTMLReportDemoElement;
         "scatter-chart-visualization": HTMLScatterChartVisualizationElement;
@@ -956,6 +993,34 @@ declare namespace LocalJSX {
         "widgetTitle"?: string;
         "width"?: number;
     }
+    interface PairedTwoSampleHypothesisTestWidget {
+        /**
+          * @default {}
+         */
+        "config"?: PairedTwoSampleHypothesisTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data"?: any[];
+        "fetchChartData"?: Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
+        "isViewer"?: boolean;
+        /**
+          * @default false
+         */
+        "readOnly"?: boolean;
+        "reportId"?: string;
+        "widgetId"?: string;
+        "widgetTitle"?: string;
+        "width"?: number;
+    }
     interface PieChartVisualization {
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
@@ -1068,6 +1133,7 @@ declare namespace LocalJSX {
         "line-chart-visualization": LineChartVisualization;
         "lollipop-chart-visualization": LollipopChartVisualization;
         "one-sample-hypothesis-test-widget": OneSampleHypothesisTestWidget;
+        "paired-two-sample-hypothesis-test-widget": PairedTwoSampleHypothesisTestWidget;
         "pie-chart-visualization": PieChartVisualization;
         "report-demo": ReportDemo;
         "scatter-chart-visualization": ScatterChartVisualization;
@@ -1099,6 +1165,7 @@ declare module "@stencil/core" {
             "line-chart-visualization": LocalJSX.LineChartVisualization & JSXBase.HTMLAttributes<HTMLLineChartVisualizationElement>;
             "lollipop-chart-visualization": LocalJSX.LollipopChartVisualization & JSXBase.HTMLAttributes<HTMLLollipopChartVisualizationElement>;
             "one-sample-hypothesis-test-widget": LocalJSX.OneSampleHypothesisTestWidget & JSXBase.HTMLAttributes<HTMLOneSampleHypothesisTestWidgetElement>;
+            "paired-two-sample-hypothesis-test-widget": LocalJSX.PairedTwoSampleHypothesisTestWidget & JSXBase.HTMLAttributes<HTMLPairedTwoSampleHypothesisTestWidgetElement>;
             "pie-chart-visualization": LocalJSX.PieChartVisualization & JSXBase.HTMLAttributes<HTMLPieChartVisualizationElement>;
             "report-demo": LocalJSX.ReportDemo & JSXBase.HTMLAttributes<HTMLReportDemoElement>;
             "scatter-chart-visualization": LocalJSX.ScatterChartVisualization & JSXBase.HTMLAttributes<HTMLScatterChartVisualizationElement>;

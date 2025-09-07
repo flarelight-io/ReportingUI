@@ -467,10 +467,23 @@ export class ReportDemo {
         }
       },
       {
+        id: 'paired-two-sample-hypothesis-test',
+        type: 'pairedTwoSampleHypothesisTest',
+        title: 'Paired Sample Analysis',
+        x: 0,
+        y: 28,
+        w: 6,
+        h: 5,
+        config: {
+          analysisId: 'sample-paired-two-sample-hypothesis-test',
+          analysisName: 'Paired Sample Analysis'
+        }
+      },
+      {
         id: 'welch-two-sample-hypothesis-test',
         type: 'welchTwoSampleHypothesisTest',
         title: 'Welch\'s Two Sample Analysis',
-        x: 0,
+        x: 6,
         y: 28,
         w: 6,
         h: 5,
@@ -592,6 +605,12 @@ export class ReportDemo {
         name: 'Independent Two-Sample Hypothesis Test Analysis',
         type: 'analysis',
         analysisType: 'independentTwoSampleHypothesisTest'
+      },
+      {
+        id: 'sample-paired-two-sample-hypothesis-test',
+        name: 'Paired Two-Sample Hypothesis Test Analysis',
+        type: 'analysis',
+        analysisType: 'pairedTwoSampleHypothesisTest'
       },
       {
         id: 'sample-welch-two-sample-hypothesis-test',
@@ -1449,6 +1468,24 @@ export class ReportDemo {
           TestName: "TwoTailed",
           LCL: 1.234,
           UCL: 6.566,
+          NullReject: true
+        }];
+        
+      case 'sample-paired-two-sample-hypothesis-test':
+        return [{
+          SampleSizeGroup1: 20,
+          SampleSizeGroup2: 20,
+          DifferenceMean: 3.8,
+          DifferenceStdDev: 2.1,
+          PopulationStdDev: null,
+          ConfidenceLevel: 95.0,
+          DataSourceName: "Paired Two-Sample T-Test",
+          SampleSourceNameGroup1: "Before Treatment",
+          SampleSourceNameGroup2: "After Treatment",
+          TestName: "TwoTailed",
+          LCL: 2.45,
+          UCL: 5.15,
+          pValue: 0.023,
           NullReject: true
         }];
         
