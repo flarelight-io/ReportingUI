@@ -460,7 +460,7 @@ export class ReportDemo {
         x: 6,
         y: 23,
         w: 6,
-        h: 6,
+        h: 5,
         config: {
           analysisId: 'sample-independent-two-sample-hypothesis-test',
           analysisName: 'Group Comparison Analysis'
@@ -471,9 +471,9 @@ export class ReportDemo {
         type: 'welchTwoSampleHypothesisTest',
         title: 'Welch\'s Two Sample Analysis',
         x: 0,
-        y: 29,
+        y: 28,
         w: 6,
-        h: 6,
+        h: 5,
         config: {
           analysisId: 'sample-welch-two-sample-hypothesis-test',
           analysisName: 'Welch\'s Two Sample Analysis'
