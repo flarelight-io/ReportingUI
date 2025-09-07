@@ -183,7 +183,7 @@ export class WelchTwoSampleHypothesisTestWidget {
   }
   
   // Format number for display
-  private formatNumber(value: number, decimals: number = 3): string {
+  private formatNumber(value: number): string {
     // Format to up to 3 significant decimal places
     if (value % 1 === 0) {
       // Whole number - no decimal places
