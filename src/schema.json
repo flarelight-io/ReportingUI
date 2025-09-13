@@ -189,6 +189,7 @@
             "independentTwoSampleHypothesisTest",
             "pairedTwoSampleHypothesisTest",
             "welchTwoSampleHypothesisTest",
+            "oneWayANOVA",
             "data",
             "table",
             "bar",
@@ -268,6 +269,9 @@
             },
             {
               "$ref": "#/definitions/WelchTwoSampleHypothesisTestWidgetConfig"
+            },
+            {
+              "$ref": "#/definitions/OneWayAnovaWidgetConfig"
             },
             {
               "$ref": "#/definitions/DataWidgetConfig"
@@ -481,6 +485,25 @@
     "WelchTwoSampleHypothesisTestWidgetConfig": {
       "type": "object",
       "description": "Configuration for Welch's two-sample hypothesis test widgets",
+      "properties": {
+        "analysisId": {
+          "type": "string",
+          "description": "ID of the analysis to display"
+        },
+        "analysisName": {
+          "type": "string",
+          "description": "Name of the analysis"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        }
+      }
+    },
+    "OneWayAnovaWidgetConfig": {
+      "type": "object",
+      "description": "Configuration for one-way ANOVA widgets",
       "properties": {
         "analysisId": {
           "type": "string",

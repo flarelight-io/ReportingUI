@@ -1,6 +1,6 @@
 {
   "name": "@flarelight-io/reporting",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "Report Viewer and Widgets packaged as Web Components",
   "main": "dist/index.cjs.js",
   "module": "dist/index.js",
@@ -20,11 +20,13 @@
       "import": "./loader/index.js",
       "require": "./loader/index.cjs",
       "types": "./loader/index.d.ts"
-    }
+    },
+    "./schema": "./src/schema.json"
   },
   "files": [
     "dist/",
-    "loader/"
+    "loader/",
+    "src/schema.json"
   ],
   "scripts": {
     "build": "npx stencil build",
