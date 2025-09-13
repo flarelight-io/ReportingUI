@@ -19,6 +19,7 @@ export interface HypothesisTestData {
   TestName: 'LeftTailed' | 'RightTailed' | 'TwoTailed';
   UCL: number;
   LCL: number;
+  PValue: number;
   NullReject: boolean;
 }
 
@@ -194,6 +195,17 @@ export class OneSampleHypothesisTestWidget {
     }
   }
   
+  // Format p-value for display
+  private formatPValue(pValue: number): string {
+    if (pValue < 0.001) {
+      return '< 0.001';
+    } else if (pValue < 0.01) {
+      return this.formatNumber(pValue);
+    } else {
+      return this.formatNumber(pValue);
+    }
+  }
+  
   // Render the visual range/slider
   private renderVisualRange() {
     if (!this.testData) return null;
@@ -300,6 +312,11 @@ export class OneSampleHypothesisTestWidget {
             <div class="parameter-row">
               <span class="parameter-label">Reference Mean:</span>
               <span class="parameter-value">{this.formatNumber(this.testData.PopulationMean)}</span>
+            </div>
+            
+            <div class="parameter-row">
+              <span class="parameter-label">P-Value:</span>
+              <span class="parameter-value">{this.formatPValue(this.testData.PValue)}</span>
             </div>
             
             {this.shouldShowLCL() && (

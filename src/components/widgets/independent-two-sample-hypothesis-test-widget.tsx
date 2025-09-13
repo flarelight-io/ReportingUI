@@ -23,6 +23,7 @@ export interface IndependentTwoSampleHypothesisTestData {
   TestName: 'LeftTailed' | 'RightTailed' | 'TwoTailed';
   UCL: number;
   LCL: number;
+  PValue: number;
   NullReject: boolean;
 }
 
@@ -198,6 +199,17 @@ export class IndependentTwoSampleHypothesisTestWidget {
     }
   }
   
+  // Format p-value for display
+  private formatPValue(pValue: number): string {
+    if (pValue < 0.001) {
+      return '< 0.001';
+    } else if (pValue < 0.01) {
+      return this.formatNumber(pValue);
+    } else {
+      return this.formatNumber(pValue);
+    }
+  }
+  
   // Render the visual range/slider
   private renderVisualRange() {
     if (!this.testData) return null;
@@ -324,6 +336,11 @@ export class IndependentTwoSampleHypothesisTestWidget {
             <div class="parameter-row">
               <span class="parameter-label">Means Difference:</span>
               <span class="parameter-value">{this.formatNumber(this.testData.SampleMeanGroup1 - this.testData.SampleMeanGroup2)}</span>
+            </div>
+            
+            <div class="parameter-row">
+              <span class="parameter-label">P-Value:</span>
+              <span class="parameter-value">{this.formatPValue(this.testData.PValue)}</span>
             </div>
             
             {this.shouldShowLCL() && (

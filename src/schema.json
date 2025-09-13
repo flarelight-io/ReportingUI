@@ -1,0 +1,636 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Flarelight Report Viewer Configuration Schema",
+  "description": "JSON schema for configuring the Flarelight Report Viewer with all available widgets and data sources",
+  "type": "object",
+  "properties": {
+    "sources": {
+      "type": "array",
+      "description": "Data sources available for the report",
+      "items": {
+        "$ref": "#/definitions/DataSource"
+      }
+    },
+    "widgets": {
+      "type": "array",
+      "description": "Array of widgets to display in the report (legacy format)",
+      "items": {
+        "$ref": "#/definitions/Widget"
+      }
+    },
+    "layouts": {
+      "type": "object",
+      "description": "Responsive layouts for different screen sizes (new format)",
+      "properties": {
+        "lg": {
+          "type": "array",
+          "description": "Large screen layout (desktop)",
+          "items": {
+            "$ref": "#/definitions/LayoutItem"
+          }
+        },
+        "md": {
+          "type": "array",
+          "description": "Medium screen layout (tablet)",
+          "items": {
+            "$ref": "#/definitions/LayoutItem"
+          }
+        },
+        "sm": {
+          "type": "array",
+          "description": "Small screen layout (mobile)",
+          "items": {
+            "$ref": "#/definitions/LayoutItem"
+          }
+        },
+        "xs": {
+          "type": "array",
+          "description": "Extra small screen layout",
+          "items": {
+            "$ref": "#/definitions/LayoutItem"
+          }
+        }
+      }
+    }
+  },
+  "anyOf": [
+    {
+      "required": ["widgets"]
+    },
+    {
+      "required": ["layouts", "widgets"]
+    }
+  ],
+  "definitions": {
+    "DataSource": {
+      "type": "object",
+      "description": "Data source configuration",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the data source"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name of the data source"
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional description of the data source"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of data source",
+          "enum": ["DataImport", "DataPreparation", "AnalysisResult"]
+        },
+        "fields": {
+          "type": "array",
+          "description": "Fields available in the data source",
+          "items": {
+            "$ref": "#/definitions/DataField"
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional metadata for the data source",
+          "additionalProperties": true
+        }
+      },
+      "required": ["id", "name", "type", "fields"]
+    },
+    "DataField": {
+      "type": "object",
+      "description": "Field definition in a data source",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Field name"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Display name for the field"
+        },
+        "type": {
+          "type": "string",
+          "description": "Data type of the field",
+          "enum": ["string", "number", "date", "boolean", "object"]
+        },
+        "isCalculated": {
+          "type": "boolean",
+          "description": "Whether this is a calculated field",
+          "default": false
+        },
+        "format": {
+          "type": "string",
+          "description": "Format string for the field"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the field"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional metadata for the field",
+          "additionalProperties": true
+        }
+      },
+      "required": ["name", "displayName", "type"]
+    },
+    "LayoutItem": {
+      "type": "object",
+      "description": "Layout positioning information for a widget",
+      "properties": {
+        "i": {
+          "type": "string",
+          "description": "Widget ID (corresponds to widget.id)"
+        },
+        "x": {
+          "type": "integer",
+          "description": "X position in grid (0-11)",
+          "minimum": 0,
+          "maximum": 11
+        },
+        "y": {
+          "type": "integer",
+          "description": "Y position in grid",
+          "minimum": 0
+        },
+        "w": {
+          "type": "integer",
+          "description": "Width in grid units (1-12)",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "h": {
+          "type": "integer",
+          "description": "Height in grid units",
+          "minimum": 1
+        }
+      },
+      "required": ["i", "x", "y", "w", "h"]
+    },
+    "Widget": {
+      "type": "object",
+      "description": "Widget configuration",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the widget"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of widget",
+          "enum": [
+            "text",
+            "sourceInfo",
+            "descriptiveAnalysis",
+            "correlationAnalysis",
+            "oneSampleHypothesisTest",
+            "independentTwoSampleHypothesisTest",
+            "pairedTwoSampleHypothesisTest",
+            "welchTwoSampleHypothesisTest",
+            "data",
+            "table",
+            "bar",
+            "line",
+            "pie",
+            "donut",
+            "hbar",
+            "scatter",
+            "sunburst",
+            "heatmap",
+            "bubble",
+            "kpi",
+            "histogram",
+            "stacked-bar",
+            "stacked-hbar",
+            "clustered-bar",
+            "clustered-hbar",
+            "lollipop",
+            "lollipop-h",
+            "box-whisker"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "description": "Display title for the widget"
+        },
+        "x": {
+          "type": "integer",
+          "description": "X position in grid (0-11)",
+          "minimum": 0,
+          "maximum": 11
+        },
+        "y": {
+          "type": "integer",
+          "description": "Y position in grid",
+          "minimum": 0
+        },
+        "w": {
+          "type": "integer",
+          "description": "Width in grid units (1-12)",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "h": {
+          "type": "integer",
+          "description": "Height in grid units",
+          "minimum": 1
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "config": {
+          "description": "Widget-specific configuration",
+          "oneOf": [
+            {
+              "$ref": "#/definitions/TextWidgetConfig"
+            },
+            {
+              "$ref": "#/definitions/SourceInfoWidgetConfig"
+            },
+            {
+              "$ref": "#/definitions/DescriptiveAnalysisWidgetConfig"
+            },
+            {
+              "$ref": "#/definitions/CorrelationAnalysisWidgetConfig"
+            },
+            {
+              "$ref": "#/definitions/OneSampleHypothesisTestWidgetConfig"
+            },
+            {
+              "$ref": "#/definitions/IndependentTwoSampleHypothesisTestWidgetConfig"
+            },
+            {
+              "$ref": "#/definitions/PairedTwoSampleHypothesisTestWidgetConfig"
+            },
+            {
+              "$ref": "#/definitions/WelchTwoSampleHypothesisTestWidgetConfig"
+            },
+            {
+              "$ref": "#/definitions/DataWidgetConfig"
+            }
+          ]
+        }
+      },
+      "required": ["id", "type", "title", "x", "y", "w", "h"]
+    },
+    "TextWidgetConfig": {
+      "type": "object",
+      "description": "Configuration for text widgets",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Text content to display"
+        },
+        "fontSize": {
+          "type": "string",
+          "description": "Font size",
+          "enum": ["small", "medium", "large"],
+          "default": "medium"
+        },
+        "textAlign": {
+          "type": "string",
+          "description": "Text alignment",
+          "enum": ["left", "center", "right"],
+          "default": "left"
+        },
+        "verticalAlign": {
+          "type": "string",
+          "description": "Vertical alignment",
+          "enum": ["top", "middle", "bottom"],
+          "default": "top"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "enableFormatting": {
+          "type": "boolean",
+          "description": "Enable markdown/HTML formatting",
+          "default": false
+        },
+        "titleText": {
+          "type": "string",
+          "description": "Custom title text"
+        },
+        "titleSize": {
+          "type": "string",
+          "description": "Title size",
+          "enum": ["h1", "h2", "h3"],
+          "default": "h3"
+        },
+        "showDivider": {
+          "type": "boolean",
+          "description": "Show divider below title",
+          "default": false
+        },
+        "dividerStyle": {
+          "type": "string",
+          "description": "Divider style",
+          "enum": ["solid", "dashed", "dotted"],
+          "default": "solid"
+        }
+      },
+      "required": ["text"]
+    },
+    "SourceInfoWidgetConfig": {
+      "type": "object",
+      "description": "Configuration for source info widgets",
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "description": "ID of the data source to display information for"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "showFieldList": {
+          "type": "boolean",
+          "description": "Whether to show the list of fields",
+          "default": true
+        }
+      }
+    },
+    "DescriptiveAnalysisWidgetConfig": {
+      "type": "object",
+      "description": "Configuration for descriptive analysis widgets",
+      "properties": {
+        "analysisId": {
+          "type": "string",
+          "description": "ID of the analysis to display"
+        },
+        "analysisName": {
+          "type": "string",
+          "description": "Name of the analysis"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        }
+      }
+    },
+    "CorrelationAnalysisWidgetConfig": {
+      "type": "object",
+      "description": "Configuration for correlation analysis widgets",
+      "properties": {
+        "analysisId": {
+          "type": "string",
+          "description": "ID of the analysis to display"
+        },
+        "analysisName": {
+          "type": "string",
+          "description": "Name of the analysis"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "showLabels": {
+          "type": "boolean",
+          "description": "Whether to show labels on the correlation matrix",
+          "default": true
+        },
+        "kpiFormatType": {
+          "type": "string",
+          "description": "Format type for KPI values",
+          "enum": ["number", "percentage"],
+          "default": "number"
+        },
+        "kpiPrefix": {
+          "type": "string",
+          "description": "Prefix for KPI values"
+        },
+        "kpiSuffix": {
+          "type": "string",
+          "description": "Suffix for KPI values"
+        },
+        "colorScale": {
+          "type": "array",
+          "description": "Custom color scale for the correlation matrix",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "OneSampleHypothesisTestWidgetConfig": {
+      "type": "object",
+      "description": "Configuration for one-sample hypothesis test widgets",
+      "properties": {
+        "analysisId": {
+          "type": "string",
+          "description": "ID of the analysis to display"
+        },
+        "analysisName": {
+          "type": "string",
+          "description": "Name of the analysis"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        }
+      }
+    },
+    "IndependentTwoSampleHypothesisTestWidgetConfig": {
+      "type": "object",
+      "description": "Configuration for independent two-sample hypothesis test widgets",
+      "properties": {
+        "analysisId": {
+          "type": "string",
+          "description": "ID of the analysis to display"
+        },
+        "analysisName": {
+          "type": "string",
+          "description": "Name of the analysis"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        }
+      }
+    },
+    "PairedTwoSampleHypothesisTestWidgetConfig": {
+      "type": "object",
+      "description": "Configuration for paired two-sample hypothesis test widgets",
+      "properties": {
+        "analysisId": {
+          "type": "string",
+          "description": "ID of the analysis to display"
+        },
+        "analysisName": {
+          "type": "string",
+          "description": "Name of the analysis"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        }
+      }
+    },
+    "WelchTwoSampleHypothesisTestWidgetConfig": {
+      "type": "object",
+      "description": "Configuration for Welch's two-sample hypothesis test widgets",
+      "properties": {
+        "analysisId": {
+          "type": "string",
+          "description": "ID of the analysis to display"
+        },
+        "analysisName": {
+          "type": "string",
+          "description": "Name of the analysis"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        }
+      }
+    },
+    "DataWidgetConfig": {
+      "type": "object",
+      "description": "Configuration for data visualization widgets",
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "description": "ID of the data source"
+        },
+        "sourceName": {
+          "type": "string",
+          "description": "Name of the data source"
+        },
+        "visualizationType": {
+          "type": "string",
+          "description": "Type of visualization",
+          "enum": [
+            "table",
+            "bar",
+            "line",
+            "pie",
+            "donut",
+            "hbar",
+            "scatter",
+            "sunburst",
+            "heatmap",
+            "bubble",
+            "kpi",
+            "histogram",
+            "stacked-bar",
+            "stacked-hbar",
+            "clustered-bar",
+            "clustered-hbar",
+            "lollipop",
+            "lollipop-h",
+            "box-whisker"
+          ],
+          "default": "table"
+        },
+        "fields": {
+          "type": "array",
+          "description": "Fields to include in the visualization",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "showLabels": {
+          "type": "boolean",
+          "description": "Whether to show labels on the chart",
+          "default": true
+        },
+        "showGrid": {
+          "type": "boolean",
+          "description": "Whether to show grid lines",
+          "default": true
+        },
+        "showLegend": {
+          "type": "boolean",
+          "description": "Whether to show the legend",
+          "default": true
+        },
+        "showRegressionLine": {
+          "type": "boolean",
+          "description": "Whether to show regression line (for scatter plots)",
+          "default": false
+        },
+        "groupByField": {
+          "type": "string",
+          "description": "Field to group data by"
+        },
+        "valueField": {
+          "type": "string",
+          "description": "Field to use for values"
+        },
+        "labelField": {
+          "type": "string",
+          "description": "Field to use for labels"
+        },
+        "aggregation": {
+          "type": "string",
+          "description": "Aggregation method",
+          "enum": ["none", "sum", "avg", "count", "min", "max"],
+          "default": "none"
+        },
+        "kpiFormatType": {
+          "type": "string",
+          "description": "Format type for KPI widgets",
+          "enum": ["number", "currency", "percentage"],
+          "default": "number"
+        },
+        "kpiPrefix": {
+          "type": "string",
+          "description": "Prefix for KPI values"
+        },
+        "kpiSuffix": {
+          "type": "string",
+          "description": "Suffix for KPI values"
+        },
+        "idField": {
+          "type": "string",
+          "description": "ID field for hierarchical data (sunburst charts)"
+        },
+        "parentIdField": {
+          "type": "string",
+          "description": "Parent ID field for hierarchical data (sunburst charts)"
+        },
+        "equalSegments": {
+          "type": "boolean",
+          "description": "Whether to use equal segments for sunburst charts",
+          "default": false
+        },
+        "columns": {
+          "type": "array",
+          "description": "Column configuration for table widgets",
+          "items": {
+            "type": "object",
+            "properties": {
+              "field": {
+                "type": "string",
+                "description": "Field name"
+              },
+              "header": {
+                "type": "string",
+                "description": "Column header"
+              }
+            },
+            "required": ["field", "header"]
+          }
+        }
+      }
+    }
+  }
+}

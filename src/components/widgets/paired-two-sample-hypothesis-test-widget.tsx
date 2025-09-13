@@ -20,7 +20,7 @@ export interface PairedTwoSampleHypothesisTestData {
   TestName: 'LeftTailed' | 'RightTailed' | 'TwoTailed';
   LCL: number;
   UCL: number;
-  pValue: number;
+  PValue: number;
   NullReject: boolean;
 }
 
@@ -334,7 +334,7 @@ export class PairedTwoSampleHypothesisTestWidget {
             
             <div class="parameter-row">
               <span class="parameter-label">P-Value:</span>
-              <span class="parameter-value">{this.formatPValue(this.testData.pValue)}</span>
+              <span class="parameter-value">{this.formatPValue(this.testData.PValue)}</span>
             </div>
             
             {this.shouldShowLCL() && (

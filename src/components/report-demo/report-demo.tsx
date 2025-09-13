@@ -1448,6 +1448,7 @@ export class ReportDemo {
           TestName: "TwoTailed",
           LCL: 50.393435156908666,
           UCL: 50.40656484309133,
+          PValue: 0.045,
           NullReject: true
         }];
         
@@ -1468,6 +1469,7 @@ export class ReportDemo {
           TestName: "TwoTailed",
           LCL: 1.234,
           UCL: 6.566,
+          PValue: 0.012,
           NullReject: true
         }];
         
@@ -1485,7 +1487,7 @@ export class ReportDemo {
           TestName: "TwoTailed",
           LCL: 2.45,
           UCL: 5.15,
-          pValue: 0.023,
+          PValue: 0.023,
           NullReject: true
         }];
         
@@ -1504,6 +1506,7 @@ export class ReportDemo {
           TestName: "TwoTailed",
           LCL: 2.145,
           UCL: 10.955,
+          PValue: 0.008,
           NullReject: true
         }];
       
