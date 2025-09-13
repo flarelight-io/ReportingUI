@@ -13,6 +13,7 @@ import { DataSource, Filter } from "./api/types/common";
 import { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
 import { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/independent-two-sample-hypothesis-test-widget";
 import { OneSampleHypothesisTestWidgetConfig } from "./components/widgets/one-sample-hypothesis-test-widget";
+import { OneWayAnovaWidgetConfig } from "./components/widgets/one-way-anova-widget";
 import { PairedTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/paired-two-sample-hypothesis-test-widget";
 import { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 import { TextWidgetConfig } from "./components/widgets/text-widget";
@@ -25,6 +26,7 @@ export { DataSource, Filter } from "./api/types/common";
 export { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
 export { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/independent-two-sample-hypothesis-test-widget";
 export { OneSampleHypothesisTestWidgetConfig } from "./components/widgets/one-sample-hypothesis-test-widget";
+export { OneWayAnovaWidgetConfig } from "./components/widgets/one-way-anova-widget";
 export { PairedTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/paired-two-sample-hypothesis-test-widget";
 export { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 export { TextWidgetConfig } from "./components/widgets/text-widget";
@@ -230,6 +232,34 @@ export namespace Components {
           * @default []
          */
         "data": any[];
+        "fetchChartData": Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor": boolean;
+        /**
+          * @default false
+         */
+        "isViewer": boolean;
+        /**
+          * @default false
+         */
+        "readOnly": boolean;
+        "reportId"?: string;
+        "widgetId": string;
+        "widgetTitle": string;
+        "width"?: number;
+    }
+    interface OneWayAnovaWidget {
+        /**
+          * @default {}
+         */
+        "config": OneWayAnovaWidgetConfig;
+        /**
+          * @default null
+         */
+        "data": any;
         "fetchChartData": Function;
         "height"?: number;
         /**
@@ -620,6 +650,12 @@ declare global {
         prototype: HTMLOneSampleHypothesisTestWidgetElement;
         new (): HTMLOneSampleHypothesisTestWidgetElement;
     };
+    interface HTMLOneWayAnovaWidgetElement extends Components.OneWayAnovaWidget, HTMLStencilElement {
+    }
+    var HTMLOneWayAnovaWidgetElement: {
+        prototype: HTMLOneWayAnovaWidgetElement;
+        new (): HTMLOneWayAnovaWidgetElement;
+    };
     interface HTMLPairedTwoSampleHypothesisTestWidgetElement extends Components.PairedTwoSampleHypothesisTestWidget, HTMLStencilElement {
     }
     var HTMLPairedTwoSampleHypothesisTestWidgetElement: {
@@ -752,6 +788,7 @@ declare global {
         "line-chart-visualization": HTMLLineChartVisualizationElement;
         "lollipop-chart-visualization": HTMLLollipopChartVisualizationElement;
         "one-sample-hypothesis-test-widget": HTMLOneSampleHypothesisTestWidgetElement;
+        "one-way-anova-widget": HTMLOneWayAnovaWidgetElement;
         "paired-two-sample-hypothesis-test-widget": HTMLPairedTwoSampleHypothesisTestWidgetElement;
         "pie-chart-visualization": HTMLPieChartVisualizationElement;
         "report-demo": HTMLReportDemoElement;
@@ -993,6 +1030,34 @@ declare namespace LocalJSX {
         "widgetTitle"?: string;
         "width"?: number;
     }
+    interface OneWayAnovaWidget {
+        /**
+          * @default {}
+         */
+        "config"?: OneWayAnovaWidgetConfig;
+        /**
+          * @default null
+         */
+        "data"?: any;
+        "fetchChartData"?: Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
+        "isViewer"?: boolean;
+        /**
+          * @default false
+         */
+        "readOnly"?: boolean;
+        "reportId"?: string;
+        "widgetId"?: string;
+        "widgetTitle"?: string;
+        "width"?: number;
+    }
     interface PairedTwoSampleHypothesisTestWidget {
         /**
           * @default {}
@@ -1133,6 +1198,7 @@ declare namespace LocalJSX {
         "line-chart-visualization": LineChartVisualization;
         "lollipop-chart-visualization": LollipopChartVisualization;
         "one-sample-hypothesis-test-widget": OneSampleHypothesisTestWidget;
+        "one-way-anova-widget": OneWayAnovaWidget;
         "paired-two-sample-hypothesis-test-widget": PairedTwoSampleHypothesisTestWidget;
         "pie-chart-visualization": PieChartVisualization;
         "report-demo": ReportDemo;
@@ -1165,6 +1231,7 @@ declare module "@stencil/core" {
             "line-chart-visualization": LocalJSX.LineChartVisualization & JSXBase.HTMLAttributes<HTMLLineChartVisualizationElement>;
             "lollipop-chart-visualization": LocalJSX.LollipopChartVisualization & JSXBase.HTMLAttributes<HTMLLollipopChartVisualizationElement>;
             "one-sample-hypothesis-test-widget": LocalJSX.OneSampleHypothesisTestWidget & JSXBase.HTMLAttributes<HTMLOneSampleHypothesisTestWidgetElement>;
+            "one-way-anova-widget": LocalJSX.OneWayAnovaWidget & JSXBase.HTMLAttributes<HTMLOneWayAnovaWidgetElement>;
             "paired-two-sample-hypothesis-test-widget": LocalJSX.PairedTwoSampleHypothesisTestWidget & JSXBase.HTMLAttributes<HTMLPairedTwoSampleHypothesisTestWidgetElement>;
             "pie-chart-visualization": LocalJSX.PieChartVisualization & JSXBase.HTMLAttributes<HTMLPieChartVisualizationElement>;
             "report-demo": LocalJSX.ReportDemo & JSXBase.HTMLAttributes<HTMLReportDemoElement>;

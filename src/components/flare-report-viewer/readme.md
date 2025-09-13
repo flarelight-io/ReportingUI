@@ -33,6 +33,7 @@
 - [independent-two-sample-hypothesis-test-widget](../widgets)
 - [paired-two-sample-hypothesis-test-widget](../widgets)
 - [welch-two-sample-hypothesis-test-widget](../widgets)
+- [one-way-anova-widget](../widgets)
 - [data-widget](../widgets)
 
 ### Graph
@@ -46,6 +47,7 @@ graph TD;
   flare-report-viewer --> independent-two-sample-hypothesis-test-widget
   flare-report-viewer --> paired-two-sample-hypothesis-test-widget
   flare-report-viewer --> welch-two-sample-hypothesis-test-widget
+  flare-report-viewer --> one-way-anova-widget
   flare-report-viewer --> data-widget
   text-widget --> base-widget
   source-info-widget --> base-widget
@@ -71,6 +73,7 @@ graph TD;
   independent-two-sample-hypothesis-test-widget --> base-widget
   paired-two-sample-hypothesis-test-widget --> base-widget
   welch-two-sample-hypothesis-test-widget --> base-widget
+  one-way-anova-widget --> base-widget
   report-demo --> flare-report-viewer
   style flare-report-viewer fill:#f9f,stroke:#333,stroke-width:4px
 ```

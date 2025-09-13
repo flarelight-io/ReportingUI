@@ -491,6 +491,19 @@ export class ReportDemo {
           analysisId: 'sample-welch-two-sample-hypothesis-test',
           analysisName: 'Welch\'s Two Sample Analysis'
         }
+      },
+      {
+        id: 'one-way-anova',
+        type: 'OneWayANOVA',
+        title: 'One-Way ANOVA Analysis',
+        x: 0,
+        y: 33,
+        w: 6,
+        h: 5,
+        config: {
+          analysisId: 'sample-one-way-anova',
+          analysisName: 'One-Way ANOVA Analysis'
+        }
       }
     ],
     sources: [
@@ -617,6 +630,12 @@ export class ReportDemo {
         name: 'Welch\'s Two Sample Hypothesis Test Analysis',
         type: 'analysis',
         analysisType: 'welchTwoSampleHypothesisTest'
+      },
+      {
+        id: 'sample-one-way-anova',
+        name: 'One-Way ANOVA Analysis',
+        type: 'analysis',
+        analysisType: 'OneWayANOVA'
       },
       {
         id: 'sample-box-whisker',
@@ -1509,6 +1528,50 @@ export class ReportDemo {
           PValue: 0.008,
           NullReject: true
         }];
+        
+      case 'sample-one-way-anova':
+        return [
+          {
+            Id: 1,
+            SourceOfVariation: "Between Groups",
+            SumOfSquares: 228.0,
+            DegreesOfFreedom: 3,
+            MeanSquares: 76.0,
+            FRatio: 13.57,
+            PValue: 0.0001,
+            FCritical: 3.24,
+            PCritical: 0.05,
+            DataSourceName: "One-Way ANOVA Analysis",
+            ConfidenceLevel: 0.95,
+            NullReject: true
+          },
+          {
+            Id: 2,
+            SourceOfVariation: "Within Groups",
+            SumOfSquares: 112.0,
+            DegreesOfFreedom: 20,
+            MeanSquares: 5.6,
+            FRatio: null,
+            PValue: null,
+            FCritical: null,
+            DataSourceName: "One-Way ANOVA Analysis",
+            ConfidenceLevel: 0.95,
+            NullReject: true
+          },
+          {
+            Id: 3,
+            SourceOfVariation: "Total",
+            SumOfSquares: 340.0,
+            DegreesOfFreedom: 23,
+            MeanSquares: 14.7826,
+            FRatio: null,
+            PValue: null,
+            FCritical: null,
+            DataSourceName: "One-Way ANOVA Analysis",
+            ConfidenceLevel: 0.95,
+            NullReject: true
+          }
+        ];
       
       default:
         console.warn(`No mock data available for source: ${sourceId}`);

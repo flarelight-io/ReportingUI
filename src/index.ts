@@ -22,6 +22,7 @@ export * from './components/widgets/one-sample-hypothesis-test-widget';
 export * from './components/widgets/independent-two-sample-hypothesis-test-widget';
 export * from './components/widgets/paired-two-sample-hypothesis-test-widget';
 export * from './components/widgets/welch-two-sample-hypothesis-test-widget';
+export * from './components/widgets/one-way-anova-widget';
 // We will add other widget exports as they are converted
 
 // Export main report viewer component
@@ -40,6 +41,7 @@ export { OneSampleHypothesisTestWidget } from './components/widgets/one-sample-h
 export { IndependentTwoSampleHypothesisTestWidget } from './components/widgets/independent-two-sample-hypothesis-test-widget';
 export { PairedTwoSampleHypothesisTestWidget } from './components/widgets/paired-two-sample-hypothesis-test-widget';
 export { WelchTwoSampleHypothesisTestWidget } from './components/widgets/welch-two-sample-hypothesis-test-widget';
+export { OneWayAnovaWidget } from './components/widgets/one-way-anova-widget';
 
 // Visualization components
 export { TableVisualization } from './components/widgets/visualizations/table-visualization';
