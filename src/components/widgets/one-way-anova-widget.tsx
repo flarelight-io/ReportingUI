@@ -300,7 +300,7 @@ export class OneWayAnovaWidget {
                             
                             <div class="parameter-row">
                               <span class="parameter-label">Confidence Level:</span>
-                              <span class="parameter-value">{(firstRow.ConfidenceLevel * 100).toFixed(1)}%</span>
+                              <span class="parameter-value">{firstRow.ConfidenceLevel.toFixed(1)}%</span>
                             </div>
                           </div>
                         </div>

@@ -1542,7 +1542,7 @@ export class ReportDemo {
             FCritical: 3.24,
             PCritical: 0.05,
             DataSourceName: "One-Way ANOVA Analysis",
-            ConfidenceLevel: 0.95,
+            ConfidenceLevel: 95,
             NullReject: true
           },
           {
@@ -1555,7 +1555,7 @@ export class ReportDemo {
             PValue: null,
             FCritical: null,
             DataSourceName: "One-Way ANOVA Analysis",
-            ConfidenceLevel: 0.95,
+            ConfidenceLevel: 95,
             NullReject: true
           },
           {
@@ -1568,7 +1568,7 @@ export class ReportDemo {
             PValue: null,
             FCritical: null,
             DataSourceName: "One-Way ANOVA Analysis",
-            ConfidenceLevel: 0.95,
+            ConfidenceLevel: 95,
             NullReject: true
           }
         ];
