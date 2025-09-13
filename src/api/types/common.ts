@@ -6,6 +6,7 @@ export interface ChartDataRequest {
   groupByFields: ChartField[];
   labelFields: ChartField[];
   filters?: ChartFilter[];
+  sorts?: ChartSort[];
   pagination?: Pagination;
   isViewer: boolean;
   widgetType?: string;
@@ -15,6 +16,11 @@ export interface ChartDataRequest {
 export interface ChartField {
   fieldName: string;
   aggregation?: "sum" | "avg" | "min" | "max" | "count" | "countDistinct" | "stdDev" | "stdDevPop";
+}
+
+export interface ChartSort {
+  fieldName: string;
+  direction: 'Ascending' | 'Descending';
 }
 
 export interface ChartFilter {

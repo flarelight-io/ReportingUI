@@ -130,6 +130,7 @@ export class OneWayAnovaWidget {
         groupByFields: [],
         labelFields: [],
         filters: [],
+        sorts: [{ fieldName: 'Id', direction: 'Ascending' }],
         isViewer: this.isViewer || false,
         widgetType: 'oneWayAnova',
         widgetId: this.widgetId
