@@ -30,6 +30,7 @@
 - [descriptive-analysis-widget](../widgets)
 - [correlation-analysis-widget](../widgets)
 - [one-sample-hypothesis-test-widget](../widgets)
+- [one-sample-wilcoxon-signed-rank-widget](../widgets)
 - [independent-two-sample-hypothesis-test-widget](../widgets)
 - [paired-two-sample-hypothesis-test-widget](../widgets)
 - [welch-two-sample-hypothesis-test-widget](../widgets)
@@ -45,6 +46,7 @@ graph TD;
   flare-report-viewer --> descriptive-analysis-widget
   flare-report-viewer --> correlation-analysis-widget
   flare-report-viewer --> one-sample-hypothesis-test-widget
+  flare-report-viewer --> one-sample-wilcoxon-signed-rank-widget
   flare-report-viewer --> independent-two-sample-hypothesis-test-widget
   flare-report-viewer --> paired-two-sample-hypothesis-test-widget
   flare-report-viewer --> welch-two-sample-hypothesis-test-widget
@@ -72,6 +74,7 @@ graph TD;
   data-widget --> base-widget
   correlation-analysis-widget --> base-widget
   one-sample-hypothesis-test-widget --> base-widget
+  one-sample-wilcoxon-signed-rank-widget --> base-widget
   independent-two-sample-hypothesis-test-widget --> base-widget
   paired-two-sample-hypothesis-test-widget --> base-widget
   welch-two-sample-hypothesis-test-widget --> base-widget

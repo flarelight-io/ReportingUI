@@ -480,13 +480,26 @@ export class ReportDemo {
         }
       },
       {
+        id: 'one-sample-wilcoxon-signed-rank',
+        type: 'oneSampleWilcoxonSignedRank',
+        title: 'Wilcoxon Signed Rank Test',
+        x: 0,
+        y: 28,
+        w: 6,
+        h: 6,
+        config: {
+          analysisId: 'sample-one-sample-wilcoxon-signed-rank',
+          analysisName: 'Wilcoxon Signed Rank Test'
+        }
+      },
+      {
         id: 'welch-two-sample-hypothesis-test',
         type: 'welchTwoSampleHypothesisTest',
         title: 'Welch\'s Two Sample Analysis',
         x: 6,
         y: 28,
         w: 6,
-        h: 5,
+        h: 6,
         config: {
           analysisId: 'sample-welch-two-sample-hypothesis-test',
           analysisName: 'Welch\'s Two Sample Analysis'
@@ -497,9 +510,9 @@ export class ReportDemo {
         type: 'OneWayANOVA',
         title: 'One-Way ANOVA Analysis',
         x: 0,
-        y: 33,
+        y: 34,
         w: 6,
-        h: 5,
+        h: 6,
         config: {
           analysisId: 'sample-one-way-anova',
           analysisName: 'One-Way ANOVA Analysis'
@@ -510,7 +523,7 @@ export class ReportDemo {
         type: 'WelchANOVA',
         title: 'Welch\'s ANOVA Analysis',
         x: 6,
-        y: 33,
+        y: 34,
         w: 6,
         h: 5,
         config: {
@@ -625,6 +638,12 @@ export class ReportDemo {
         name: 'Hypothesis Test Analysis',
         type: 'analysis',
         analysisType: 'oneSampleHypothesisTest'
+      },
+      {
+        id: 'sample-one-sample-wilcoxon-signed-rank',
+        name: 'One-Sample Wilcoxon Signed Rank Test Analysis',
+        type: 'analysis',
+        analysisType: 'oneSampleWilcoxonSignedRank'
       },
       {
         id: 'sample-independent-two-sample-hypothesis-test',
@@ -1608,6 +1627,28 @@ export class ReportDemo {
             NullReject: true
           }
         ];
+        
+      case 'sample-one-sample-wilcoxon-signed-rank':
+        return [{
+          SampleSizeNonZero: 12,
+          ZeroCount: 3,
+          HasTies: false,
+          WPlus: 45.5,
+          WMinus: 32.5,
+          WStat: 32.5,
+          MeanW: 39.0,
+          VarW: 162.5,
+          DataSourceName: "One-Sample Wilcoxon Signed Rank Test",
+          SampleSourceName: "Treatment Response Scores",
+          TestName: "TwoTailed",
+          ConfidenceLevel: 95.0,
+          ContinuityCorrection: true,
+          ZValue: -1.23,
+          PValue: 0.218,
+          WCritical: 17.0,
+          ReferenceMedian: 42.0,
+          NullReject: false
+        }];
       
       default:
         console.warn(`No mock data available for source: ${sourceId}`);
