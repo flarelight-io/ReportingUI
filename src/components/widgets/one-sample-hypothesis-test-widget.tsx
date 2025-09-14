@@ -315,7 +315,7 @@ export class OneSampleHypothesisTestWidget {
             </div>
             
             <div class="parameter-row">
-              <span class="parameter-label">P-Value:</span>
+              <span class="parameter-label">p-Value:</span>
               <span class="parameter-value">{this.formatPValue(this.testData.PValue)}</span>
             </div>
             

@@ -355,12 +355,12 @@ export class OneWayAnovaWidget {
                 <div class="critical-values-section">
                   <div class="test-parameters">
                     <div class="parameter-row">
-                      <span class="parameter-label">F Critical:</span>
+                      <span class="parameter-label">F-Critical:</span>
                       <span class="parameter-value">{this.formatNumber(firstRow.FCritical)}</span>
                     </div>
                     
                     <div class="parameter-row">
-                      <span class="parameter-label">p Critical:</span>
+                      <span class="parameter-label">p-Critical:</span>
                       <span class="parameter-value">{this.formatPValue(firstRow.PCritical)}</span>
                     </div>
                   </div>

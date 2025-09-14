@@ -183,6 +183,11 @@ export class OneSampleWilcoxonSignedRankWidget {
   
   // Format number for display
   private formatNumber(value: number): string {
+    // Use exponential notation for very small values
+    if (Math.abs(value) < 0.001 && value !== 0) {
+      return value.toExponential(3);
+    }
+    
     // Format to up to 3 significant decimal places
     if (value % 1 === 0) {
       // Whole number - no decimal places
@@ -197,13 +202,7 @@ export class OneSampleWilcoxonSignedRankWidget {
   // Format p-value for display
   private formatPValue(pValue: number | null): string {
     if (pValue === null) return 'N/A';
-    if (pValue < 0.001) {
-      return '< 0.001';
-    } else if (pValue < 0.01) {
-      return this.formatNumber(pValue);
-    } else {
-      return this.formatNumber(pValue);
-    }
+    return this.formatNumber(pValue);
   }
   
   // Format z-value for display
@@ -365,7 +364,7 @@ export class OneSampleWilcoxonSignedRankWidget {
             
             {this.testData.WCritical !== null && (
               <div class="parameter-row">
-                <span class="parameter-label">W Critical:</span>
+                <span class="parameter-label">W-Critical:</span>
                 <span class="parameter-value w-critical-value">{this.formatNumber(this.testData.WCritical)}</span>
               </div>
             )}
@@ -379,7 +378,7 @@ export class OneSampleWilcoxonSignedRankWidget {
             
             {this.testData.PValue !== null && (
               <div class="parameter-row">
-                <span class="parameter-label">P-Value:</span>
+                <span class="parameter-label">p-Value:</span>
                 <span class="parameter-value p-value">{this.formatPValue(this.testData.PValue)}</span>
               </div>
             )}
