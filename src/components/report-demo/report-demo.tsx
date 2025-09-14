@@ -504,6 +504,19 @@ export class ReportDemo {
           analysisId: 'sample-one-way-anova',
           analysisName: 'One-Way ANOVA Analysis'
         }
+      },
+      {
+        id: 'welch-anova',
+        type: 'WelchANOVA',
+        title: 'Welch\'s ANOVA Analysis',
+        x: 6,
+        y: 33,
+        w: 6,
+        h: 5,
+        config: {
+          analysisId: 'sample-welch-anova',
+          analysisName: 'Welch&apos;s ANOVA Analysis'
+        }
       }
     ],
     sources: [
@@ -636,6 +649,12 @@ export class ReportDemo {
         name: 'One-Way ANOVA Analysis',
         type: 'analysis',
         analysisType: 'OneWayANOVA'
+      },
+      {
+        id: 'sample-welch-anova',
+        name: 'Welch\'s ANOVA Analysis',
+        type: 'analysis',
+        analysisType: 'WelchANOVA'
       },
       {
         id: 'sample-box-whisker',
@@ -1568,6 +1587,23 @@ export class ReportDemo {
             PValue: null,
             FCritical: null,
             DataSourceName: "One-Way ANOVA Analysis",
+            ConfidenceLevel: 95,
+            NullReject: true
+          }
+        ];
+        
+      case 'sample-welch-anova':
+        return [
+          {
+            SumOfSquares: 245.67,
+            WelchMS: 81.89,
+            FRatio: 12.45,
+            NumDF: 3,
+            DenDF: 18.5,
+            PValue: 0.0003,
+            FCritical: 3.16,
+            PCritical: 0.05,
+            DataSourceName: "Welch's ANOVA Analysis",
             ConfidenceLevel: 95,
             NullReject: true
           }

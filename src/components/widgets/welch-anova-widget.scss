@@ -1,0 +1,309 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.welch-anova-widget-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--fl-chart-background);
+  color: var(--fl-text-color-primary);
+  overflow: hidden;
+  align-items: stretch;
+  font-size: 0.8rem;
+  gap: 6px;
+}
+
+/* ANOVA Results Container */
+.anova-results-container {
+  margin-bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Result Banner */
+.result-banner {
+  background-color: #2F1669;
+  color: var(--fl-text-light);
+  padding: 8px 12px;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.1em;
+  flex-shrink: 0;
+}
+
+.result-text {
+  display: block;
+}
+
+/* Test Parameters */
+.test-parameters {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.parameter-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--fl-border-color);
+  flex-shrink: 0;
+  width: 100%;
+  min-height: 18px;
+}
+
+.parameter-row:last-child {
+  border-bottom: none;
+}
+
+.parameter-label {
+  font-weight: 500;
+  color: var(--fl-text-color-secondary);
+  font-size: 0.9em;
+  line-height: 1.2;
+}
+
+.parameter-value {
+  font-weight: 600;
+  color: var(--fl-text-color-primary);
+  font-size: 0.9em;
+  text-align: right;
+  line-height: 1.2;
+}
+
+.anova-table-section {
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+/* Critical Values Section */
+.critical-values-section {
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+/* ANOVA Table */
+.anova-table-container {
+  flex: 1;
+  overflow: auto;
+  background-color: var(--fl-chart-background);
+  border-radius: 4px;
+  border: 1px solid var(--fl-border-color);
+}
+
+.anova-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  
+  th {
+    background-color: var(--fl-card-background, #f9fafb);
+    color: var(--fl-text-color-primary, #374151);
+    font-weight: 600;
+    padding: 12px 8px;
+    text-align: left;
+    border-bottom: 2px solid var(--fl-border-color, #e5e7eb);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    box-shadow: 0 1px 0 0 var(--fl-border-color, #e5e7eb);
+  }
+  
+  td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--fl-border-color, #f3f4f6);
+    color: var(--fl-text-color-secondary, #4b5563);
+    text-align: left;
+  }
+  
+  tr:nth-child(even) {
+    background-color: var(--fl-chart-alternate-row, var(--fl-chart-background));
+  }
+  
+  tr:nth-child(odd) {
+    background-color: var(--fl-background-color);
+  }
+  
+  tr:hover td {
+    background-color: var(--fl-hover-color, var(--fl-border-color, #f9fafb));
+    color: var(--fl-text-color-primary, #374151);
+  }
+  
+  /* Special styling for numeric columns */
+  td:nth-child(1), /* Weighted Sum of Squares */
+  td:nth-child(2), /* Welch Mean Square */
+  td:nth-child(3), /* Numerator DF */
+  td:nth-child(4), /* Denominator DF */
+  td:nth-child(5), /* Welch F Statistic */
+  td:nth-child(6)  /* p-Value */ {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+  }
+  
+  /* Highlight the first row */
+  tr:first-child td {
+    background-color: var(--fl-primary-color-light, rgba(59, 130, 246, 0.1));
+    font-weight: 600;
+  }
+  
+  tr:first-child:hover td {
+    background-color: var(--fl-primary-color-light, rgba(59, 130, 246, 0.2));
+  }
+}
+
+/* ANOVA Information */
+.anova-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  border-top: 1px solid var(--fl-border-color);
+  flex-shrink: 0;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 0;
+}
+
+.info-label {
+  font-weight: 500;
+  color: var(--fl-text-color-secondary);
+  font-size: 0.9em;
+}
+
+.info-value {
+  font-weight: 600;
+  color: var(--fl-text-color-primary);
+  font-size: 0.9em;
+  text-align: right;
+}
+
+.info-value.reject {
+  color: var(--fl-error-color, #dc3545);
+}
+
+.info-value.accept {
+  color: var(--fl-success-color, #28a745);
+}
+
+/* Empty data state styling */
+.empty-analysis {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  color: var(--fl-text-color-secondary);
+  text-align: center;
+  font-size: 1rem;
+  padding: 1rem;
+  gap: 8px;
+}
+
+.help-text {
+  font-size: 0.9em;
+  color: var(--fl-text-color-tertiary);
+}
+
+/* Error message styling */
+.error-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  color: var(--fl-error-color, #dc3545);
+  text-align: center;
+  font-size: 1rem;
+  padding: 1rem;
+  background-color: var(--fl-error-background, rgba(220, 53, 69, 0.1));
+  border: 1px solid var(--fl-error-color, #dc3545);
+  border-radius: 4px;
+  margin: 1rem;
+}
+
+/* Loading spinner styling */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  
+  &::after {
+    content: "";
+    width: 30px;
+    height: 30px;
+    border: 4px solid var(--fl-border-color);
+    border-top: 4px solid var(--fl-primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .welch-anova-widget-container {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .anova-table {
+    font-size: 0.75rem;
+    
+    th, td {
+      padding: 8px 4px;
+    }
+  }
+  
+  .anova-info {
+    gap: 4px;
+  }
+  
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  
+  .info-value {
+    text-align: left;
+  }
+}
+
+@media (max-width: 480px) {
+  .anova-table {
+    font-size: 0.7rem;
+    
+    th, td {
+      padding: 6px 2px;
+    }
+  }
+  
+  .welch-anova-widget-container {
+    padding: 6px;
+    gap: 6px;
+  }
+}
