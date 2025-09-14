@@ -186,6 +186,7 @@
             "descriptiveAnalysis",
             "correlationAnalysis",
             "oneSampleHypothesisTest",
+            "oneSampleWilcoxonSignedRank",
             "independentTwoSampleHypothesisTest",
             "pairedTwoSampleHypothesisTest",
             "welchTwoSampleHypothesisTest",
@@ -261,6 +262,9 @@
             },
             {
               "$ref": "#/definitions/OneSampleHypothesisTestWidgetConfig"
+            },
+            {
+              "$ref": "#/definitions/OneSampleWilcoxonSignedRankWidgetConfig"
             },
             {
               "$ref": "#/definitions/IndependentTwoSampleHypothesisTestWidgetConfig"
@@ -432,6 +436,25 @@
     "OneSampleHypothesisTestWidgetConfig": {
       "type": "object",
       "description": "Configuration for one-sample hypothesis test widgets",
+      "properties": {
+        "analysisId": {
+          "type": "string",
+          "description": "ID of the analysis to display"
+        },
+        "analysisName": {
+          "type": "string",
+          "description": "Name of the analysis"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        }
+      }
+    },
+    "OneSampleWilcoxonSignedRankWidgetConfig": {
+      "type": "object",
+      "description": "Configuration for one-sample Wilcoxon signed rank test widgets",
       "properties": {
         "analysisId": {
           "type": "string",
