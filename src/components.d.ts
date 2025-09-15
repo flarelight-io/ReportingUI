@@ -16,6 +16,7 @@ import { OneSampleHypothesisTestWidgetConfig } from "./components/widgets/one-sa
 import { OneSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/one-sample-wilcoxon-signed-rank-widget";
 import { OneWayAnovaWidgetConfig } from "./components/widgets/one-way-anova-widget";
 import { PairedTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/paired-two-sample-hypothesis-test-widget";
+import { PairedTwoSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/paired-two-sample-wilcoxon-signed-rank-widget";
 import { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 import { TextWidgetConfig } from "./components/widgets/text-widget";
 import { WelchAnovaWidgetConfig } from "./components/widgets/welch-anova-widget";
@@ -31,6 +32,7 @@ export { OneSampleHypothesisTestWidgetConfig } from "./components/widgets/one-sa
 export { OneSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/one-sample-wilcoxon-signed-rank-widget";
 export { OneWayAnovaWidgetConfig } from "./components/widgets/one-way-anova-widget";
 export { PairedTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/paired-two-sample-hypothesis-test-widget";
+export { PairedTwoSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/paired-two-sample-wilcoxon-signed-rank-widget";
 export { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 export { TextWidgetConfig } from "./components/widgets/text-widget";
 export { WelchAnovaWidgetConfig } from "./components/widgets/welch-anova-widget";
@@ -316,6 +318,34 @@ export namespace Components {
           * @default {}
          */
         "config": PairedTwoSampleHypothesisTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data": any[];
+        "fetchChartData": Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor": boolean;
+        /**
+          * @default false
+         */
+        "isViewer": boolean;
+        /**
+          * @default false
+         */
+        "readOnly": boolean;
+        "reportId"?: string;
+        "widgetId": string;
+        "widgetTitle": string;
+        "width"?: number;
+    }
+    interface PairedTwoSampleWilcoxonSignedRankWidget {
+        /**
+          * @default {}
+         */
+        "config": PairedTwoSampleWilcoxonSignedRankWidgetConfig;
         /**
           * @default []
          */
@@ -728,6 +758,12 @@ declare global {
         prototype: HTMLPairedTwoSampleHypothesisTestWidgetElement;
         new (): HTMLPairedTwoSampleHypothesisTestWidgetElement;
     };
+    interface HTMLPairedTwoSampleWilcoxonSignedRankWidgetElement extends Components.PairedTwoSampleWilcoxonSignedRankWidget, HTMLStencilElement {
+    }
+    var HTMLPairedTwoSampleWilcoxonSignedRankWidgetElement: {
+        prototype: HTMLPairedTwoSampleWilcoxonSignedRankWidgetElement;
+        new (): HTMLPairedTwoSampleWilcoxonSignedRankWidgetElement;
+    };
     interface HTMLPieChartVisualizationElementEventMap {
         "filterChange": FilterChangeEventDetail;
     }
@@ -863,6 +899,7 @@ declare global {
         "one-sample-wilcoxon-signed-rank-widget": HTMLOneSampleWilcoxonSignedRankWidgetElement;
         "one-way-anova-widget": HTMLOneWayAnovaWidgetElement;
         "paired-two-sample-hypothesis-test-widget": HTMLPairedTwoSampleHypothesisTestWidgetElement;
+        "paired-two-sample-wilcoxon-signed-rank-widget": HTMLPairedTwoSampleWilcoxonSignedRankWidgetElement;
         "pie-chart-visualization": HTMLPieChartVisualizationElement;
         "report-demo": HTMLReportDemoElement;
         "scatter-chart-visualization": HTMLScatterChartVisualizationElement;
@@ -1188,6 +1225,34 @@ declare namespace LocalJSX {
         "widgetTitle"?: string;
         "width"?: number;
     }
+    interface PairedTwoSampleWilcoxonSignedRankWidget {
+        /**
+          * @default {}
+         */
+        "config"?: PairedTwoSampleWilcoxonSignedRankWidgetConfig;
+        /**
+          * @default []
+         */
+        "data"?: any[];
+        "fetchChartData"?: Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
+        "isViewer"?: boolean;
+        /**
+          * @default false
+         */
+        "readOnly"?: boolean;
+        "reportId"?: string;
+        "widgetId"?: string;
+        "widgetTitle"?: string;
+        "width"?: number;
+    }
     interface PieChartVisualization {
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
@@ -1331,6 +1396,7 @@ declare namespace LocalJSX {
         "one-sample-wilcoxon-signed-rank-widget": OneSampleWilcoxonSignedRankWidget;
         "one-way-anova-widget": OneWayAnovaWidget;
         "paired-two-sample-hypothesis-test-widget": PairedTwoSampleHypothesisTestWidget;
+        "paired-two-sample-wilcoxon-signed-rank-widget": PairedTwoSampleWilcoxonSignedRankWidget;
         "pie-chart-visualization": PieChartVisualization;
         "report-demo": ReportDemo;
         "scatter-chart-visualization": ScatterChartVisualization;
@@ -1366,6 +1432,7 @@ declare module "@stencil/core" {
             "one-sample-wilcoxon-signed-rank-widget": LocalJSX.OneSampleWilcoxonSignedRankWidget & JSXBase.HTMLAttributes<HTMLOneSampleWilcoxonSignedRankWidgetElement>;
             "one-way-anova-widget": LocalJSX.OneWayAnovaWidget & JSXBase.HTMLAttributes<HTMLOneWayAnovaWidgetElement>;
             "paired-two-sample-hypothesis-test-widget": LocalJSX.PairedTwoSampleHypothesisTestWidget & JSXBase.HTMLAttributes<HTMLPairedTwoSampleHypothesisTestWidgetElement>;
+            "paired-two-sample-wilcoxon-signed-rank-widget": LocalJSX.PairedTwoSampleWilcoxonSignedRankWidget & JSXBase.HTMLAttributes<HTMLPairedTwoSampleWilcoxonSignedRankWidgetElement>;
             "pie-chart-visualization": LocalJSX.PieChartVisualization & JSXBase.HTMLAttributes<HTMLPieChartVisualizationElement>;
             "report-demo": LocalJSX.ReportDemo & JSXBase.HTMLAttributes<HTMLReportDemoElement>;
             "scatter-chart-visualization": LocalJSX.ScatterChartVisualization & JSXBase.HTMLAttributes<HTMLScatterChartVisualizationElement>;

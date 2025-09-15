@@ -493,6 +493,19 @@ export class ReportDemo {
         }
       },
       {
+        id: 'paired-two-sample-wilcoxon-signed-rank',
+        type: 'pairedTwoSampleWilcoxonSignedRank',
+        title: 'Paired Two Sample Wilcoxon Signed Rank Test',
+        x: 0,
+        y: 40,
+        w: 6,
+        h: 7,
+        config: {
+          analysisId: 'sample-paired-two-sample-wilcoxon-signed-rank',
+          analysisName: 'Paired Two Sample Wilcoxon Signed Rank Test'
+        }
+      },
+      {
         id: 'welch-two-sample-hypothesis-test',
         type: 'welchTwoSampleHypothesisTest',
         title: 'Welch\'s Two Sample Analysis',
@@ -644,6 +657,12 @@ export class ReportDemo {
         name: 'One-Sample Wilcoxon Signed Rank Test Analysis',
         type: 'analysis',
         analysisType: 'oneSampleWilcoxonSignedRank'
+      },
+      {
+        id: 'sample-paired-two-sample-wilcoxon-signed-rank',
+        name: 'Paired Two Sample Wilcoxon Signed Rank Test Analysis',
+        type: 'analysis',
+        analysisType: 'pairedTwoSampleWilcoxonSignedRank'
       },
       {
         id: 'sample-independent-two-sample-hypothesis-test',
@@ -1648,6 +1667,31 @@ export class ReportDemo {
           WCritical: 17.0,
           ReferenceMedian: 42.0,
           NullReject: false
+        }];
+        
+      case 'sample-paired-two-sample-wilcoxon-signed-rank':
+        return [{
+          SampleSize: 15,
+          SampleSizeNonZero: 12,
+          ZeroCount: 3,
+          HasTies: false,
+          WPlus: 67.5,
+          WMinus: 25.5,
+          WStat: 25.5,
+          MeanW: 46.5,
+          VarW: 195.0,
+          HasNullPairs: false,
+          DataSourceName: "Paired Two Sample Wilcoxon Signed Rank Test",
+          SampleSourceName1: "Before Treatment Scores",
+          SampleSourceName2: "After Treatment Scores",
+          TestName: "TwoTailed",
+          ConfidenceLevel: 95.0,
+          ReferenceValue: 0.0,
+          ContinuityCorrection: true,
+          ZValue: -2.15,
+          PValue: 0.031,
+          WCritical: 21.0,
+          NullReject: true
         }];
       
       default:

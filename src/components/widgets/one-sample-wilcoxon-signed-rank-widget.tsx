@@ -222,11 +222,11 @@ export class OneSampleWilcoxonSignedRankWidget {
   private renderVisualRange() {
     if (!this.testData) return null;
     
-    const { WPlus, WMinus, MeanW, ReferenceMedian } = this.testData;
+    const { WPlus, WMinus, MeanW } = this.testData;
     
     // Calculate the range for the visual
-    const minValue = Math.min(WPlus, WMinus, MeanW, ReferenceMedian);
-    const maxValue = Math.max(WPlus, WMinus, MeanW, ReferenceMedian);
+    const minValue = Math.min(WPlus, WMinus, MeanW);
+    const maxValue = Math.max(WPlus, WMinus, MeanW);
     const range = maxValue - minValue;
     
     // For very small ranges, use a minimum visual range to spread out close values
@@ -242,7 +242,6 @@ export class OneSampleWilcoxonSignedRankWidget {
     const wPlusPosition = ((WPlus - visualMin) / visualRange) * 100;
     const wMinusPosition = ((WMinus - visualMin) / visualRange) * 100;
     const meanWPosition = ((MeanW - visualMin) / visualRange) * 100;
-    const referenceMedianPosition = ((ReferenceMedian - visualMin) / visualRange) * 100;
     
     return (
       <div class="visual-range-container">
@@ -265,11 +264,6 @@ export class OneSampleWilcoxonSignedRankWidget {
             <div class="marker-label">W- = {this.formatNumber(WMinus)}</div>
           </div>
           
-          {/* Reference Median marker and label */}
-          <div class="marker-container reference-median" style={{ left: `${referenceMedianPosition}%` }}>
-            <div class="marker-line reference-median-line"></div>
-            <div class="marker-label">Ref = {this.formatNumber(ReferenceMedian)}</div>
-          </div>
         </div>
       </div>
     );
@@ -389,7 +383,7 @@ export class OneSampleWilcoxonSignedRankWidget {
             </div>
             
             <div class="parameter-row">
-              <span class="parameter-label">Reference Median:</span>
+              <span class="parameter-label">Reference Value:</span>
               <span class="parameter-value reference-median-value">{this.formatNumber(this.testData.ReferenceMedian)}</span>
             </div>
           </div>
