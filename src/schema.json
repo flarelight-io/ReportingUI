@@ -194,6 +194,7 @@
             "WelchANOVA",
             "oneWayANOVA",
             "mannWhitneyUTest",
+            "kruskalWallisTest",
             "data",
             "table",
             "bar",
@@ -288,6 +289,9 @@
             },
             {
               "$ref": "#/definitions/MannWhitneyUTestWidgetConfig"
+            },
+            {
+              "$ref": "#/definitions/KruskalWallisTestWidgetConfig"
             },
             {
               "$ref": "#/definitions/DataWidgetConfig"
@@ -596,6 +600,25 @@
     "MannWhitneyUTestWidgetConfig": {
       "type": "object",
       "description": "Configuration for Mann-Whitney U test widgets",
+      "properties": {
+        "analysisId": {
+          "type": "string",
+          "description": "ID of the analysis to display"
+        },
+        "analysisName": {
+          "type": "string",
+          "description": "Name of the analysis"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        }
+      }
+    },
+    "KruskalWallisTestWidgetConfig": {
+      "type": "object",
+      "description": "Configuration for Kruskal-Wallis test widgets",
       "properties": {
         "analysisId": {
           "type": "string",

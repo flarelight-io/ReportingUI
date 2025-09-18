@@ -26,6 +26,8 @@ export * from './components/widgets/paired-two-sample-hypothesis-test-widget';
 export * from './components/widgets/welch-two-sample-hypothesis-test-widget';
 export * from './components/widgets/welch-anova-widget';
 export * from './components/widgets/one-way-anova-widget';
+export * from './components/widgets/mann-whitney-u-test-widget';
+export * from './components/widgets/kruskal-wallis-test-widget';
 // We will add other widget exports as they are converted
 
 // Export main report viewer component
@@ -48,6 +50,8 @@ export { PairedTwoSampleHypothesisTestWidget } from './components/widgets/paired
 export { WelchTwoSampleHypothesisTestWidget } from './components/widgets/welch-two-sample-hypothesis-test-widget';
 export { WelchAnovaWidget } from './components/widgets/welch-anova-widget';
 export { OneWayAnovaWidget } from './components/widgets/one-way-anova-widget';
+export { MannWhitneyUTestWidget } from './components/widgets/mann-whitney-u-test-widget';
+export { KruskalWallisTestWidget } from './components/widgets/kruskal-wallis-test-widget';
 
 // Visualization components
 export { TableVisualization } from './components/widgets/visualizations/table-visualization';

@@ -556,6 +556,19 @@ export class ReportDemo {
           analysisId: 'sample-mann-whitney-u-test',
           analysisName: 'Mann-Whitney U Test Analysis'
         }
+      },
+      {
+        id: 'kruskal-wallis-test',
+        type: 'kruskalWallisTest',
+        title: 'Kruskal-Wallis Test Analysis',
+        x: 0,
+        y: 47,
+        w: 6,
+        h: 6,
+        config: {
+          analysisId: 'sample-kruskal-wallis-test',
+          analysisName: 'Kruskal-Wallis Test Analysis'
+        }
       }
     ],
     sources: [
@@ -712,6 +725,12 @@ export class ReportDemo {
         name: 'Mann-Whitney U Test Analysis',
         type: 'analysis',
         analysisType: 'mannWhitneyUTest'
+      },
+      {
+        id: 'sample-kruskal-wallis-test',
+        name: 'Kruskal-Wallis Test Analysis',
+        type: 'analysis',
+        analysisType: 'kruskalWallisTest'
       },
       {
         id: 'sample-box-whisker',
@@ -1735,6 +1754,23 @@ export class ReportDemo {
           ZValue: -2.34,
           PValue: 0.019,
           UCritical: 198.0,
+          NullReject: true
+        }];
+      case 'sample-kruskal-wallis-test':
+        return [{
+          TotalN: 120,
+          GroupCount: 5,
+          DegreesOfFreedom: 4,
+          SumRi2OverNi: 1850.5,
+          HRaw: 12.45,
+          CorrectionFactor: 0.987,
+          HStat: 12.28,
+          HasTies: true,
+          DataSourceName: "Kruskal-Wallis Test Analysis",
+          SampleSourceNames: "Control Group, Treatment A, Treatment B, Treatment C, Placebo Group",
+          ConfidenceLevel: 95.0,
+          PValue: 0.015,
+          HCritical: 9.49,
           NullReject: true
         }];
       
