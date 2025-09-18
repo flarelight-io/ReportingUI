@@ -543,6 +543,19 @@ export class ReportDemo {
           analysisId: 'sample-welch-anova',
           analysisName: 'Welch&apos;s ANOVA Analysis'
         }
+      },
+      {
+        id: 'mann-whitney-u-test',
+        type: 'mannWhitneyUTest',
+        title: 'Mann-Whitney U Test Analysis',
+        x: 6,
+        y: 40,
+        w: 6,
+        h: 7,
+        config: {
+          analysisId: 'sample-mann-whitney-u-test',
+          analysisName: 'Mann-Whitney U Test Analysis'
+        }
       }
     ],
     sources: [
@@ -693,6 +706,12 @@ export class ReportDemo {
         name: 'Welch\'s ANOVA Analysis',
         type: 'analysis',
         analysisType: 'WelchANOVA'
+      },
+      {
+        id: 'sample-mann-whitney-u-test',
+        name: 'Mann-Whitney U Test Analysis',
+        type: 'analysis',
+        analysisType: 'mannWhitneyUTest'
       },
       {
         id: 'sample-box-whisker',
@@ -1691,6 +1710,31 @@ export class ReportDemo {
           ZValue: -2.15,
           PValue: 0.031,
           WCritical: 21.0,
+          NullReject: true
+        }];
+        
+      case 'sample-mann-whitney-u-test':
+        return [{
+          N1: 25,
+          N2: 30,
+          W1: 312.5,
+          W2: 487.5,
+          U1: 187.5,
+          U2: 562.5,
+          UStat: 187.5,
+          MeanU: 375.0,
+          VarU: 1950.0,
+          HasTies: false,
+          DataSourceName: "Mann-Whitney U Test Analysis",
+          SampleSourceName1: "Treatment Group A",
+          SampleSourceName2: "Treatment Group B",
+          TestName: "TwoTailed",
+          ConfidenceLevel: 95.0,
+          ExpectedDifference: 0.0,
+          ContinuityCorrection: true,
+          ZValue: -2.34,
+          PValue: 0.019,
+          UCritical: 198.0,
           NullReject: true
         }];
       

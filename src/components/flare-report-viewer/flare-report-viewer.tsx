@@ -361,7 +361,7 @@ export class FlareReportViewer {
   private needsFetchChartData(widgetType: string): boolean {
     return ['data', 'table', 'kpi', 'bar', 'pie', 'donut', 'line', 'hbar', 
             'scatter', 'sunburst', 'heatmap', 'bubble', 'histogram',
-            'descriptiveAnalysis', 'correlationAnalysis', 'oneSampleHypothesisTest', 'oneSampleWilcoxonSignedRank', 'pairedTwoSampleWilcoxonSignedRank', 'independentTwoSampleHypothesisTest', 'pairedTwoSampleHypothesisTest', 'welchTwoSampleHypothesisTest', 'WelchANOVA', 'OneWayANOVA'].includes(widgetType);
+            'descriptiveAnalysis', 'correlationAnalysis', 'oneSampleHypothesisTest', 'oneSampleWilcoxonSignedRank', 'pairedTwoSampleWilcoxonSignedRank', 'independentTwoSampleHypothesisTest', 'pairedTwoSampleHypothesisTest', 'welchTwoSampleHypothesisTest', 'WelchANOVA', 'OneWayANOVA', 'mannWhitneyUTest'].includes(widgetType);
   }
   
   private renderWidgets() {
@@ -970,6 +970,56 @@ export class FlareReportViewer {
               // Config update event
               const configEvent = new CustomEvent('configUpdate', {
                 detail: welchAnovaConfig,
+                bubbles: false
+              });
+              element.dispatchEvent(configEvent);
+            }
+          }, 100);
+        } else if (this.fetchChartData) {
+          // If data is still loading, set loading state
+          (element as any).loading = dataIsLoading;
+          // Pass real function for future updates
+          (element as any).fetchChartData = this.fetchChartData;
+        }
+        break;
+        
+      case 'mannWhitneyUTest':
+        // Create Mann-Whitney U test widget  
+        element = document.createElement('mann-whitney-u-test-widget');
+        
+        // Set properties directly
+        (element as any).widgetId = widget.id;
+        (element as any).widgetTitle = widget.title || '';
+        (element as any).reportId = this.reportId || '';
+        (element as any).readOnly = true;
+        (element as any).isInEditor = false;
+        (element as any).isViewer = this.isViewer;
+        
+        // Set config as direct property
+        const mannWhitneyConfig = widget.config || {};
+        (element as any).config = mannWhitneyConfig;
+        
+        // Directly pass pre-fetched data to the component
+        if (widgetDataCache) {
+          // Pass the data as an array (following the same pattern as other widgets)
+          (element as any).data = widgetDataCache;
+          
+          // We also need to pass a dummy fetchChartData function
+          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
+          
+          // Dispatch custom events for data update
+          setTimeout(() => {
+            if (element.isConnected) {
+              // Data update event
+              const dataEvent = new CustomEvent('dataUpdate', {
+                detail: widgetDataCache,
+                bubbles: false
+              });
+              element.dispatchEvent(dataEvent);
+              
+              // Config update event
+              const configEvent = new CustomEvent('configUpdate', {
+                detail: mannWhitneyConfig,
                 bubbles: false
               });
               element.dispatchEvent(configEvent);

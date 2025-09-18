@@ -12,6 +12,7 @@ import { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data
 import { DataSource, Filter } from "./api/types/common";
 import { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
 import { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/independent-two-sample-hypothesis-test-widget";
+import { MannWhitneyUTestWidgetConfig } from "./components/widgets/mann-whitney-u-test-widget";
 import { OneSampleHypothesisTestWidgetConfig } from "./components/widgets/one-sample-hypothesis-test-widget";
 import { OneSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/one-sample-wilcoxon-signed-rank-widget";
 import { OneWayAnovaWidgetConfig } from "./components/widgets/one-way-anova-widget";
@@ -28,6 +29,7 @@ export { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data
 export { DataSource, Filter } from "./api/types/common";
 export { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
 export { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/independent-two-sample-hypothesis-test-widget";
+export { MannWhitneyUTestWidgetConfig } from "./components/widgets/mann-whitney-u-test-widget";
 export { OneSampleHypothesisTestWidgetConfig } from "./components/widgets/one-sample-hypothesis-test-widget";
 export { OneSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/one-sample-wilcoxon-signed-rank-widget";
 export { OneWayAnovaWidgetConfig } from "./components/widgets/one-way-anova-widget";
@@ -228,6 +230,34 @@ export namespace Components {
     interface LollipopChartVisualization {
         "config": DataWidgetConfig;
         "data": VisualizationData;
+    }
+    interface MannWhitneyUTestWidget {
+        /**
+          * @default {}
+         */
+        "config": MannWhitneyUTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data": any[];
+        "fetchChartData": Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor": boolean;
+        /**
+          * @default false
+         */
+        "isViewer": boolean;
+        /**
+          * @default false
+         */
+        "readOnly": boolean;
+        "reportId"?: string;
+        "widgetId": string;
+        "widgetTitle": string;
+        "width"?: number;
     }
     interface OneSampleHypothesisTestWidget {
         /**
@@ -734,6 +764,12 @@ declare global {
         prototype: HTMLLollipopChartVisualizationElement;
         new (): HTMLLollipopChartVisualizationElement;
     };
+    interface HTMLMannWhitneyUTestWidgetElement extends Components.MannWhitneyUTestWidget, HTMLStencilElement {
+    }
+    var HTMLMannWhitneyUTestWidgetElement: {
+        prototype: HTMLMannWhitneyUTestWidgetElement;
+        new (): HTMLMannWhitneyUTestWidgetElement;
+    };
     interface HTMLOneSampleHypothesisTestWidgetElement extends Components.OneSampleHypothesisTestWidget, HTMLStencilElement {
     }
     var HTMLOneSampleHypothesisTestWidgetElement: {
@@ -895,6 +931,7 @@ declare global {
         "kpi-visualization": HTMLKpiVisualizationElement;
         "line-chart-visualization": HTMLLineChartVisualizationElement;
         "lollipop-chart-visualization": HTMLLollipopChartVisualizationElement;
+        "mann-whitney-u-test-widget": HTMLMannWhitneyUTestWidgetElement;
         "one-sample-hypothesis-test-widget": HTMLOneSampleHypothesisTestWidgetElement;
         "one-sample-wilcoxon-signed-rank-widget": HTMLOneSampleWilcoxonSignedRankWidgetElement;
         "one-way-anova-widget": HTMLOneWayAnovaWidgetElement;
@@ -1112,6 +1149,34 @@ declare namespace LocalJSX {
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: LollipopChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
+    }
+    interface MannWhitneyUTestWidget {
+        /**
+          * @default {}
+         */
+        "config"?: MannWhitneyUTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data"?: any[];
+        "fetchChartData"?: Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
+        "isViewer"?: boolean;
+        /**
+          * @default false
+         */
+        "readOnly"?: boolean;
+        "reportId"?: string;
+        "widgetId"?: string;
+        "widgetTitle"?: string;
+        "width"?: number;
     }
     interface OneSampleHypothesisTestWidget {
         /**
@@ -1392,6 +1457,7 @@ declare namespace LocalJSX {
         "kpi-visualization": KpiVisualization;
         "line-chart-visualization": LineChartVisualization;
         "lollipop-chart-visualization": LollipopChartVisualization;
+        "mann-whitney-u-test-widget": MannWhitneyUTestWidget;
         "one-sample-hypothesis-test-widget": OneSampleHypothesisTestWidget;
         "one-sample-wilcoxon-signed-rank-widget": OneSampleWilcoxonSignedRankWidget;
         "one-way-anova-widget": OneWayAnovaWidget;
@@ -1428,6 +1494,7 @@ declare module "@stencil/core" {
             "kpi-visualization": LocalJSX.KpiVisualization & JSXBase.HTMLAttributes<HTMLKpiVisualizationElement>;
             "line-chart-visualization": LocalJSX.LineChartVisualization & JSXBase.HTMLAttributes<HTMLLineChartVisualizationElement>;
             "lollipop-chart-visualization": LocalJSX.LollipopChartVisualization & JSXBase.HTMLAttributes<HTMLLollipopChartVisualizationElement>;
+            "mann-whitney-u-test-widget": LocalJSX.MannWhitneyUTestWidget & JSXBase.HTMLAttributes<HTMLMannWhitneyUTestWidgetElement>;
             "one-sample-hypothesis-test-widget": LocalJSX.OneSampleHypothesisTestWidget & JSXBase.HTMLAttributes<HTMLOneSampleHypothesisTestWidgetElement>;
             "one-sample-wilcoxon-signed-rank-widget": LocalJSX.OneSampleWilcoxonSignedRankWidget & JSXBase.HTMLAttributes<HTMLOneSampleWilcoxonSignedRankWidgetElement>;
             "one-way-anova-widget": LocalJSX.OneWayAnovaWidget & JSXBase.HTMLAttributes<HTMLOneWayAnovaWidgetElement>;
