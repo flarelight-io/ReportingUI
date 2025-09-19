@@ -1,0 +1,197 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.kolmogorov-smirnov-test-widget-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--fl-chart-background);
+  color: var(--fl-text-color-primary);
+  overflow: hidden;
+  align-items: stretch;
+  font-size: 0.8rem; // Balanced base font size
+}
+
+.kolmogorov-smirnov-test-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  gap: 6px;
+  overflow: hidden;
+  box-sizing: border-box;
+  align-items: stretch;
+}
+
+/* Result Banner */
+.result-banner {
+  background-color: #2F1669;
+  color: var(--fl-text-light);
+  padding: 8px 12px;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.1em;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+
+.result-text {
+  display: block;
+}
+
+/* Test Parameters */
+.test-parameters {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.parameter-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--fl-border-color);
+  flex-shrink: 0;
+  width: 100%;
+  min-height: 18px;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: var(--fl-hover-bg, rgba(0, 0, 0, 0.05));
+  }
+}
+
+.parameter-row:last-child {
+  border-bottom: none;
+}
+
+.parameter-label {
+  font-weight: 500;
+  color: var(--fl-text-color-secondary);
+  font-size: 0.85em;
+  line-height: 1.1;
+}
+
+.parameter-value {
+  font-weight: 600;
+  color: var(--fl-text-color-primary);
+  font-size: 0.85em;
+  text-align: right;
+  line-height: 1.1;
+}
+
+/* Empty data state styling */
+.empty-data {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  color: var(--fl-text-color-secondary);
+  text-align: center;
+  font-size: 1rem;
+  padding: 1rem;
+}
+
+/* Error message styling */
+.error-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  color: var(--fl-error-color, #dc3545);
+  text-align: center;
+  font-size: 1rem;
+  padding: 1rem;
+  background-color: var(--fl-error-background, rgba(220, 53, 69, 0.1));
+  border: 1px solid var(--fl-error-color, #dc3545);
+  border-radius: 4px;
+  margin: 1rem;
+}
+
+/* Loading spinner styling */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  
+  &::after {
+    content: "";
+    width: 30px;
+    height: 30px;
+    border: 4px solid var(--fl-border-color);
+    border-top: 4px solid var(--fl-primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Height-based scaling for better space utilization */
+@media (min-height: 200px) {
+  .parameter-label,
+  .parameter-value {
+    font-size: 0.9em;
+  }
+}
+
+@media (min-height: 300px) {
+  .parameter-label,
+  .parameter-value {
+    font-size: 0.95em;
+  }
+}
+
+@media (min-height: 400px) {
+  .parameter-label,
+  .parameter-value {
+    font-size: 1em;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .kolmogorov-smirnov-test-container {
+    padding: 12px;
+    gap: 8px;
+  }
+  
+  .result-banner {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  
+  .parameter-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 4px 0;
+  }
+  
+  .parameter-value {
+    text-align: left;
+  }
+  
+  .parameter-label,
+  .parameter-value {
+    font-size: 0.8em;
+  }
+}

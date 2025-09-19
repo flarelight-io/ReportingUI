@@ -28,6 +28,8 @@ export * from './components/widgets/welch-anova-widget';
 export * from './components/widgets/one-way-anova-widget';
 export * from './components/widgets/mann-whitney-u-test-widget';
 export * from './components/widgets/kruskal-wallis-test-widget';
+export * from './components/widgets/shapiro-wilk-test-widget';
+export * from './components/widgets/kolmogorov-smirnov-normality-test-widget';
 // We will add other widget exports as they are converted
 
 // Export main report viewer component
@@ -52,6 +54,8 @@ export { WelchAnovaWidget } from './components/widgets/welch-anova-widget';
 export { OneWayAnovaWidget } from './components/widgets/one-way-anova-widget';
 export { MannWhitneyUTestWidget } from './components/widgets/mann-whitney-u-test-widget';
 export { KruskalWallisTestWidget } from './components/widgets/kruskal-wallis-test-widget';
+export { ShapiroWilkTestWidget } from './components/widgets/shapiro-wilk-test-widget';
+export { KolmogorovSmirnovNormalityTestWidget } from './components/widgets/kolmogorov-smirnov-normality-test-widget';
 
 // Visualization components
 export { TableVisualization } from './components/widgets/visualizations/table-visualization';

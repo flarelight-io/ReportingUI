@@ -12,6 +12,7 @@ import { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data
 import { DataSource, Filter } from "./api/types/common";
 import { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
 import { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/independent-two-sample-hypothesis-test-widget";
+import { KolmogorovSmirnovNormalityTestWidgetConfig } from "./components/widgets/kolmogorov-smirnov-normality-test-widget";
 import { KruskalWallisTestWidgetConfig } from "./components/widgets/kruskal-wallis-test-widget";
 import { MannWhitneyUTestWidgetConfig } from "./components/widgets/mann-whitney-u-test-widget";
 import { OneSampleHypothesisTestWidgetConfig } from "./components/widgets/one-sample-hypothesis-test-widget";
@@ -31,6 +32,7 @@ export { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data
 export { DataSource, Filter } from "./api/types/common";
 export { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
 export { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/independent-two-sample-hypothesis-test-widget";
+export { KolmogorovSmirnovNormalityTestWidgetConfig } from "./components/widgets/kolmogorov-smirnov-normality-test-widget";
 export { KruskalWallisTestWidgetConfig } from "./components/widgets/kruskal-wallis-test-widget";
 export { MannWhitneyUTestWidgetConfig } from "./components/widgets/mann-whitney-u-test-widget";
 export { OneSampleHypothesisTestWidgetConfig } from "./components/widgets/one-sample-hypothesis-test-widget";
@@ -200,6 +202,34 @@ export namespace Components {
           * @default {}
          */
         "config": IndependentTwoSampleHypothesisTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data": any[];
+        "fetchChartData": Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor": boolean;
+        /**
+          * @default false
+         */
+        "isViewer": boolean;
+        /**
+          * @default false
+         */
+        "readOnly": boolean;
+        "reportId"?: string;
+        "widgetId": string;
+        "widgetTitle": string;
+        "width"?: number;
+    }
+    interface KolmogorovSmirnovNormalityTestWidget {
+        /**
+          * @default {}
+         */
+        "config": KolmogorovSmirnovNormalityTestWidgetConfig;
         /**
           * @default []
          */
@@ -773,6 +803,12 @@ declare global {
         prototype: HTMLIndependentTwoSampleHypothesisTestWidgetElement;
         new (): HTMLIndependentTwoSampleHypothesisTestWidgetElement;
     };
+    interface HTMLKolmogorovSmirnovNormalityTestWidgetElement extends Components.KolmogorovSmirnovNormalityTestWidget, HTMLStencilElement {
+    }
+    var HTMLKolmogorovSmirnovNormalityTestWidgetElement: {
+        prototype: HTMLKolmogorovSmirnovNormalityTestWidgetElement;
+        new (): HTMLKolmogorovSmirnovNormalityTestWidgetElement;
+    };
     interface HTMLKpiVisualizationElementEventMap {
         "filterChange": FilterChangeEventDetail;
     }
@@ -1000,6 +1036,7 @@ declare global {
         "heatmap-visualization": HTMLHeatmapVisualizationElement;
         "histogram-chart-visualization": HTMLHistogramChartVisualizationElement;
         "independent-two-sample-hypothesis-test-widget": HTMLIndependentTwoSampleHypothesisTestWidgetElement;
+        "kolmogorov-smirnov-normality-test-widget": HTMLKolmogorovSmirnovNormalityTestWidgetElement;
         "kpi-visualization": HTMLKpiVisualizationElement;
         "kruskal-wallis-test-widget": HTMLKruskalWallisTestWidgetElement;
         "line-chart-visualization": HTMLLineChartVisualizationElement;
@@ -1186,6 +1223,34 @@ declare namespace LocalJSX {
           * @default {}
          */
         "config"?: IndependentTwoSampleHypothesisTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data"?: any[];
+        "fetchChartData"?: Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
+        "isViewer"?: boolean;
+        /**
+          * @default false
+         */
+        "readOnly"?: boolean;
+        "reportId"?: string;
+        "widgetId"?: string;
+        "widgetTitle"?: string;
+        "width"?: number;
+    }
+    interface KolmogorovSmirnovNormalityTestWidget {
+        /**
+          * @default {}
+         */
+        "config"?: KolmogorovSmirnovNormalityTestWidgetConfig;
         /**
           * @default []
          */
@@ -1584,6 +1649,7 @@ declare namespace LocalJSX {
         "heatmap-visualization": HeatmapVisualization;
         "histogram-chart-visualization": HistogramChartVisualization;
         "independent-two-sample-hypothesis-test-widget": IndependentTwoSampleHypothesisTestWidget;
+        "kolmogorov-smirnov-normality-test-widget": KolmogorovSmirnovNormalityTestWidget;
         "kpi-visualization": KpiVisualization;
         "kruskal-wallis-test-widget": KruskalWallisTestWidget;
         "line-chart-visualization": LineChartVisualization;
@@ -1623,6 +1689,7 @@ declare module "@stencil/core" {
             "heatmap-visualization": LocalJSX.HeatmapVisualization & JSXBase.HTMLAttributes<HTMLHeatmapVisualizationElement>;
             "histogram-chart-visualization": LocalJSX.HistogramChartVisualization & JSXBase.HTMLAttributes<HTMLHistogramChartVisualizationElement>;
             "independent-two-sample-hypothesis-test-widget": LocalJSX.IndependentTwoSampleHypothesisTestWidget & JSXBase.HTMLAttributes<HTMLIndependentTwoSampleHypothesisTestWidgetElement>;
+            "kolmogorov-smirnov-normality-test-widget": LocalJSX.KolmogorovSmirnovNormalityTestWidget & JSXBase.HTMLAttributes<HTMLKolmogorovSmirnovNormalityTestWidgetElement>;
             "kpi-visualization": LocalJSX.KpiVisualization & JSXBase.HTMLAttributes<HTMLKpiVisualizationElement>;
             "kruskal-wallis-test-widget": LocalJSX.KruskalWallisTestWidget & JSXBase.HTMLAttributes<HTMLKruskalWallisTestWidgetElement>;
             "line-chart-visualization": LocalJSX.LineChartVisualization & JSXBase.HTMLAttributes<HTMLLineChartVisualizationElement>;

@@ -582,6 +582,19 @@ export class ReportDemo {
           analysisId: 'sample-shapiro-wilk-test',
           analysisName: 'Shapiro-Wilk Test Analysis'
         }
+      },
+      {
+        id: 'kolmogorov-smirnov-normality-test',
+        type: 'kolmogorovSmirnovNormalityTest',
+        title: 'Kolmogorov-Smirnov Normality Test Analysis',
+        x: 0,
+        y: 53,
+        w: 6,
+        h: 6,
+        config: {
+          analysisId: 'sample-kolmogorov-smirnov-normality-test',
+          analysisName: 'Kolmogorov-Smirnov Normality Test Analysis'
+        }
       }
     ],
     sources: [
@@ -1805,6 +1818,21 @@ export class ReportDemo {
           WStat: 0.945,
           PValue: 0.234,
           WCritical: 0.918,
+          NullReject: false
+        }];
+        
+      case 'sample-kolmogorov-smirnov-normality-test':
+        return [{
+          SampleSize: 30,
+          MissingCount: 2,
+          Mean: 52.14,
+          StdDev: 9.87,
+          DataSourceName: "Kolmogorov-Smirnov Normality Test Analysis",
+          SampleSourceName: "Distribution Test Data",
+          ConfidenceLevel: 95.0,
+          DStat: 0.127,
+          PValue: 0.089,
+          DCritical: 0.161,
           NullReject: false
         }];
       
