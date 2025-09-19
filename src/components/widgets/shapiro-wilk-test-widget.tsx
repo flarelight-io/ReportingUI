@@ -188,7 +188,7 @@ export class ShapiroWilkTestWidget {
   // Format p-value for display
   private formatPValue(pValue: number): string {
     if (pValue < 0.001) {
-      return '< 0.001';
+      return pValue.toExponential(2);
     } else if (pValue < 0.01) {
       return this.formatNumber(pValue);
     } else {
