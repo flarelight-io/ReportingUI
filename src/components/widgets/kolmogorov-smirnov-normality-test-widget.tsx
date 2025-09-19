@@ -211,7 +211,7 @@ export class KolmogorovSmirnovNormalityTestWidget {
     } else if (this.error) {
       content = <div class="error-message">{this.error}</div>;
     } else if (!this.testData) {
-      content = <div class="empty-data">No Kolmogorov-Smirnov normality test data available</div>;
+      content = <div class="empty-data">No data available</div>;
     } else {
       const resultMessage = this.getResultMessage();
       const resultBannerClass = this.getResultBannerClass();
@@ -243,7 +243,7 @@ export class KolmogorovSmirnovNormalityTestWidget {
           <div class="test-parameters">
             <div class="parameter-row">
               <span class="parameter-label">Test:</span>
-              <span class="parameter-value">Kolmogorov-Smirnov Normality Test</span>
+              <span class="parameter-value">Kolmogorov-Smirnov (Lilliefors) Test</span>
             </div>
 
             {!this.config.hideSampleSizeRow && (
