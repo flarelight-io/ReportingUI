@@ -195,6 +195,7 @@
             "oneWayANOVA",
             "mannWhitneyUTest",
             "kruskalWallisTest",
+            "shapiroWilkTest",
             "data",
             "table",
             "bar",
@@ -292,6 +293,9 @@
             },
             {
               "$ref": "#/definitions/KruskalWallisTestWidgetConfig"
+            },
+            {
+              "$ref": "#/definitions/ShapiroWilkTestWidgetConfig"
             },
             {
               "$ref": "#/definitions/DataWidgetConfig"
@@ -631,6 +635,85 @@
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
+          "default": false
+        }
+      }
+    },
+    "ShapiroWilkTestWidgetConfig": {
+      "type": "object",
+      "description": "Configuration for Shapiro-Wilk test widgets",
+      "properties": {
+        "analysisId": {
+          "type": "string",
+          "description": "ID of the analysis to display"
+        },
+        "analysisName": {
+          "type": "string",
+          "description": "Name of the analysis"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "hideResultBanner": {
+          "type": "boolean",
+          "description": "Whether to hide the result banner",
+          "default": false
+        },
+        "hideDataSourceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the data source row",
+          "default": false
+        },
+        "hideSampleSourceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the sample source row",
+          "default": false
+        },
+        "hideSampleSizeRow": {
+          "type": "boolean",
+          "description": "Whether to hide the sample size row",
+          "default": false
+        },
+        "hideMissingCountRow": {
+          "type": "boolean",
+          "description": "Whether to hide the missing count row",
+          "default": false
+        },
+        "hideMeanRow": {
+          "type": "boolean",
+          "description": "Whether to hide the mean row",
+          "default": false
+        },
+        "hideStdDevRow": {
+          "type": "boolean",
+          "description": "Whether to hide the standard deviation row",
+          "default": false
+        },
+        "hideConfidenceLevelRow": {
+          "type": "boolean",
+          "description": "Whether to hide the confidence level row",
+          "default": false
+        },
+        "hideWStatRow": {
+          "type": "boolean",
+          "description": "Whether to hide the W statistic row",
+          "default": false
+        },
+        "hidePValueRow": {
+          "type": "boolean",
+          "description": "Whether to hide the p-value row",
+          "default": false
+        },
+        "hideWCriticalRow": {
+          "type": "boolean",
+          "description": "Whether to hide the W critical row",
+          "default": false
+        },
+        "hideNullRejectRow": {
+          "type": "boolean",
+          "description": "Whether to hide the null reject row",
           "default": false
         }
       }

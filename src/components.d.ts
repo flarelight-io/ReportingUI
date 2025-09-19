@@ -19,6 +19,7 @@ import { OneSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/on
 import { OneWayAnovaWidgetConfig } from "./components/widgets/one-way-anova-widget";
 import { PairedTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/paired-two-sample-hypothesis-test-widget";
 import { PairedTwoSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/paired-two-sample-wilcoxon-signed-rank-widget";
+import { ShapiroWilkTestWidgetConfig } from "./components/widgets/shapiro-wilk-test-widget";
 import { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 import { TextWidgetConfig } from "./components/widgets/text-widget";
 import { WelchAnovaWidgetConfig } from "./components/widgets/welch-anova-widget";
@@ -37,6 +38,7 @@ export { OneSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/on
 export { OneWayAnovaWidgetConfig } from "./components/widgets/one-way-anova-widget";
 export { PairedTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/paired-two-sample-hypothesis-test-widget";
 export { PairedTwoSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/paired-two-sample-wilcoxon-signed-rank-widget";
+export { ShapiroWilkTestWidgetConfig } from "./components/widgets/shapiro-wilk-test-widget";
 export { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 export { TextWidgetConfig } from "./components/widgets/text-widget";
 export { WelchAnovaWidgetConfig } from "./components/widgets/welch-anova-widget";
@@ -438,6 +440,34 @@ export namespace Components {
     interface ScatterChartVisualization {
         "config": DataWidgetConfig;
         "data": VisualizationData;
+    }
+    interface ShapiroWilkTestWidget {
+        /**
+          * @default {}
+         */
+        "config": ShapiroWilkTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data": any[];
+        "fetchChartData": Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor": boolean;
+        /**
+          * @default false
+         */
+        "isViewer": boolean;
+        /**
+          * @default false
+         */
+        "readOnly": boolean;
+        "reportId"?: string;
+        "widgetId": string;
+        "widgetTitle": string;
+        "width"?: number;
     }
     interface SourceInfoWidget {
         /**
@@ -876,6 +906,12 @@ declare global {
         prototype: HTMLScatterChartVisualizationElement;
         new (): HTMLScatterChartVisualizationElement;
     };
+    interface HTMLShapiroWilkTestWidgetElement extends Components.ShapiroWilkTestWidget, HTMLStencilElement {
+    }
+    var HTMLShapiroWilkTestWidgetElement: {
+        prototype: HTMLShapiroWilkTestWidgetElement;
+        new (): HTMLShapiroWilkTestWidgetElement;
+    };
     interface HTMLSourceInfoWidgetElement extends Components.SourceInfoWidget, HTMLStencilElement {
     }
     var HTMLSourceInfoWidgetElement: {
@@ -977,6 +1013,7 @@ declare global {
         "pie-chart-visualization": HTMLPieChartVisualizationElement;
         "report-demo": HTMLReportDemoElement;
         "scatter-chart-visualization": HTMLScatterChartVisualizationElement;
+        "shapiro-wilk-test-widget": HTMLShapiroWilkTestWidgetElement;
         "source-info-widget": HTMLSourceInfoWidgetElement;
         "stacked-bar-chart-visualization": HTMLStackedBarChartVisualizationElement;
         "sunburst-chart-visualization": HTMLSunburstChartVisualizationElement;
@@ -1395,6 +1432,34 @@ declare namespace LocalJSX {
         "data"?: VisualizationData;
         "onFilterChange"?: (event: ScatterChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
+    interface ShapiroWilkTestWidget {
+        /**
+          * @default {}
+         */
+        "config"?: ShapiroWilkTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data"?: any[];
+        "fetchChartData"?: Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
+        "isViewer"?: boolean;
+        /**
+          * @default false
+         */
+        "readOnly"?: boolean;
+        "reportId"?: string;
+        "widgetId"?: string;
+        "widgetTitle"?: string;
+        "width"?: number;
+    }
     interface SourceInfoWidget {
         /**
           * @default []
@@ -1532,6 +1597,7 @@ declare namespace LocalJSX {
         "pie-chart-visualization": PieChartVisualization;
         "report-demo": ReportDemo;
         "scatter-chart-visualization": ScatterChartVisualization;
+        "shapiro-wilk-test-widget": ShapiroWilkTestWidget;
         "source-info-widget": SourceInfoWidget;
         "stacked-bar-chart-visualization": StackedBarChartVisualization;
         "sunburst-chart-visualization": SunburstChartVisualization;
@@ -1570,6 +1636,7 @@ declare module "@stencil/core" {
             "pie-chart-visualization": LocalJSX.PieChartVisualization & JSXBase.HTMLAttributes<HTMLPieChartVisualizationElement>;
             "report-demo": LocalJSX.ReportDemo & JSXBase.HTMLAttributes<HTMLReportDemoElement>;
             "scatter-chart-visualization": LocalJSX.ScatterChartVisualization & JSXBase.HTMLAttributes<HTMLScatterChartVisualizationElement>;
+            "shapiro-wilk-test-widget": LocalJSX.ShapiroWilkTestWidget & JSXBase.HTMLAttributes<HTMLShapiroWilkTestWidgetElement>;
             "source-info-widget": LocalJSX.SourceInfoWidget & JSXBase.HTMLAttributes<HTMLSourceInfoWidgetElement>;
             "stacked-bar-chart-visualization": LocalJSX.StackedBarChartVisualization & JSXBase.HTMLAttributes<HTMLStackedBarChartVisualizationElement>;
             "sunburst-chart-visualization": LocalJSX.SunburstChartVisualization & JSXBase.HTMLAttributes<HTMLSunburstChartVisualizationElement>;

@@ -569,6 +569,19 @@ export class ReportDemo {
           analysisId: 'sample-kruskal-wallis-test',
           analysisName: 'Kruskal-Wallis Test Analysis'
         }
+      },
+      {
+        id: 'shapiro-wilk-test',
+        type: 'shapiroWilkTest',
+        title: 'Shapiro-Wilk Test Analysis',
+        x: 6,
+        y: 47,
+        w: 6,
+        h: 6,
+        config: {
+          analysisId: 'sample-shapiro-wilk-test',
+          analysisName: 'Shapiro-Wilk Test Analysis'
+        }
       }
     ],
     sources: [
@@ -731,6 +744,12 @@ export class ReportDemo {
         name: 'Kruskal-Wallis Test Analysis',
         type: 'analysis',
         analysisType: 'kruskalWallisTest'
+      },
+      {
+        id: 'sample-shapiro-wilk-test',
+        name: 'Shapiro-Wilk Test Analysis',
+        type: 'analysis',
+        analysisType: 'shapiroWilkTest'
       },
       {
         id: 'sample-box-whisker',
@@ -1772,6 +1791,21 @@ export class ReportDemo {
           PValue: 0.015,
           HCritical: 9.49,
           NullReject: true
+        }];
+        
+      case 'sample-shapiro-wilk-test':
+        return [{
+          SampleSize: 25,
+          MissingCount: 0,
+          Mean: 45.67,
+          StdDev: 8.23,
+          DataSourceName: "Shapiro-Wilk Test Analysis",
+          SampleSourceName: "Normality Test Data",
+          ConfidenceLevel: 95.0,
+          WStat: 0.945,
+          PValue: 0.234,
+          WCritical: 0.918,
+          NullReject: false
         }];
       
       default:
