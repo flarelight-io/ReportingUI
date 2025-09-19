@@ -19,6 +19,13 @@ export interface OneWayAnovaWidgetConfig {
   analysisId?: string;
   analysisName?: string;
   hideTitle?: boolean;
+  hideResultBanner?: boolean;
+  hideDataSourceRow?: boolean;
+  hideTestRow?: boolean;
+  hideConfidenceLevelRow?: boolean;
+  hideAnovaTable?: boolean;
+  hideCriticalValues?: boolean;
+  hideVisualRange?: boolean;
 }
 
 @Component({
@@ -282,69 +289,79 @@ export class OneWayAnovaWidget {
                       return (
                         <div class="anova-results-container">
                           {/* Result Banner */}
-                          <div class="result-banner">
-                            <span class="result-text">{resultMessage}</span>
-                          </div>
+                          {!this.config.hideResultBanner && (
+                            <div class="result-banner">
+                              <span class="result-text">{resultMessage}</span>
+                            </div>
+                          )}
                           
                           {/* ANOVA Parameters */}
                           <div class="test-parameters">
-                            <div class="parameter-row">
-                              <span class="parameter-label">Data Source:</span>
-                              <span class="parameter-value">{firstRow.DataSourceName}</span>
-                            </div>
+                            {!this.config.hideDataSourceRow && (
+                              <div class="parameter-row">
+                                <span class="parameter-label">Data Source:</span>
+                                <span class="parameter-value">{firstRow.DataSourceName}</span>
+                              </div>
+                            )}
                             
-                            <div class="parameter-row">
-                              <span class="parameter-label">Test:</span>
-                              <span class="parameter-value">One Way ANOVA</span>
-                            </div>
+                            {!this.config.hideTestRow && (
+                              <div class="parameter-row">
+                                <span class="parameter-label">Test:</span>
+                                <span class="parameter-value">One Way ANOVA</span>
+                              </div>
+                            )}
                             
-                            <div class="parameter-row">
-                              <span class="parameter-label">Confidence Level:</span>
-                              <span class="parameter-value">{firstRow.ConfidenceLevel.toFixed(1)}%</span>
-                            </div>
+                            {!this.config.hideConfidenceLevelRow && (
+                              <div class="parameter-row">
+                                <span class="parameter-label">Confidence Level:</span>
+                                <span class="parameter-value">{firstRow.ConfidenceLevel.toFixed(1)}%</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
                     })()}
             
             {/* ANOVA Results Table */}
-            <div class="anova-table-section">
-              <data-widget
-                widgetId={`${this.widgetId}-table`}
-                widgetTitle=""
-                reportId={this.reportId}
-                width={this.width}
-                height={this.height ? this.height - 120 : undefined}
-                readOnly={this.readOnly}
-                isViewer={this.isViewer}
-                isInEditor={this.isInEditor}
-                fetchChartData={this.fetchChartData}
-                data={this.analysisData}
-                availableSources={[{
-                  id: this.analysisSourceId,
-                  name: this.config.analysisName || "One-Way ANOVA",
-                  alias: this.config.analysisName || "OneWayANOVA",
-                  type: 'AnalysisResult'
-                }]}
-                config={{
-                  sourceId: this.analysisSourceId,
-                  visualizationType: 'table',
-                  columns: [
-                    { field: 'SourceOfVariation', header: 'Source of Variation' },
-                    { field: 'SumOfSquares', header: 'Sum of Squares' },
-                    { field: 'DegreesOfFreedom', header: 'Degrees of Freedom' },
-                    { field: 'MeanSquares', header: 'Mean Squares' },
-                    { field: 'FRatio', header: 'F Ratio' },
-                    { field: 'PValue', header: 'p Value' }
-                  ],
-                  hideTitle: true
-                }}
-                activeFilters={[]}
-              ></data-widget>
-            </div>
+            {!this.config.hideAnovaTable && (
+              <div class="anova-table-section">
+                <data-widget
+                  widgetId={`${this.widgetId}-table`}
+                  widgetTitle=""
+                  reportId={this.reportId}
+                  width={this.width}
+                  height={this.height ? this.height - 120 : undefined}
+                  readOnly={this.readOnly}
+                  isViewer={this.isViewer}
+                  isInEditor={this.isInEditor}
+                  fetchChartData={this.fetchChartData}
+                  data={this.analysisData}
+                  availableSources={[{
+                    id: this.analysisSourceId,
+                    name: this.config.analysisName || "One-Way ANOVA",
+                    alias: this.config.analysisName || "OneWayANOVA",
+                    type: 'AnalysisResult'
+                  }]}
+                  config={{
+                    sourceId: this.analysisSourceId,
+                    visualizationType: 'table',
+                    columns: [
+                      { field: 'SourceOfVariation', header: 'Source of Variation' },
+                      { field: 'SumOfSquares', header: 'Sum of Squares' },
+                      { field: 'DegreesOfFreedom', header: 'Degrees of Freedom' },
+                      { field: 'MeanSquares', header: 'Mean Squares' },
+                      { field: 'FRatio', header: 'F Ratio' },
+                      { field: 'PValue', header: 'p Value' }
+                    ],
+                    hideTitle: true
+                  }}
+                  activeFilters={[]}
+                ></data-widget>
+              </div>
+            )}
             
             {/* Additional Critical Values */}
-            {(() => {
+            {!this.config.hideCriticalValues && (() => {
               const dataSource = this.analysisData || this.data;
               if (!dataSource || !Array.isArray(dataSource) || dataSource.length === 0) {
                 return null;

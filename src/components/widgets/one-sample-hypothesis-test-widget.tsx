@@ -5,6 +5,17 @@ export interface OneSampleHypothesisTestWidgetConfig {
   analysisId?: string;
   analysisName?: string;
   hideTitle?: boolean;
+  hideResultBanner?: boolean;
+  hideDataSourceRow?: boolean;
+  hideSampleSourceRow?: boolean;
+  hideTestRow?: boolean;
+  hideSampleSizeRow?: boolean;
+  hideConfidenceLevelRow?: boolean;
+  hideReferenceMeanRow?: boolean;
+  hidePValueRow?: boolean;
+  hideLCLRow?: boolean;
+  hideUCLRow?: boolean;
+  hideVisualRange?: boolean;
 }
 
 export interface HypothesisTestData {
@@ -278,55 +289,71 @@ export class OneSampleHypothesisTestWidget {
       content = (
         <div class="hypothesis-test-container">
           {/* Result Banner */}
-          <div class="result-banner">
-            <span class="result-text">{resultMessage}</span>
-          </div>
+          {!this.config.hideResultBanner && (
+            <div class="result-banner">
+              <span class="result-text">{resultMessage}</span>
+            </div>
+          )}
           
           {/* Test Parameters and Results */}
           <div class="test-parameters">
-            <div class="parameter-row">
-              <span class="parameter-label">Data Source:</span>
-              <span class="parameter-value">{this.testData.DataSourceName}</span>
-            </div>
+            {!this.config.hideDataSourceRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Data Source:</span>
+                <span class="parameter-value">{this.testData.DataSourceName}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Sample Source:</span>
-              <span class="parameter-value">{this.testData.SampleSourceName}</span>
-            </div>
+            {!this.config.hideSampleSourceRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Sample Source:</span>
+                <span class="parameter-value">{this.testData.SampleSourceName}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Test:</span>
-              <span class="parameter-value">{testTypeDisplay}</span>
-            </div>
+            {!this.config.hideTestRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Test:</span>
+                <span class="parameter-value">{testTypeDisplay}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Sample size:</span>
-              <span class="parameter-value">{this.testData.SampleSize}</span>
-            </div>
+            {!this.config.hideSampleSizeRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Sample size:</span>
+                <span class="parameter-value">{this.testData.SampleSize}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Confidence Level:</span>
-              <span class="parameter-value">{this.formatConfidenceLevel(this.testData.ConfidenceLevel)}</span>
-            </div>
+            {!this.config.hideConfidenceLevelRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Confidence Level:</span>
+                <span class="parameter-value">{this.formatConfidenceLevel(this.testData.ConfidenceLevel)}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Reference Mean:</span>
-              <span class="parameter-value">{this.formatNumber(this.testData.PopulationMean)}</span>
-            </div>
+            {!this.config.hideReferenceMeanRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Reference Mean:</span>
+                <span class="parameter-value">{this.formatNumber(this.testData.PopulationMean)}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">p-Value:</span>
-              <span class="parameter-value">{this.formatPValue(this.testData.PValue)}</span>
-            </div>
+            {!this.config.hidePValueRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">p-Value:</span>
+                <span class="parameter-value">{this.formatPValue(this.testData.PValue)}</span>
+              </div>
+            )}
             
-            {this.shouldShowLCL() && (
+            {!this.config.hideLCLRow && this.shouldShowLCL() && (
               <div class="parameter-row">
                 <span class="parameter-label">Lower Confidence Limit (LCL):</span>
                 <span class="parameter-value lcl-value">{this.formatNumber(this.testData.LCL)}</span>
               </div>
             )}
             
-            {this.shouldShowUCL() && (
+            {!this.config.hideUCLRow && this.shouldShowUCL() && (
               <div class="parameter-row">
                 <span class="parameter-label">Upper Confidence Limit (UCL):</span>
                 <span class="parameter-value ucl-value">{this.formatNumber(this.testData.UCL)}</span>
@@ -335,7 +362,7 @@ export class OneSampleHypothesisTestWidget {
           </div>
           
           {/* Visual Range */}
-          {this.renderVisualRange()}
+          {!this.config.hideVisualRange && this.renderVisualRange()}
         </div>
       );
     }

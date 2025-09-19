@@ -465,6 +465,61 @@
           "type": "boolean",
           "description": "Whether to hide the widget title",
           "default": false
+        },
+        "hideResultBanner": {
+          "type": "boolean",
+          "description": "Whether to hide the result banner",
+          "default": false
+        },
+        "hideDataSourceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the data source row",
+          "default": false
+        },
+        "hideSampleSourceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the sample source row",
+          "default": false
+        },
+        "hideTestRow": {
+          "type": "boolean",
+          "description": "Whether to hide the test row",
+          "default": false
+        },
+        "hideSampleSizeRow": {
+          "type": "boolean",
+          "description": "Whether to hide the sample size row",
+          "default": false
+        },
+        "hideConfidenceLevelRow": {
+          "type": "boolean",
+          "description": "Whether to hide the confidence level row",
+          "default": false
+        },
+        "hideReferenceMeanRow": {
+          "type": "boolean",
+          "description": "Whether to hide the reference mean row",
+          "default": false
+        },
+        "hidePValueRow": {
+          "type": "boolean",
+          "description": "Whether to hide the p-value row",
+          "default": false
+        },
+        "hideLCLRow": {
+          "type": "boolean",
+          "description": "Whether to hide the LCL row",
+          "default": false
+        },
+        "hideUCLRow": {
+          "type": "boolean",
+          "description": "Whether to hide the UCL row",
+          "default": false
+        },
+        "hideVisualRange": {
+          "type": "boolean",
+          "description": "Whether to hide the visual range",
+          "default": false
         }
       }
     },
@@ -483,6 +538,101 @@
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "hideResultBanner": {
+          "type": "boolean",
+          "description": "Whether to hide the result banner",
+          "default": false
+        },
+        "hideDataSourceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the data source row",
+          "default": false
+        },
+        "hideSampleSourceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the sample source row",
+          "default": false
+        },
+        "hideTestRow": {
+          "type": "boolean",
+          "description": "Whether to hide the test row",
+          "default": false
+        },
+        "hideSampleSizeRow": {
+          "type": "boolean",
+          "description": "Whether to hide the sample size row",
+          "default": false
+        },
+        "hideZeroCountRow": {
+          "type": "boolean",
+          "description": "Whether to hide the zero count row",
+          "default": false
+        },
+        "hideConfidenceLevelRow": {
+          "type": "boolean",
+          "description": "Whether to hide the confidence level row",
+          "default": false
+        },
+        "hideReferenceMedianRow": {
+          "type": "boolean",
+          "description": "Whether to hide the reference median row",
+          "default": false
+        },
+        "hideWPlusRow": {
+          "type": "boolean",
+          "description": "Whether to hide the W+ row",
+          "default": false
+        },
+        "hideWMinusRow": {
+          "type": "boolean",
+          "description": "Whether to hide the W- row",
+          "default": false
+        },
+        "hideWStatRow": {
+          "type": "boolean",
+          "description": "Whether to hide the W statistic row",
+          "default": false
+        },
+        "hideMeanWRow": {
+          "type": "boolean",
+          "description": "Whether to hide the mean W row",
+          "default": false
+        },
+        "hideVarWRow": {
+          "type": "boolean",
+          "description": "Whether to hide the variance W row",
+          "default": false
+        },
+        "hideZValueRow": {
+          "type": "boolean",
+          "description": "Whether to hide the Z value row",
+          "default": false
+        },
+        "hidePValueRow": {
+          "type": "boolean",
+          "description": "Whether to hide the p-value row",
+          "default": false
+        },
+        "hideWCriticalRow": {
+          "type": "boolean",
+          "description": "Whether to hide the W critical row",
+          "default": false
+        },
+        "hideHasTiesRow": {
+          "type": "boolean",
+          "description": "Whether to hide the has ties row",
+          "default": false
+        },
+        "hideContinuityCorrectionRow": {
+          "type": "boolean",
+          "description": "Whether to hide the continuity correction row",
+          "default": false
+        },
+        "hideVisualRange": {
+          "type": "boolean",
+          "description": "Whether to hide the visual range",
           "default": false
         }
       }
@@ -503,6 +653,116 @@
           "type": "boolean",
           "description": "Whether to hide the widget title",
           "default": false
+        },
+        "hideResultBanner": {
+          "type": "boolean",
+          "description": "Whether to hide the result banner",
+          "default": false
+        },
+        "hideDataSourceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the data source row",
+          "default": false
+        },
+        "hideSampleSource1Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample source 1 row",
+          "default": false
+        },
+        "hideSampleSource2Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample source 2 row",
+          "default": false
+        },
+        "hideTestRow": {
+          "type": "boolean",
+          "description": "Whether to hide the test row",
+          "default": false
+        },
+        "hideSampleSizeRow": {
+          "type": "boolean",
+          "description": "Whether to hide the sample size row",
+          "default": false
+        },
+        "hideSampleSizeNonZeroRow": {
+          "type": "boolean",
+          "description": "Whether to hide the sample size non-zero row",
+          "default": false
+        },
+        "hideZeroCountRow": {
+          "type": "boolean",
+          "description": "Whether to hide the zero count row",
+          "default": false
+        },
+        "hideConfidenceLevelRow": {
+          "type": "boolean",
+          "description": "Whether to hide the confidence level row",
+          "default": false
+        },
+        "hideReferenceValueRow": {
+          "type": "boolean",
+          "description": "Whether to hide the reference value row",
+          "default": false
+        },
+        "hideWPlusRow": {
+          "type": "boolean",
+          "description": "Whether to hide the W+ row",
+          "default": false
+        },
+        "hideWMinusRow": {
+          "type": "boolean",
+          "description": "Whether to hide the W- row",
+          "default": false
+        },
+        "hideWStatRow": {
+          "type": "boolean",
+          "description": "Whether to hide the W statistic row",
+          "default": false
+        },
+        "hideMeanWRow": {
+          "type": "boolean",
+          "description": "Whether to hide the mean W row",
+          "default": false
+        },
+        "hideVarWRow": {
+          "type": "boolean",
+          "description": "Whether to hide the variance W row",
+          "default": false
+        },
+        "hideZValueRow": {
+          "type": "boolean",
+          "description": "Whether to hide the Z value row",
+          "default": false
+        },
+        "hidePValueRow": {
+          "type": "boolean",
+          "description": "Whether to hide the p-value row",
+          "default": false
+        },
+        "hideWCriticalRow": {
+          "type": "boolean",
+          "description": "Whether to hide the W critical row",
+          "default": false
+        },
+        "hideHasTiesRow": {
+          "type": "boolean",
+          "description": "Whether to hide the has ties row",
+          "default": false
+        },
+        "hideHasNullPairsRow": {
+          "type": "boolean",
+          "description": "Whether to hide the has null pairs row",
+          "default": false
+        },
+        "hideContinuityCorrectionRow": {
+          "type": "boolean",
+          "description": "Whether to hide the continuity correction row",
+          "default": false
+        },
+        "hideVisualRange": {
+          "type": "boolean",
+          "description": "Whether to hide the visual range",
+          "default": false
         }
       }
     },
@@ -521,6 +781,76 @@
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "hideResultBanner": {
+          "type": "boolean",
+          "description": "Whether to hide the result banner",
+          "default": false
+        },
+        "hideDataSourceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the data source row",
+          "default": false
+        },
+        "hideSampleSourceGroup1Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample source group 1 row",
+          "default": false
+        },
+        "hideSampleSourceGroup2Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample source group 2 row",
+          "default": false
+        },
+        "hideTestRow": {
+          "type": "boolean",
+          "description": "Whether to hide the test row",
+          "default": false
+        },
+        "hideSampleSizeGroup1Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample size group 1 row",
+          "default": false
+        },
+        "hideSampleSizeGroup2Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample size group 2 row",
+          "default": false
+        },
+        "hideConfidenceLevelRow": {
+          "type": "boolean",
+          "description": "Whether to hide the confidence level row",
+          "default": false
+        },
+        "hideSampleMeanGroup1Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample mean group 1 row",
+          "default": false
+        },
+        "hideSampleMeanGroup2Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample mean group 2 row",
+          "default": false
+        },
+        "hidePValueRow": {
+          "type": "boolean",
+          "description": "Whether to hide the p-value row",
+          "default": false
+        },
+        "hideLCLRow": {
+          "type": "boolean",
+          "description": "Whether to hide the LCL row",
+          "default": false
+        },
+        "hideUCLRow": {
+          "type": "boolean",
+          "description": "Whether to hide the UCL row",
+          "default": false
+        },
+        "hideVisualRange": {
+          "type": "boolean",
+          "description": "Whether to hide the visual range",
           "default": false
         }
       }
@@ -541,6 +871,71 @@
           "type": "boolean",
           "description": "Whether to hide the widget title",
           "default": false
+        },
+        "hideResultBanner": {
+          "type": "boolean",
+          "description": "Whether to hide the result banner",
+          "default": false
+        },
+        "hideDataSourceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the data source row",
+          "default": false
+        },
+        "hideSampleSourceGroup1Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample source group 1 row",
+          "default": false
+        },
+        "hideSampleSourceGroup2Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample source group 2 row",
+          "default": false
+        },
+        "hideTestRow": {
+          "type": "boolean",
+          "description": "Whether to hide the test row",
+          "default": false
+        },
+        "hideSampleSizeGroup1Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample size group 1 row",
+          "default": false
+        },
+        "hideSampleSizeGroup2Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample size group 2 row",
+          "default": false
+        },
+        "hideConfidenceLevelRow": {
+          "type": "boolean",
+          "description": "Whether to hide the confidence level row",
+          "default": false
+        },
+        "hideDifferenceMeanRow": {
+          "type": "boolean",
+          "description": "Whether to hide the difference mean row",
+          "default": false
+        },
+        "hidePValueRow": {
+          "type": "boolean",
+          "description": "Whether to hide the p-value row",
+          "default": false
+        },
+        "hideLCLRow": {
+          "type": "boolean",
+          "description": "Whether to hide the LCL row",
+          "default": false
+        },
+        "hideUCLRow": {
+          "type": "boolean",
+          "description": "Whether to hide the UCL row",
+          "default": false
+        },
+        "hideVisualRange": {
+          "type": "boolean",
+          "description": "Whether to hide the visual range",
+          "default": false
         }
       }
     },
@@ -559,6 +954,76 @@
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "hideResultBanner": {
+          "type": "boolean",
+          "description": "Whether to hide the result banner",
+          "default": false
+        },
+        "hideDataSourceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the data source row",
+          "default": false
+        },
+        "hideSampleSourceGroup1Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample source group 1 row",
+          "default": false
+        },
+        "hideSampleSourceGroup2Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample source group 2 row",
+          "default": false
+        },
+        "hideTestRow": {
+          "type": "boolean",
+          "description": "Whether to hide the test row",
+          "default": false
+        },
+        "hideSampleSizeGroup1Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample size group 1 row",
+          "default": false
+        },
+        "hideSampleSizeGroup2Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample size group 2 row",
+          "default": false
+        },
+        "hideConfidenceLevelRow": {
+          "type": "boolean",
+          "description": "Whether to hide the confidence level row",
+          "default": false
+        },
+        "hideSampleMeanGroup1Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample mean group 1 row",
+          "default": false
+        },
+        "hideSampleMeanGroup2Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample mean group 2 row",
+          "default": false
+        },
+        "hidePValueRow": {
+          "type": "boolean",
+          "description": "Whether to hide the p-value row",
+          "default": false
+        },
+        "hideLCLRow": {
+          "type": "boolean",
+          "description": "Whether to hide the LCL row",
+          "default": false
+        },
+        "hideUCLRow": {
+          "type": "boolean",
+          "description": "Whether to hide the UCL row",
+          "default": false
+        },
+        "hideVisualRange": {
+          "type": "boolean",
+          "description": "Whether to hide the visual range",
           "default": false
         }
       }
@@ -579,6 +1044,41 @@
           "type": "boolean",
           "description": "Whether to hide the widget title",
           "default": false
+        },
+        "hideResultBanner": {
+          "type": "boolean",
+          "description": "Whether to hide the result banner",
+          "default": false
+        },
+        "hideDataSourceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the data source row",
+          "default": false
+        },
+        "hideTestRow": {
+          "type": "boolean",
+          "description": "Whether to hide the test row",
+          "default": false
+        },
+        "hideConfidenceLevelRow": {
+          "type": "boolean",
+          "description": "Whether to hide the confidence level row",
+          "default": false
+        },
+        "hideAnovaTable": {
+          "type": "boolean",
+          "description": "Whether to hide the ANOVA table",
+          "default": false
+        },
+        "hideCriticalValues": {
+          "type": "boolean",
+          "description": "Whether to hide the critical values section",
+          "default": false
+        },
+        "hideVisualRange": {
+          "type": "boolean",
+          "description": "Whether to hide the visual range",
+          "default": false
         }
       }
     },
@@ -597,6 +1097,41 @@
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "hideResultBanner": {
+          "type": "boolean",
+          "description": "Whether to hide the result banner",
+          "default": false
+        },
+        "hideDataSourceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the data source row",
+          "default": false
+        },
+        "hideTestRow": {
+          "type": "boolean",
+          "description": "Whether to hide the test row",
+          "default": false
+        },
+        "hideConfidenceLevelRow": {
+          "type": "boolean",
+          "description": "Whether to hide the confidence level row",
+          "default": false
+        },
+        "hideAnovaTable": {
+          "type": "boolean",
+          "description": "Whether to hide the ANOVA table",
+          "default": false
+        },
+        "hideCriticalValues": {
+          "type": "boolean",
+          "description": "Whether to hide the critical values section",
+          "default": false
+        },
+        "hideVisualRange": {
+          "type": "boolean",
+          "description": "Whether to hide the visual range",
           "default": false
         }
       }
@@ -617,6 +1152,116 @@
           "type": "boolean",
           "description": "Whether to hide the widget title",
           "default": false
+        },
+        "hideResultBanner": {
+          "type": "boolean",
+          "description": "Whether to hide the result banner",
+          "default": false
+        },
+        "hideDataSourceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the data source row",
+          "default": false
+        },
+        "hideSampleSource1Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample source 1 row",
+          "default": false
+        },
+        "hideSampleSource2Row": {
+          "type": "boolean",
+          "description": "Whether to hide the sample source 2 row",
+          "default": false
+        },
+        "hideTestRow": {
+          "type": "boolean",
+          "description": "Whether to hide the test row",
+          "default": false
+        },
+        "hideN1Row": {
+          "type": "boolean",
+          "description": "Whether to hide the N1 row",
+          "default": false
+        },
+        "hideN2Row": {
+          "type": "boolean",
+          "description": "Whether to hide the N2 row",
+          "default": false
+        },
+        "hideConfidenceLevelRow": {
+          "type": "boolean",
+          "description": "Whether to hide the confidence level row",
+          "default": false
+        },
+        "hideExpectedDifferenceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the expected difference row",
+          "default": false
+        },
+        "hideW1Row": {
+          "type": "boolean",
+          "description": "Whether to hide the W1 row",
+          "default": false
+        },
+        "hideW2Row": {
+          "type": "boolean",
+          "description": "Whether to hide the W2 row",
+          "default": false
+        },
+        "hideU1Row": {
+          "type": "boolean",
+          "description": "Whether to hide the U1 row",
+          "default": false
+        },
+        "hideU2Row": {
+          "type": "boolean",
+          "description": "Whether to hide the U2 row",
+          "default": false
+        },
+        "hideUStatRow": {
+          "type": "boolean",
+          "description": "Whether to hide the U statistic row",
+          "default": false
+        },
+        "hideMeanURow": {
+          "type": "boolean",
+          "description": "Whether to hide the mean U row",
+          "default": false
+        },
+        "hideVarURow": {
+          "type": "boolean",
+          "description": "Whether to hide the variance U row",
+          "default": false
+        },
+        "hideZValueRow": {
+          "type": "boolean",
+          "description": "Whether to hide the Z value row",
+          "default": false
+        },
+        "hidePValueRow": {
+          "type": "boolean",
+          "description": "Whether to hide the p-value row",
+          "default": false
+        },
+        "hideUCriticalRow": {
+          "type": "boolean",
+          "description": "Whether to hide the U critical row",
+          "default": false
+        },
+        "hideHasTiesRow": {
+          "type": "boolean",
+          "description": "Whether to hide the has ties row",
+          "default": false
+        },
+        "hideContinuityCorrectionRow": {
+          "type": "boolean",
+          "description": "Whether to hide the continuity correction row",
+          "default": false
+        },
+        "hideVisualRange": {
+          "type": "boolean",
+          "description": "Whether to hide the visual range",
+          "default": false
         }
       }
     },
@@ -635,6 +1280,86 @@
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "hideResultBanner": {
+          "type": "boolean",
+          "description": "Whether to hide the result banner",
+          "default": false
+        },
+        "hideDataSourceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the data source row",
+          "default": false
+        },
+        "hideSampleSourceNamesRow": {
+          "type": "boolean",
+          "description": "Whether to hide the sample source names row",
+          "default": false
+        },
+        "hideTestRow": {
+          "type": "boolean",
+          "description": "Whether to hide the test row",
+          "default": false
+        },
+        "hideTotalNRow": {
+          "type": "boolean",
+          "description": "Whether to hide the total N row",
+          "default": false
+        },
+        "hideGroupCountRow": {
+          "type": "boolean",
+          "description": "Whether to hide the group count row",
+          "default": false
+        },
+        "hideDegreesOfFreedomRow": {
+          "type": "boolean",
+          "description": "Whether to hide the degrees of freedom row",
+          "default": false
+        },
+        "hideConfidenceLevelRow": {
+          "type": "boolean",
+          "description": "Whether to hide the confidence level row",
+          "default": false
+        },
+        "hideSumRi2OverNiRow": {
+          "type": "boolean",
+          "description": "Whether to hide the sum Ri²/Ni row",
+          "default": false
+        },
+        "hideHRawRow": {
+          "type": "boolean",
+          "description": "Whether to hide the H raw row",
+          "default": false
+        },
+        "hideCorrectionFactorRow": {
+          "type": "boolean",
+          "description": "Whether to hide the correction factor row",
+          "default": false
+        },
+        "hideHStatRow": {
+          "type": "boolean",
+          "description": "Whether to hide the H statistic row",
+          "default": false
+        },
+        "hidePValueRow": {
+          "type": "boolean",
+          "description": "Whether to hide the p-value row",
+          "default": false
+        },
+        "hideHCriticalRow": {
+          "type": "boolean",
+          "description": "Whether to hide the H critical row",
+          "default": false
+        },
+        "hideHasTiesRow": {
+          "type": "boolean",
+          "description": "Whether to hide the has ties row",
+          "default": false
+        },
+        "hideVisualRange": {
+          "type": "boolean",
+          "description": "Whether to hide the visual range",
           "default": false
         }
       }

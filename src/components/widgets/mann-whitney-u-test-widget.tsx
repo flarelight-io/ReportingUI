@@ -5,6 +5,28 @@ export interface MannWhitneyUTestWidgetConfig {
   analysisId?: string;
   analysisName?: string;
   hideTitle?: boolean;
+  hideResultBanner?: boolean;
+  hideDataSourceRow?: boolean;
+  hideSampleSource1Row?: boolean;
+  hideSampleSource2Row?: boolean;
+  hideTestRow?: boolean;
+  hideN1Row?: boolean;
+  hideN2Row?: boolean;
+  hideConfidenceLevelRow?: boolean;
+  hideExpectedDifferenceRow?: boolean;
+  hideW1Row?: boolean;
+  hideW2Row?: boolean;
+  hideU1Row?: boolean;
+  hideU2Row?: boolean;
+  hideUStatRow?: boolean;
+  hideMeanURow?: boolean;
+  hideVarURow?: boolean;
+  hideZValueRow?: boolean;
+  hidePValueRow?: boolean;
+  hideUCriticalRow?: boolean;
+  hideHasTiesRow?: boolean;
+  hideContinuityCorrectionRow?: boolean;
+  hideVisualRange?: boolean;
 }
 
 export interface MannWhitneyUTestData {
@@ -288,107 +310,141 @@ export class MannWhitneyUTestWidget {
       content = (
         <div class="mann-whitney-test-container">
           {/* Result Banner */}
-          <div class="result-banner">
-            <span class="result-text">{resultMessage}</span>
-          </div>
+          {!this.config.hideResultBanner && (
+            <div class="result-banner">
+              <span class="result-text">{resultMessage}</span>
+            </div>
+          )}
           
           {/* Test Parameters and Results */}
           <div class="test-parameters">
-            <div class="parameter-row">
-              <span class="parameter-label">Data Source:</span>
-              <span class="parameter-value">{this.testData.DataSourceName}</span>
-            </div>
+            {!this.config.hideDataSourceRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Data Source:</span>
+                <span class="parameter-value">{this.testData.DataSourceName}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">First Sample Source:</span>
-              <span class="parameter-value">{this.testData.SampleSourceName1}</span>
-            </div>
+            {!this.config.hideSampleSource1Row && (
+              <div class="parameter-row">
+                <span class="parameter-label">First Sample Source:</span>
+                <span class="parameter-value">{this.testData.SampleSourceName1}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Second Sample Source:</span>
-              <span class="parameter-value">{this.testData.SampleSourceName2}</span>
-            </div>
+            {!this.config.hideSampleSource2Row && (
+              <div class="parameter-row">
+                <span class="parameter-label">Second Sample Source:</span>
+                <span class="parameter-value">{this.testData.SampleSourceName2}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Test:</span>
-              <span class="parameter-value">{testTypeDisplay}</span>
-            </div>
+            {!this.config.hideTestRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Test:</span>
+                <span class="parameter-value">{testTypeDisplay}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Sample size 1 (N1):</span>
-              <span class="parameter-value">{this.testData.N1}</span>
-            </div>
+            {!this.config.hideN1Row && (
+              <div class="parameter-row">
+                <span class="parameter-label">Sample size 1 (N1):</span>
+                <span class="parameter-value">{this.testData.N1}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Sample size 2 (N2):</span>
-              <span class="parameter-value">{this.testData.N2}</span>
-            </div>
+            {!this.config.hideN2Row && (
+              <div class="parameter-row">
+                <span class="parameter-label">Sample size 2 (N2):</span>
+                <span class="parameter-value">{this.testData.N2}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Has ties:</span>
-              <span class="parameter-value">{this.testData.HasTies ? 'Yes' : 'No'}</span>
-            </div>
+            {!this.config.hideHasTiesRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Has ties:</span>
+                <span class="parameter-value">{this.testData.HasTies ? 'Yes' : 'No'}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Confidence Level:</span>
-              <span class="parameter-value">{this.formatConfidenceLevel(this.testData.ConfidenceLevel)}</span>
-            </div>
+            {!this.config.hideConfidenceLevelRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Confidence Level:</span>
+                <span class="parameter-value">{this.formatConfidenceLevel(this.testData.ConfidenceLevel)}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Continuity Correction:</span>
-              <span class="parameter-value">{this.testData.ContinuityCorrection ? 'Yes' : 'No'}</span>
-            </div>
+            {!this.config.hideContinuityCorrectionRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Continuity Correction:</span>
+                <span class="parameter-value">{this.testData.ContinuityCorrection ? 'Yes' : 'No'}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">W1 (ranks for sample 1):</span>
-              <span class="parameter-value w1-value">{this.formatNumber(this.testData.W1)}</span>
-            </div>
+            {!this.config.hideW1Row && (
+              <div class="parameter-row">
+                <span class="parameter-label">W1 (ranks for sample 1):</span>
+                <span class="parameter-value w1-value">{this.formatNumber(this.testData.W1)}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">W2 (ranks for sample 2):</span>
-              <span class="parameter-value w2-value">{this.formatNumber(this.testData.W2)}</span>
-            </div>
+            {!this.config.hideW2Row && (
+              <div class="parameter-row">
+                <span class="parameter-label">W2 (ranks for sample 2):</span>
+                <span class="parameter-value w2-value">{this.formatNumber(this.testData.W2)}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">U1 (Mann-Whitney U for sample 1):</span>
-              <span class="parameter-value u1-value">{this.formatNumber(this.testData.U1)}</span>
-            </div>
+            {!this.config.hideU1Row && (
+              <div class="parameter-row">
+                <span class="parameter-label">U1 (Mann-Whitney U for sample 1):</span>
+                <span class="parameter-value u1-value">{this.formatNumber(this.testData.U1)}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">U2 (Mann-Whitney U for sample 2):</span>
-              <span class="parameter-value u2-value">{this.formatNumber(this.testData.U2)}</span>
-            </div>
+            {!this.config.hideU2Row && (
+              <div class="parameter-row">
+                <span class="parameter-label">U2 (Mann-Whitney U for sample 2):</span>
+                <span class="parameter-value u2-value">{this.formatNumber(this.testData.U2)}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">U Statistic:</span>
-              <span class="parameter-value u-stat-value">{this.formatNumber(this.testData.UStat)}</span>
-            </div>
+            {!this.config.hideUStatRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">U Statistic:</span>
+                <span class="parameter-value u-stat-value">{this.formatNumber(this.testData.UStat)}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Mean U:</span>
-              <span class="parameter-value mean-u-value">{this.formatNumber(this.testData.MeanU)}</span>
-            </div>
+            {!this.config.hideMeanURow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Mean U:</span>
+                <span class="parameter-value mean-u-value">{this.formatNumber(this.testData.MeanU)}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Variance U:</span>
-              <span class="parameter-value var-u-value">{this.formatNumber(this.testData.VarU)}</span>
-            </div>
+            {!this.config.hideVarURow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Variance U:</span>
+                <span class="parameter-value var-u-value">{this.formatNumber(this.testData.VarU)}</span>
+              </div>
+            )}
             
-            {this.testData.UCritical !== null && (
+            {!this.config.hideUCriticalRow && this.testData.UCritical !== null && (
               <div class="parameter-row">
                 <span class="parameter-label">U-Critical:</span>
                 <span class="parameter-value u-critical-value">{this.formatNumber(this.testData.UCritical)}</span>
               </div>
             )}
             
-            {this.testData.ZValue !== null && (
+            {!this.config.hideZValueRow && this.testData.ZValue !== null && (
               <div class="parameter-row">
                 <span class="parameter-label">Z-Score:</span>
                 <span class="parameter-value z-value">{this.formatZValue(this.testData.ZValue)}</span>
               </div>
             )}
             
-            {this.testData.PValue !== null && (
+            {!this.config.hidePValueRow && this.testData.PValue !== null && (
               <div class="parameter-row">
                 <span class="parameter-label">p-Value:</span>
                 <span class="parameter-value p-value">{this.formatPValue(this.testData.PValue)}</span>
@@ -400,14 +456,16 @@ export class MannWhitneyUTestWidget {
               <span class="parameter-value method-value">{this.getMethodDisplay()}</span>
             </div>
             
-            <div class="parameter-row">
-              <span class="parameter-label">Expected Difference:</span>
-              <span class="parameter-value expected-difference-value">{this.formatNumber(this.testData.ExpectedDifference)}</span>
-            </div>
+            {!this.config.hideExpectedDifferenceRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Expected Difference:</span>
+                <span class="parameter-value expected-difference-value">{this.formatNumber(this.testData.ExpectedDifference)}</span>
+              </div>
+            )}
           </div>
           
           {/* Visual Range */}
-          {this.renderVisualRange()}
+          {!this.config.hideVisualRange && this.renderVisualRange()}
         </div>
       );
     }

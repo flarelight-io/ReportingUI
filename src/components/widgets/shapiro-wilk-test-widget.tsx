@@ -156,7 +156,7 @@ export class ShapiroWilkTestWidget {
   private getResultMessage(): string {
     if (!this.testData || this.testData.NullReject === null) return '';
 
-    return this.testData.NullReject ? 'Significant departure from normality.' : 'No significant departure from normality.';
+    return this.testData.NullReject ? 'Significant departure from normality' : 'No significant departure from normality';
   }
 
   // Format confidence level for display

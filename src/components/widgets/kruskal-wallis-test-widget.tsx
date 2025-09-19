@@ -5,6 +5,22 @@ export interface KruskalWallisTestWidgetConfig {
   analysisId?: string;
   analysisName?: string;
   hideTitle?: boolean;
+  hideResultBanner?: boolean;
+  hideDataSourceRow?: boolean;
+  hideSampleSourceNamesRow?: boolean;
+  hideTestRow?: boolean;
+  hideTotalNRow?: boolean;
+  hideGroupCountRow?: boolean;
+  hideDegreesOfFreedomRow?: boolean;
+  hideConfidenceLevelRow?: boolean;
+  hideSumRi2OverNiRow?: boolean;
+  hideHRawRow?: boolean;
+  hideCorrectionFactorRow?: boolean;
+  hideHStatRow?: boolean;
+  hidePValueRow?: boolean;
+  hideHCriticalRow?: boolean;
+  hideHasTiesRow?: boolean;
+  hideVisualRange?: boolean;
 }
 
 export interface KruskalWallisTestData {
@@ -296,80 +312,106 @@ export class KruskalWallisTestWidget {
       content = (
         <div class="kruskal-wallis-test-container">
           {/* Result Banner */}
-          <div class="result-banner">
-            <span class="result-text">{resultMessage}</span>
-          </div>
+          {!this.config.hideResultBanner && (
+            <div class="result-banner">
+              <span class="result-text">{resultMessage}</span>
+            </div>
+          )}
           
           {/* Test Parameters and Results */}
           <div class="test-parameters">
-            <div class="parameter-row">
-              <span class="parameter-label">Data Source:</span>
-              <span class="parameter-value">{this.testData.DataSourceName}</span>
-            </div>
+            {!this.config.hideDataSourceRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Data Source:</span>
+                <span class="parameter-value">{this.testData.DataSourceName}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Sample Sources:</span>
-              <span class="parameter-value">{this.formatSampleSources(this.testData.SampleSourceNames)}</span>
-            </div>
+            {!this.config.hideSampleSourceNamesRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Sample Sources:</span>
+                <span class="parameter-value">{this.formatSampleSources(this.testData.SampleSourceNames)}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Test:</span>
-              <span class="parameter-value">{testTypeDisplay}</span>
-            </div>
+            {!this.config.hideTestRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Test:</span>
+                <span class="parameter-value">{testTypeDisplay}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Total N:</span>
-              <span class="parameter-value">{this.testData.TotalN}</span>
-            </div>
+            {!this.config.hideTotalNRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Total N:</span>
+                <span class="parameter-value">{this.testData.TotalN}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Group Count:</span>
-              <span class="parameter-value">{this.testData.GroupCount}</span>
-            </div>
+            {!this.config.hideGroupCountRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Group Count:</span>
+                <span class="parameter-value">{this.testData.GroupCount}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Degrees of Freedom:</span>
-              <span class="parameter-value">{this.testData.DegreesOfFreedom}</span>
-            </div>
+            {!this.config.hideDegreesOfFreedomRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Degrees of Freedom:</span>
+                <span class="parameter-value">{this.testData.DegreesOfFreedom}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Has ties:</span>
-              <span class="parameter-value">{this.testData.HasTies ? 'Yes' : 'No'}</span>
-            </div>
+            {!this.config.hideHasTiesRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Has ties:</span>
+                <span class="parameter-value">{this.testData.HasTies ? 'Yes' : 'No'}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Confidence Level:</span>
-              <span class="parameter-value">{this.formatConfidenceLevel(this.testData.ConfidenceLevel)}</span>
-            </div>
+            {!this.config.hideConfidenceLevelRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Confidence Level:</span>
+                <span class="parameter-value">{this.formatConfidenceLevel(this.testData.ConfidenceLevel)}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Sum Ri²/Ni:</span>
-              <span class="parameter-value sum-ri2-ni-value">{this.formatNumber(this.testData.SumRi2OverNi)}</span>
-            </div>
+            {!this.config.hideSumRi2OverNiRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Sum Ri²/Ni:</span>
+                <span class="parameter-value sum-ri2-ni-value">{this.formatNumber(this.testData.SumRi2OverNi)}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">H-Raw:</span>
-              <span class="parameter-value h-raw-value">{this.formatNumber(this.testData.HRaw)}</span>
-            </div>
+            {!this.config.hideHRawRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">H-Raw:</span>
+                <span class="parameter-value h-raw-value">{this.formatNumber(this.testData.HRaw)}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Tie correction:</span>
-              <span class="parameter-value correction-factor-value">{this.formatNumber(this.testData.CorrectionFactor)}</span>
-            </div>
+            {!this.config.hideCorrectionFactorRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Tie correction:</span>
+                <span class="parameter-value correction-factor-value">{this.formatNumber(this.testData.CorrectionFactor)}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">H-Statistics:</span>
-              <span class="parameter-value h-stat-value">{this.formatNumber(this.testData.HStat)}</span>
-            </div>
+            {!this.config.hideHStatRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">H-Statistics:</span>
+                <span class="parameter-value h-stat-value">{this.formatNumber(this.testData.HStat)}</span>
+              </div>
+            )}
             
-            {this.testData.HCritical !== null && (
+            {!this.config.hideHCriticalRow && this.testData.HCritical !== null && (
               <div class="parameter-row">
                 <span class="parameter-label">H-Critical:</span>
                 <span class="parameter-value h-critical-value">{this.formatHCritical(this.testData.HCritical)}</span>
               </div>
             )}
             
-            {this.testData.PValue !== null && (
+            {!this.config.hidePValueRow && this.testData.PValue !== null && (
               <div class="parameter-row">
                 <span class="parameter-label">p-Value:</span>
                 <span class="parameter-value p-value">{this.formatPValue(this.testData.PValue)}</span>
@@ -383,7 +425,7 @@ export class KruskalWallisTestWidget {
           </div>
           
           {/* Visual Range */}
-          {this.renderVisualRange()}
+          {!this.config.hideVisualRange && this.renderVisualRange()}
         </div>
       );
     }

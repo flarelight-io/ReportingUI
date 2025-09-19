@@ -5,6 +5,20 @@ export interface IndependentTwoSampleHypothesisTestWidgetConfig {
   analysisId?: string;
   analysisName?: string;
   hideTitle?: boolean;
+  hideResultBanner?: boolean;
+  hideDataSourceRow?: boolean;
+  hideSampleSourceGroup1Row?: boolean;
+  hideSampleSourceGroup2Row?: boolean;
+  hideTestRow?: boolean;
+  hideSampleSizeGroup1Row?: boolean;
+  hideSampleSizeGroup2Row?: boolean;
+  hideConfidenceLevelRow?: boolean;
+  hideSampleMeanGroup1Row?: boolean;
+  hideSampleMeanGroup2Row?: boolean;
+  hidePValueRow?: boolean;
+  hideLCLRow?: boolean;
+  hideUCLRow?: boolean;
+  hideVisualRange?: boolean;
 }
 
 export interface IndependentTwoSampleHypothesisTestData {
@@ -292,65 +306,83 @@ export class IndependentTwoSampleHypothesisTestWidget {
       content = (
         <div class="hypothesis-test-container">
           {/* Result Banner */}
-          <div class="result-banner">
-            <span class="result-text">{resultMessage}</span>
-          </div>
+          {!this.config.hideResultBanner && (
+            <div class="result-banner">
+              <span class="result-text">{resultMessage}</span>
+            </div>
+          )}
           
           {/* Test Parameters and Results */}
           <div class="test-parameters">
-            <div class="parameter-row">
-              <span class="parameter-label">Data Source:</span>
-              <span class="parameter-value">{this.testData.DataSourceName}</span>
-            </div>
+            {!this.config.hideDataSourceRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Data Source:</span>
+                <span class="parameter-value">{this.testData.DataSourceName}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Group 1 Sample Source:</span>
-              <span class="parameter-value">{this.testData.SampleSourceNameGroup1}</span>
-            </div>
+            {!this.config.hideSampleSourceGroup1Row && (
+              <div class="parameter-row">
+                <span class="parameter-label">Group 1 Sample Source:</span>
+                <span class="parameter-value">{this.testData.SampleSourceNameGroup1}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Group 2 Sample Source:</span>
-              <span class="parameter-value">{this.testData.SampleSourceNameGroup2}</span>
-            </div>
+            {!this.config.hideSampleSourceGroup2Row && (
+              <div class="parameter-row">
+                <span class="parameter-label">Group 2 Sample Source:</span>
+                <span class="parameter-value">{this.testData.SampleSourceNameGroup2}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Test:</span>
-              <span class="parameter-value">{testTypeDisplay}</span>
-            </div>
+            {!this.config.hideTestRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Test:</span>
+                <span class="parameter-value">{testTypeDisplay}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Group 1 Sample Size:</span>
-              <span class="parameter-value">{this.testData.SampleSizeGroup1}</span>
-            </div>
+            {!this.config.hideSampleSizeGroup1Row && (
+              <div class="parameter-row">
+                <span class="parameter-label">Group 1 Sample Size:</span>
+                <span class="parameter-value">{this.testData.SampleSizeGroup1}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Group 2 Sample Size:</span>
-              <span class="parameter-value">{this.testData.SampleSizeGroup2}</span>
-            </div>
+            {!this.config.hideSampleSizeGroup2Row && (
+              <div class="parameter-row">
+                <span class="parameter-label">Group 2 Sample Size:</span>
+                <span class="parameter-value">{this.testData.SampleSizeGroup2}</span>
+              </div>
+            )}
             
-            <div class="parameter-row">
-              <span class="parameter-label">Confidence Level:</span>
-              <span class="parameter-value">{this.formatConfidenceLevel(this.testData.ConfidenceLevel)}</span>
-            </div>
+            {!this.config.hideConfidenceLevelRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">Confidence Level:</span>
+                <span class="parameter-value">{this.formatConfidenceLevel(this.testData.ConfidenceLevel)}</span>
+              </div>
+            )}
             
             <div class="parameter-row">
               <span class="parameter-label">Means Difference:</span>
               <span class="parameter-value">{this.formatNumber(this.testData.SampleMeanGroup1 - this.testData.SampleMeanGroup2)}</span>
             </div>
             
-            <div class="parameter-row">
-              <span class="parameter-label">p-Value:</span>
-              <span class="parameter-value">{this.formatPValue(this.testData.PValue)}</span>
-            </div>
+            {!this.config.hidePValueRow && (
+              <div class="parameter-row">
+                <span class="parameter-label">p-Value:</span>
+                <span class="parameter-value">{this.formatPValue(this.testData.PValue)}</span>
+              </div>
+            )}
             
-            {this.shouldShowLCL() && (
+            {!this.config.hideLCLRow && this.shouldShowLCL() && (
               <div class="parameter-row">
                 <span class="parameter-label">Lower Confidence Limit (LCL):</span>
                 <span class="parameter-value lcl-value">{this.formatNumber(this.testData.LCL)}</span>
               </div>
             )}
             
-            {this.shouldShowUCL() && (
+            {!this.config.hideUCLRow && this.shouldShowUCL() && (
               <div class="parameter-row">
                 <span class="parameter-label">Upper Confidence Limit (UCL):</span>
                 <span class="parameter-value ucl-value">{this.formatNumber(this.testData.UCL)}</span>
@@ -359,7 +391,7 @@ export class IndependentTwoSampleHypothesisTestWidget {
           </div>
           
           {/* Visual Range */}
-          {this.renderVisualRange()}
+          {!this.config.hideVisualRange && this.renderVisualRange()}
         </div>
       );
     }
