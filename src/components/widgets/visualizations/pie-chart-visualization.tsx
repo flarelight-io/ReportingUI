@@ -62,13 +62,16 @@ export class PieChartVisualization {
     }
     
     // For standard chart types
-    if (this.config.groupByField && this.config.valueField) {
-      const groupField = this.config.groupByField;
-      const valueField = this.config.valueField;
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+    
+    if (groupByField && valueField) {
+      const groupField = groupByField;
+      const valueFieldName = valueField;
       
       const processed = rawData.map(item => ({
         category: String(item[groupField] === null ? 'Unknown' : item[groupField]),
-        value: Number(item[valueField] || 0)
+        value: Number(item[valueFieldName] || 0)
       }));
       
       // Sort by value descending
@@ -117,6 +120,10 @@ export class PieChartVisualization {
       return <div class="error-message">{this.data.error}</div>;
     }
     
+    // Extract config properties for use in render
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+    
     const chartData = this.processData();
     
     if (chartData.length === 0) {
@@ -156,7 +163,7 @@ export class PieChartVisualization {
                     fill={colors[0]}
                     mask={`url(#donutHole-${this.config.sourceId || 'pie'})`}
                     style={{ cursor: 'pointer' }}
-                    onClick={() => this.handleFilterClick(this.config.groupByField, singleItem.category)}
+                    onClick={() => this.handleFilterClick(groupByField || '', singleItem.category)}
                     onMouseMove={(event) => this.handleMouseMove(event, singleItem.category, singleItem.value, 100)}
                     onMouseLeave={() => this.handleMouseLeave()}
                   />
@@ -168,7 +175,7 @@ export class PieChartVisualization {
                   r={radius}
                   fill={colors[0]}
                   style={{ cursor: 'pointer' }}
-                  onClick={() => this.handleFilterClick(this.config.groupByField, singleItem.category)}
+                  onClick={() => this.handleFilterClick(groupByField || '', singleItem.category)}
                   onMouseMove={(event) => this.handleMouseMove(event, singleItem.category, singleItem.value, 100)}
                   onMouseLeave={() => this.handleMouseLeave()}
                 />
@@ -238,11 +245,11 @@ export class PieChartVisualization {
           )}
           
           <div class="chart-metadata">
-            {this.config.groupByField && this.config.valueField && (
-              <div class="chart-info">
-                Group: {this.config.groupByField} • Value: {this.config.valueField} • Agg: {this.config.aggregation}
-              </div>
-            )}
+          {groupByField && valueField && (
+            <div class="chart-info">
+              Group: {groupByField} • Value: {valueField} • Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
+            </div>
+          )}
           </div>
         </div>
       );
@@ -348,7 +355,7 @@ export class PieChartVisualization {
                 d={segment.path} 
                 fill={segment.color}
                 style={{ cursor: 'pointer' }}
-                onClick={() => this.handleFilterClick(this.config.groupByField, segment.category)}
+                onClick={() => this.handleFilterClick(groupByField || '', segment.category)}
                 onMouseMove={(event) => this.handleMouseMove(event, segment.category, segment.value, segment.displayPercentage)}
                 onMouseLeave={() => this.handleMouseLeave()}
               />
@@ -457,10 +464,10 @@ export class PieChartVisualization {
         )}
         
         <div class="chart-metadata">
-          {this.config.groupByField && this.config.valueField && (
+          {groupByField && valueField && (
             <div class="chart-info">
-              Group: {this.config.groupByField} • Value: {this.config.valueField} • 
-              Agg: {this.config.aggregation || 'none'}
+              Group: {groupByField} • Value: {valueField} • 
+              Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
             </div>
           )}
         </div>

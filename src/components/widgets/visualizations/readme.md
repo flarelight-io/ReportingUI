@@ -7,10 +7,10 @@
 
 ## Properties
 
-| Property | Attribute | Description | Type                | Default     |
-| -------- | --------- | ----------- | ------------------- | ----------- |
-| `config` | `config`  |             | `DataWidgetConfig`  | `undefined` |
-| `data`   | `data`    |             | `VisualizationData` | `undefined` |
+| Property | Attribute | Description | Type                                                                                                                                                                                                                                                                                                                                                                                                             | Default     |
+| -------- | --------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `config` | `config`  |             | `BarChartConfig \| BoxWhiskerChartConfig \| BubbleChartConfig \| ClusteredBarChartConfig \| ClusteredHBarChartConfig \| DonutChartConfig \| HBarChartConfig \| HeatmapConfig \| HistogramConfig \| KpiConfig \| LineChartConfig \| LollipopChartConfig \| LollipopHChartConfig \| PieChartConfig \| ScatterChartConfig \| StackedBarChartConfig \| StackedHBarChartConfig \| SunburstChartConfig \| TableConfig` | `undefined` |
+| `data`   | `data`    |             | `VisualizationData`                                                                                                                                                                                                                                                                                                                                                                                              | `undefined` |
 
 
 ## Events

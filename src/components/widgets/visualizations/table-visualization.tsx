@@ -29,7 +29,7 @@ export class TableVisualization {
     }
     
     // Get column headers from config or from data
-    let columns = this.config.columns || [];
+    let columns = ('columns' in this.config ? this.config.columns : undefined) || [];
     if (columns.length === 0 && rawData.length > 0) {
       columns = Object.keys(rawData[0]).map(field => ({ field, header: field }));
     }

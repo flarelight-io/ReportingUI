@@ -21,13 +21,15 @@ export class KpiVisualization {
     }
     
     // If valueField is specified, use that
-    if (this.config.valueField) {
-      const valueField = this.config.valueField;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+    
+    if (valueField) {
+      const valueFieldName = valueField;
       let value = 0;
       
       // For a KPI, we typically take the first/latest value
       if (rawData.length > 0) {
-        value = Number(rawData[0][valueField] || 0);
+        value = Number(rawData[0][valueFieldName] || 0);
       }
       
       // If there are multiple values, we might be able to calculate a trend
@@ -35,7 +37,7 @@ export class KpiVisualization {
       let trend: 'up' | 'down' | 'flat' = 'flat';
       
       if (rawData.length > 1) {
-        previousValue = Number(rawData[1][valueField] || 0);
+        previousValue = Number(rawData[1][valueFieldName] || 0);
         if (value > previousValue) {
           trend = 'up';
         } else if (value < previousValue) {
@@ -80,9 +82,9 @@ export class KpiVisualization {
       return '0';
     }
     
-    const formatType = this.config.kpiFormatType || 'number';
-    const prefix = this.config.kpiPrefix || '';
-    const suffix = this.config.kpiSuffix || '';
+    const formatType = ('formatType' in this.config ? this.config.formatType : undefined) || 'number';
+    const prefix = ('prefix' in this.config ? this.config.prefix : undefined) || '';
+    const suffix = ('suffix' in this.config ? this.config.suffix : undefined) || '';
     
     let formattedValue = '';
     

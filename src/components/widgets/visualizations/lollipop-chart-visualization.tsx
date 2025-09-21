@@ -54,13 +54,16 @@ export class LollipopChartVisualization {
     }
     
     // For standard chart types
-    if (this.config.groupByField && this.config.valueField) {
-      const groupField = this.config.groupByField;
-      const valueField = this.config.valueField;
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+    
+    if (groupByField && valueField) {
+      const groupField = groupByField;
+      const valueFieldName = valueField;
       
       const processed = rawData.map(item => ({
         category: String(item[groupField] === null ? 'Unknown' : item[groupField]),
-        value: Number(item[valueField] || 0)
+        value: Number(item[valueFieldName] || 0)
       }));
       
       processed.sort((a, b) => b.value - a.value);
@@ -113,6 +116,10 @@ export class LollipopChartVisualization {
     if (this.data.error) {
       return <div class="error-message">{this.data.error}</div>;
     }
+    
+    // Extract config properties for use in render
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
     
     const chartData = this.processData();
     
@@ -246,7 +253,7 @@ export class LollipopChartVisualization {
                 style={{ cursor: 'pointer' }}
                 onMouseMove={(e) => this.handleMouseMove(e, { category: lollipop.category, value: lollipop.value })}
                 onMouseLeave={() => this.handleMouseLeave()}
-                onClick={() => this.handleFilterClick(this.config.groupByField, lollipop.category)}
+                onClick={() => this.handleFilterClick(groupByField || '', lollipop.category)}
               >
                 {/* Line part of lollipop */}
                 <line 
@@ -369,10 +376,10 @@ export class LollipopChartVisualization {
         </div>
         
         <div class="chart-info-text">
-          {this.config.groupByField && this.config.valueField && (
+          {groupByField && valueField && (
             <span>
-              Group: {this.config.groupByField} • Value: {this.config.valueField} • 
-              Agg: {this.config.aggregation || 'none'}
+              Group: {groupByField} • Value: {valueField} • 
+              Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
             </span>
           )}
         </div>

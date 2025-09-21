@@ -5,28 +5,237 @@ import { Filter } from '../../api/types/common';
 // Add debug flag at the top
 const DEBUG_MODE = false; // Set to true to enable verbose logging
 
-export interface DataWidgetConfig {
+// Base configuration interface with only truly common properties
+interface BaseDataWidgetConfig {
   sourceId?: string;
   sourceName?: string;
-  visualizationType?: 'table' | 'bar' | 'line' | 'pie' | 'donut' | 'hbar' | 'scatter' | 'sunburst' | 'heatmap' | 'bubble' | 'kpi' | 'histogram' | 'stacked-bar' | 'stacked-hbar' | 'clustered-bar' | 'clustered-hbar' | 'lollipop' | 'lollipop-h' | 'box-whisker';
-  fields?: string[];
+  visualizationType?: 'table' | 'bar' | 'line' | 'pie' | 'donut' | 'hbar' | 'scatter' | 'sunburst' | 'heatmap' | 'bubble' | 'kpi' | 'histogram' | 'stacked-bar' | 'stacked-hbar' | 'clustered-bar' | 'clustered-hbar' | 'lollipop' | 'lollipop-h' | 'box-whisker'; // This is the discriminator - must be present
   hideTitle?: boolean;
   showLabels?: boolean;
   showGrid?: boolean;
   showLegend?: boolean;
-  showRegressionLine?: boolean;
+}
+
+// Box-whisker chart specific configuration
+export interface BoxWhiskerChartConfig extends BaseDataWidgetConfig {
+  visualizationType: 'box-whisker';
+  groupByField: string;
+  valueField: string;
+  outlierMethod?: 'iqr' | 'standard-deviation';
+  whiskerMultiplier?: number;
+  showOutliers?: boolean;
+  minDataPoints?: number;
+  boxWidth?: number;
+}
+
+// Scatter chart specific configuration
+export interface ScatterChartConfig extends BaseDataWidgetConfig {
+  visualizationType: 'scatter';
+  xField: string;
+  yField: string;
+  regressionType?: 'linear' | 'polynomial' | 'exponential';
+  pointSize?: number;
+  pointOpacity?: number;
+}
+
+// Heatmap specific configuration
+export interface HeatmapConfig extends BaseDataWidgetConfig {
+  visualizationType: 'heatmap';
+  xField: string;
+  yField: string;
+  valueField: string;
+  colorScale?: string[];
+  colorScaleType?: 'sequential' | 'diverging' | 'categorical';
+  showValues?: boolean;
+  valueFormat?: 'number' | 'percentage' | 'currency';
+}
+
+// Bubble chart specific configuration
+export interface BubbleChartConfig extends BaseDataWidgetConfig {
+  visualizationType: 'bubble';
+  xField: string;
+  yField: string;
+  sizeField: string;
+  minBubbleSize?: number;
+  maxBubbleSize?: number;
+  bubbleOpacity?: number;
+}
+
+// KPI specific configuration
+export interface KpiConfig extends BaseDataWidgetConfig {
+  visualizationType: 'kpi';
+  valueField: string;
+  formatType?: 'number' | 'currency' | 'percentage';
+  prefix?: string;
+  suffix?: string;
+  decimalPlaces?: number;
+  showTrend?: boolean;
+  trendField?: string;
+  trendPeriod?: 'day' | 'week' | 'month' | 'quarter' | 'year';
+  colorThresholds?: Array<{
+    value: number;
+    color: string;
+    operator: '<' | '<=' | '>' | '>=' | '=';
+  }>;
+}
+
+// Table specific configuration
+export interface TableConfig extends BaseDataWidgetConfig {
+  visualizationType: 'table';
+  fields?: string[];
+  columns?: Array<{ field: string; header: string }>;
+}
+
+// Bar chart specific configuration
+export interface BarChartConfig extends BaseDataWidgetConfig {
+  visualizationType: 'bar';
   groupByField?: string;
   valueField?: string;
   labelField?: string;
   aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
-  kpiFormatType?: 'number' | 'currency' | 'percentage';
-  kpiPrefix?: string;
-  kpiSuffix?: string;
+  fields?: string[];
+}
+
+// Line chart specific configuration
+export interface LineChartConfig extends BaseDataWidgetConfig {
+  visualizationType: 'line';
+  groupByField?: string;
+  valueField?: string;
+  labelField?: string;
+  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  fields?: string[];
+}
+
+// Pie chart specific configuration
+export interface PieChartConfig extends BaseDataWidgetConfig {
+  visualizationType: 'pie';
+  groupByField?: string;
+  valueField?: string;
+  labelField?: string;
+  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  fields?: string[];
+}
+
+// Donut chart specific configuration
+export interface DonutChartConfig extends BaseDataWidgetConfig {
+  visualizationType: 'donut';
+  groupByField?: string;
+  valueField?: string;
+  labelField?: string;
+  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  fields?: string[];
+}
+
+// Horizontal bar chart specific configuration
+export interface HBarChartConfig extends BaseDataWidgetConfig {
+  visualizationType: 'hbar';
+  groupByField?: string;
+  valueField?: string;
+  labelField?: string;
+  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  fields?: string[];
+}
+
+// Sunburst chart specific configuration
+export interface SunburstChartConfig extends BaseDataWidgetConfig {
+  visualizationType: 'sunburst';
   idField?: string;
   parentIdField?: string;
+  valueField?: string;
+  labelField?: string;
   equalSegments?: boolean;
-  columns?: Array<{ field: string; header: string }>;
+  fields?: string[];
 }
+
+// Histogram specific configuration
+export interface HistogramConfig extends BaseDataWidgetConfig {
+  visualizationType: 'histogram';
+  valueField: string;
+  groupByField?: string;
+  fields?: string[];
+}
+
+// Stacked bar chart specific configuration
+export interface StackedBarChartConfig extends BaseDataWidgetConfig {
+  visualizationType: 'stacked-bar';
+  groupByField?: string;
+  valueField?: string;
+  labelField?: string;
+  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  fields?: string[];
+}
+
+// Stacked horizontal bar chart specific configuration
+export interface StackedHBarChartConfig extends BaseDataWidgetConfig {
+  visualizationType: 'stacked-hbar';
+  groupByField?: string;
+  valueField?: string;
+  labelField?: string;
+  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  fields?: string[];
+}
+
+// Clustered bar chart specific configuration
+export interface ClusteredBarChartConfig extends BaseDataWidgetConfig {
+  visualizationType: 'clustered-bar';
+  groupByField?: string;
+  valueField?: string;
+  labelField?: string;
+  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  fields?: string[];
+}
+
+// Clustered horizontal bar chart specific configuration
+export interface ClusteredHBarChartConfig extends BaseDataWidgetConfig {
+  visualizationType: 'clustered-hbar';
+  groupByField?: string;
+  valueField?: string;
+  labelField?: string;
+  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  fields?: string[];
+}
+
+// Lollipop chart specific configuration
+export interface LollipopChartConfig extends BaseDataWidgetConfig {
+  visualizationType: 'lollipop';
+  groupByField?: string;
+  valueField?: string;
+  labelField?: string;
+  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  fields?: string[];
+}
+
+// Horizontal lollipop chart specific configuration
+export interface LollipopHChartConfig extends BaseDataWidgetConfig {
+  visualizationType: 'lollipop-h';
+  groupByField?: string;
+  valueField?: string;
+  labelField?: string;
+  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  fields?: string[];
+}
+
+// Union type for all data widget configurations
+export type DataWidgetConfig = 
+  | TableConfig
+  | BarChartConfig
+  | LineChartConfig
+  | PieChartConfig
+  | DonutChartConfig
+  | HBarChartConfig
+  | ScatterChartConfig
+  | SunburstChartConfig
+  | HeatmapConfig
+  | BubbleChartConfig
+  | KpiConfig
+  | HistogramConfig
+  | StackedBarChartConfig
+  | StackedHBarChartConfig
+  | ClusteredBarChartConfig
+  | ClusteredHBarChartConfig
+  | LollipopChartConfig
+  | LollipopHChartConfig
+  | BoxWhiskerChartConfig;
 
 @Component({
   tag: 'data-widget',
@@ -180,7 +389,14 @@ export class DataWidget {
     this.lastFetchTimestamp = now;
     this.fetchInProgress = true;
     
-    const { sourceId, visualizationType, valueField, groupByField, labelField, aggregation, fields } = this.config;
+    const { sourceId, visualizationType } = this.config;
+    
+    // Safely extract properties that may not exist on all config types
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const labelField = 'labelField' in this.config ? this.config.labelField : undefined;
+    const aggregation = 'aggregation' in this.config ? this.config.aggregation : undefined;
+    const fields = 'fields' in this.config ? this.config.fields : undefined;
     
     // Skip if necessary conditions aren't met
     if (!sourceId || !this.isMounted) {

@@ -53,12 +53,15 @@ export class StackedBarChartVisualization {
   private processData(): StackedChartItem[] {
     const rawData = this.data.rawData || [];
     
-    if (rawData.length === 0 || !this.config.groupByField || !this.config.fields || this.config.fields.length === 0) {
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const fields = 'fields' in this.config ? this.config.fields : undefined;
+    
+    if (rawData.length === 0 || !groupByField || !fields || fields.length === 0) {
       return [];
     }
     
-    const groupField = this.config.groupByField;
-    const valueFields = this.config.fields;
+    const groupField = groupByField;
+    const valueFields = fields;
     
     // Group data by category
     const groupedData = rawData.reduce((acc, item) => {
@@ -116,6 +119,10 @@ export class StackedBarChartVisualization {
     if (this.data.error) {
       return <div class="error-message">{this.data.error}</div>;
     }
+    
+    // Extract config properties for use in render
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const fields = 'fields' in this.config ? this.config.fields : undefined;
     
     const chartData = this.processData();
     
@@ -285,7 +292,7 @@ export class StackedBarChartVisualization {
                       style={{ cursor: 'pointer' }}
                       onMouseMove={(e) => this.handleMouseMove(e, { field: segment.field, value: segment.value }, bar.category)}
                       onMouseLeave={() => this.handleMouseLeave()}
-                      onClick={() => this.handleFilterClick(this.config.groupByField, bar.category)}
+                      onClick={() => this.handleFilterClick(groupByField || '', bar.category)}
                     />
                   ))}
                 </g>
@@ -411,7 +418,7 @@ export class StackedBarChartVisualization {
         {/* Legend */}
         {this.config.showLegend && (
           <div class="chart-legend">
-            {this.config.fields && this.config.fields.map((field, i) => (
+            {fields && fields.map((field, i) => (
               <div key={i} class="legend-item">
                 <div class="color-indicator" style={{ backgroundColor: colors[i % colors.length] }}></div>
                 <span class="legend-text">
@@ -423,10 +430,10 @@ export class StackedBarChartVisualization {
         )}
         
         <div class="chart-info-text">
-          {this.config.groupByField && this.config.fields && (
+          {groupByField && fields && (
             <span>
-              Group: {this.config.groupByField} • Values: {this.config.fields.join(', ')} • 
-              Agg: {this.config.aggregation || 'none'}
+    Group: {groupByField || 'N/A'} • Values: {fields?.join(', ') || 'N/A'} • 
+    Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
             </span>
           )}
         </div>

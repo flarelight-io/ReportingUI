@@ -86,9 +86,12 @@ export class HistogramChartVisualization {
     }
     
     // Format 3: Category and value (standard chart data)
-    if (this.config.groupByField && this.config.valueField) {
-      const labelField = this.config.groupByField;
-      const countField = this.config.valueField;
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+    
+    if (groupByField && valueField) {
+      const labelField = groupByField;
+      const countField = valueField;
       
       return rawData.map(item => ({
         label: String(item[labelField] === null ? 'Unknown' : item[labelField]),
@@ -124,6 +127,10 @@ export class HistogramChartVisualization {
     if (this.data.error) {
       return <div class="error-message">{this.data.error}</div>;
     }
+    
+    // Extract config properties for use in render
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
     
     const histogramData = this.processData();
     
@@ -212,7 +219,7 @@ export class HistogramChartVisualization {
               <g 
                 key={i}
                 style={{ cursor: 'pointer' }}
-                onClick={() => this.handleFilterClick(this.config.valueField, bar.bin.label)}
+                onClick={() => this.handleFilterClick(valueField || '', bar.bin.label)}
                 onMouseMove={(event) => this.handleMouseMove(event, bar.bin.label, bar.bin.count)}
                 onMouseLeave={() => this.handleMouseLeave()}
               >
@@ -323,15 +330,15 @@ export class HistogramChartVisualization {
           <div class="chart-legend">
             <div class="legend-item">
               <div class="color-indicator" style={{ backgroundColor: colors[0] }}></div>
-              <span class="legend-text">{this.config.valueField || "Count"}</span>
+                <span class="legend-text">{valueField || "Count"}</span>
             </div>
           </div>
         )}
         
         <div class="chart-metadata">
-          {this.config.groupByField && this.config.valueField && (
+          {groupByField && valueField && (
             <div class="chart-info">
-              Group: {this.config.groupByField} • Value: {this.config.valueField} • Agg: {this.config.aggregation}
+              Group: {groupByField || 'N/A'} • Value: {valueField || 'N/A'} • Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
             </div>
           )}
         </div>

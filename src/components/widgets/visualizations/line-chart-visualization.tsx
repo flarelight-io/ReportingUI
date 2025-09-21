@@ -61,9 +61,12 @@ export class LineChartVisualization {
     }
     
     // For standard chart types
-    if (this.config.groupByField && this.config.valueField) {
-      const xField = this.config.groupByField;
-      const yField = this.config.valueField;
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+    
+    if (groupByField && valueField) {
+      const xField = groupByField;
+      const yField = valueField;
       
       const processed = rawData.map(item => ({
         x: item[xField] === null ? 'Unknown' : item[xField],
@@ -134,6 +137,10 @@ export class LineChartVisualization {
     if (this.data.error) {
       return <div class="error-message">{this.data.error}</div>;
     }
+    
+    // Extract config properties for use in render
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
     
     const chartData = this.processData();
     
@@ -215,7 +222,7 @@ export class LineChartVisualization {
                 key={i} 
                 transform={`translate(${point.x}, ${point.y})`}
                 style={{ cursor: 'pointer' }}
-                onClick={() => this.handleFilterClick(this.config.groupByField, point.category)}
+                onClick={() => this.handleFilterClick(groupByField || '', point.category)}
                 onMouseEnter={(event) => this.handleMouseMove(event, point.category, point.value)}
                 onMouseLeave={() => this.handleMouseLeave()}
               >
@@ -317,15 +324,15 @@ export class LineChartVisualization {
           <div class="chart-legend">
             <div class="legend-item">
               <div class="color-indicator" style={{ backgroundColor: colors[0] }}></div>
-              <span class="legend-text">{this.config.valueField || "Value"}</span>
+              <span class="legend-text">{valueField || "Value"}</span>
             </div>
           </div>
         )}
         
         <div class="chart-metadata">
-          {this.config.groupByField && this.config.valueField && (
+          {groupByField && valueField && (
             <div class="chart-info">
-              Group: {this.config.groupByField} • Value: {this.config.valueField} • Agg: {this.config.aggregation}
+              Group: {groupByField} • Value: {valueField} • Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
             </div>
           )}
         </div>

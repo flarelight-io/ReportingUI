@@ -83,15 +83,19 @@ export class HeatmapVisualization {
     
     // Case 2: Data in "row, column, value" format
     // Each record has rowField, colField, valueField
-    if (this.config.groupByField && this.config.valueField) {
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+    const fields = 'fields' in this.config ? this.config.fields : undefined;
+    
+    if (groupByField && valueField) {
       // This requires a second field to define columns
-      if (!this.config.fields || this.config.fields.length < 1) {
+      if (!fields || fields.length < 1) {
         return { rowLabels: [], colLabels: [], data: [], minValue: 0, maxValue: 0 };
       }
       
-      const rowField = this.config.groupByField;
-      const colField = this.config.fields[0]; // Use the first field as column field
-      const valueField = this.config.valueField;
+      const rowField = groupByField;
+      const colField = fields[0]; // Use the first field as column field
+      const valueFieldName = valueField;
       
       // Get unique row and column values
       const rowLabelsSet = new Set<string>();
@@ -105,7 +109,7 @@ export class HeatmapVisualization {
       rawData.forEach(item => {
         const rowLabel = String(item[rowField] === null ? 'Unknown' : item[rowField]);
         const colLabel = String(item[colField] === null ? 'Unknown' : item[colField]);
-        const value = Number(item[valueField] || 0);
+        const value = Number(item[valueFieldName] || 0);
         
         rowLabelsSet.add(rowLabel);
         colLabelsSet.add(colLabel);
@@ -213,6 +217,10 @@ export class HeatmapVisualization {
     if (this.data.error) {
       return <div class="error-message">{this.data.error}</div>;
     }
+    
+    // Extract config properties for use in render
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
     
     const heatmapData = this.processData();
     
@@ -322,7 +330,7 @@ export class HeatmapVisualization {
                   this.tooltip = { ...this.tooltip, visible: false };
                 }}
                 onClick={() => this.handleFilterClick(
-                  this.config.groupByField, 
+                  groupByField || '',
                   heatmapData.rowLabels[cell.rowIdx]
                 )}
               >
@@ -392,9 +400,9 @@ export class HeatmapVisualization {
         )}
         
         <div class="chart-metadata">
-          {this.config.groupByField && this.config.valueField && (
+          {groupByField && valueField && (
             <div class="chart-info">
-              Group: {this.config.groupByField} • Value: {this.config.valueField} • Agg: {this.config.aggregation}
+              Group: {groupByField || 'N/A'} • Value: {valueField || 'N/A'} • Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
             </div>
           )}
         </div>

@@ -77,28 +77,34 @@ export class SunburstChartVisualization {
   private processData(): SunburstNode[] {
     const rawData = this.data.rawData || [];
     
-    if (rawData.length === 0 || !this.config.idField || !this.config.parentIdField || !this.config.valueField) {
+    const idField = 'idField' in this.config ? this.config.idField : undefined;
+    const parentIdField = 'parentIdField' in this.config ? this.config.parentIdField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+    const labelField = 'labelField' in this.config ? this.config.labelField : undefined;
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    
+    if (rawData.length === 0 || !idField || !parentIdField || !valueField) {
       return [];
     }
 
-    const idField = this.config.idField;
-    const parentIdField = this.config.parentIdField;
-    const valueField = this.config.valueField;
-    const labelField = this.config.labelField || this.config.groupByField;
+    const idFieldName = idField;
+    const parentIdFieldName = parentIdField;
+    const valueFieldName = valueField;
+    const labelFieldName = labelField || groupByField;
     
     // Convert flat data to hierarchical nodes with proper parent/child relationships
     const nodeMap = new Map<string | number, SunburstNode>();
     
     // First pass: create all nodes
     rawData.forEach((item) => {
-      const id = item[idField];
+      const id = item[idFieldName];
       if (id !== undefined) {
         nodeMap.set(id, {
           id,
-          parentId: item[parentIdField],
-          name: item[this.config.groupByField] || String(id),
-          label: item[labelField] || item[this.config.groupByField] || String(id),
-          value: Number(item[valueField] || 0)
+          parentId: item[parentIdFieldName],
+          name: item[groupByField || ''] || String(id),
+          label: item[labelFieldName || ''] || item[groupByField || ''] || String(id),
+          value: Number(item[valueFieldName] || 0)
         });
       }
     });
@@ -150,7 +156,8 @@ export class SunburstChartVisualization {
     const svgNodes: SunburstNode[] = [];
     
     // Handle equalSegments setting
-    if (this.config.equalSegments) {
+    const equalSegments = 'equalSegments' in this.config ? this.config.equalSegments : undefined;
+    if (equalSegments) {
       // If equal segments, adjust values to be equal within each level
       this.equalizeNodeValues(hierarchyMap);
     }
@@ -374,7 +381,13 @@ export class SunburstChartVisualization {
       return <div class="error-message">{this.data.error}</div>;
     }
     
-    if (!this.config.idField || !this.config.parentIdField || !this.config.valueField) {
+    // Extract config properties for use in render
+    const idField = 'idField' in this.config ? this.config.idField : undefined;
+    const parentIdField = 'parentIdField' in this.config ? this.config.parentIdField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    
+    if (!idField || !parentIdField || !valueField) {
       return <div class="error-message">Please configure ID field, Parent ID field and Value field</div>;
     }
     
@@ -420,7 +433,7 @@ export class SunburstChartVisualization {
             d={path} 
             class="segment"
             style={{ fill: node.color }}
-            onClick={() => this.handleFilterClick(this.config.groupByField, node.name)}
+                onClick={() => this.handleFilterClick(groupByField || '', node.name)}
             onMouseMove={(event) => this.handleMouseMove(event, node.name, node.value)}
             onMouseLeave={() => this.handleMouseLeave()}
           >

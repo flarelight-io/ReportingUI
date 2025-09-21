@@ -306,6 +306,63 @@
               "$ref": "#/definitions/AndersonDarlingNormalityTestWidgetConfig"
             },
             {
+              "$ref": "#/definitions/TableConfig"
+            },
+            {
+              "$ref": "#/definitions/BarChartConfig"
+            },
+            {
+              "$ref": "#/definitions/LineChartConfig"
+            },
+            {
+              "$ref": "#/definitions/PieChartConfig"
+            },
+            {
+              "$ref": "#/definitions/DonutChartConfig"
+            },
+            {
+              "$ref": "#/definitions/HBarChartConfig"
+            },
+            {
+              "$ref": "#/definitions/ScatterChartConfig"
+            },
+            {
+              "$ref": "#/definitions/SunburstChartConfig"
+            },
+            {
+              "$ref": "#/definitions/HeatmapConfig"
+            },
+            {
+              "$ref": "#/definitions/BubbleChartConfig"
+            },
+            {
+              "$ref": "#/definitions/KpiConfig"
+            },
+            {
+              "$ref": "#/definitions/HistogramConfig"
+            },
+            {
+              "$ref": "#/definitions/StackedBarChartConfig"
+            },
+            {
+              "$ref": "#/definitions/StackedHBarChartConfig"
+            },
+            {
+              "$ref": "#/definitions/ClusteredBarChartConfig"
+            },
+            {
+              "$ref": "#/definitions/ClusteredHBarChartConfig"
+            },
+            {
+              "$ref": "#/definitions/LollipopChartConfig"
+            },
+            {
+              "$ref": "#/definitions/LollipopHChartConfig"
+            },
+            {
+              "$ref": "#/definitions/BoxWhiskerChartConfig"
+            },
+            {
               "$ref": "#/definitions/DataWidgetConfig"
             }
           ]
@@ -1728,6 +1785,468 @@
           "type": "boolean",
           "description": "Whether to use equal segments for sunburst charts",
           "default": false
+        },
+        "columns": {
+          "type": "array",
+          "description": "Column configuration for table widgets",
+          "items": {
+            "type": "object",
+            "properties": {
+              "field": {
+                "type": "string",
+                "description": "Field name"
+              },
+              "header": {
+                "type": "string",
+                "description": "Column header"
+              }
+            },
+            "required": ["field", "header"]
+          }
+        }
+      }
+    },
+    "BoxWhiskerChartConfig": {
+      "type": "object",
+      "description": "Configuration for box-whisker chart widgets",
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "description": "ID of the data source"
+        },
+        "sourceName": {
+          "type": "string",
+          "description": "Name of the data source"
+        },
+        "visualizationType": {
+          "type": "string",
+          "description": "Type of visualization",
+          "enum": ["box-whisker"],
+          "default": "box-whisker"
+        },
+        "groupByField": {
+          "type": "string",
+          "description": "Field to group data by (required for box-whisker charts)"
+        },
+        "valueField": {
+          "type": "string",
+          "description": "Field containing numeric values to analyze (required for box-whisker charts)"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "showLabels": {
+          "type": "boolean",
+          "description": "Whether to show labels on the chart",
+          "default": true
+        },
+        "showGrid": {
+          "type": "boolean",
+          "description": "Whether to show grid lines",
+          "default": true
+        },
+        "showLegend": {
+          "type": "boolean",
+          "description": "Whether to show the legend",
+          "default": true
+        },
+        "outlierMethod": {
+          "type": "string",
+          "description": "Method for detecting outliers",
+          "enum": ["iqr", "standard-deviation"],
+          "default": "iqr"
+        },
+        "whiskerMultiplier": {
+          "type": "number",
+          "description": "Multiplier for whisker length (1.5 for IQR method)",
+          "default": 1.5,
+          "minimum": 0.5,
+          "maximum": 3.0
+        },
+        "showOutliers": {
+          "type": "boolean",
+          "description": "Whether to show outlier points",
+          "default": true
+        },
+        "minDataPoints": {
+          "type": "integer",
+          "description": "Minimum data points required per group to display",
+          "default": 5,
+          "minimum": 1
+        },
+        "boxWidth": {
+          "type": "number",
+          "description": "Width of the boxes as percentage of available space",
+          "default": 0.8,
+          "minimum": 0.1,
+          "maximum": 1.0
+        }
+      },
+      "required": ["groupByField", "valueField"]
+    },
+    "ScatterChartConfig": {
+      "type": "object",
+      "description": "Configuration for scatter chart widgets",
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "description": "ID of the data source"
+        },
+        "sourceName": {
+          "type": "string",
+          "description": "Name of the data source"
+        },
+        "visualizationType": {
+          "type": "string",
+          "description": "Type of visualization",
+          "enum": ["scatter"],
+          "default": "scatter"
+        },
+        "xField": {
+          "type": "string",
+          "description": "Field for x-axis values"
+        },
+        "yField": {
+          "type": "string",
+          "description": "Field for y-axis values"
+        },
+        "groupByField": {
+          "type": "string",
+          "description": "Field to group data by (optional)"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "showLabels": {
+          "type": "boolean",
+          "description": "Whether to show labels on the chart",
+          "default": true
+        },
+        "showGrid": {
+          "type": "boolean",
+          "description": "Whether to show grid lines",
+          "default": true
+        },
+        "showLegend": {
+          "type": "boolean",
+          "description": "Whether to show the legend",
+          "default": true
+        },
+        "showRegressionLine": {
+          "type": "boolean",
+          "description": "Whether to show regression line",
+          "default": false
+        },
+        "regressionType": {
+          "type": "string",
+          "description": "Type of regression line",
+          "enum": ["linear", "polynomial", "exponential"],
+          "default": "linear"
+        },
+        "pointSize": {
+          "type": "number",
+          "description": "Size of data points",
+          "default": 4,
+          "minimum": 1,
+          "maximum": 20
+        },
+        "pointOpacity": {
+          "type": "number",
+          "description": "Opacity of data points",
+          "default": 0.7,
+          "minimum": 0.1,
+          "maximum": 1.0
+        }
+      },
+      "required": ["xField", "yField"]
+    },
+    "HeatmapConfig": {
+      "type": "object",
+      "description": "Configuration for heatmap widgets",
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "description": "ID of the data source"
+        },
+        "sourceName": {
+          "type": "string",
+          "description": "Name of the data source"
+        },
+        "visualizationType": {
+          "type": "string",
+          "description": "Type of visualization",
+          "enum": ["heatmap"],
+          "default": "heatmap"
+        },
+        "xField": {
+          "type": "string",
+          "description": "Field for x-axis categories"
+        },
+        "yField": {
+          "type": "string",
+          "description": "Field for y-axis categories"
+        },
+        "valueField": {
+          "type": "string",
+          "description": "Field containing the values to visualize"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "showLabels": {
+          "type": "boolean",
+          "description": "Whether to show labels on the chart",
+          "default": true
+        },
+        "showLegend": {
+          "type": "boolean",
+          "description": "Whether to show the legend",
+          "default": true
+        },
+        "colorScale": {
+          "type": "array",
+          "description": "Custom color scale for the heatmap",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2,
+          "maxItems": 10
+        },
+        "colorScaleType": {
+          "type": "string",
+          "description": "Type of color scale",
+          "enum": ["sequential", "diverging", "categorical"],
+          "default": "sequential"
+        },
+        "showValues": {
+          "type": "boolean",
+          "description": "Whether to show values in cells",
+          "default": false
+        },
+        "valueFormat": {
+          "type": "string",
+          "description": "Format for displaying values",
+          "enum": ["number", "percentage", "currency"],
+          "default": "number"
+        }
+      },
+      "required": ["xField", "yField", "valueField"]
+    },
+    "BubbleChartConfig": {
+      "type": "object",
+      "description": "Configuration for bubble chart widgets",
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "description": "ID of the data source"
+        },
+        "sourceName": {
+          "type": "string",
+          "description": "Name of the data source"
+        },
+        "visualizationType": {
+          "type": "string",
+          "description": "Type of visualization",
+          "enum": ["bubble"],
+          "default": "bubble"
+        },
+        "xField": {
+          "type": "string",
+          "description": "Field for x-axis values"
+        },
+        "yField": {
+          "type": "string",
+          "description": "Field for y-axis values"
+        },
+        "sizeField": {
+          "type": "string",
+          "description": "Field for bubble size"
+        },
+        "groupByField": {
+          "type": "string",
+          "description": "Field to group data by (optional)"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "showLabels": {
+          "type": "boolean",
+          "description": "Whether to show labels on the chart",
+          "default": true
+        },
+        "showGrid": {
+          "type": "boolean",
+          "description": "Whether to show grid lines",
+          "default": true
+        },
+        "showLegend": {
+          "type": "boolean",
+          "description": "Whether to show the legend",
+          "default": true
+        },
+        "minBubbleSize": {
+          "type": "number",
+          "description": "Minimum bubble size in pixels",
+          "default": 5,
+          "minimum": 1
+        },
+        "maxBubbleSize": {
+          "type": "number",
+          "description": "Maximum bubble size in pixels",
+          "default": 50,
+          "minimum": 1
+        },
+        "bubbleOpacity": {
+          "type": "number",
+          "description": "Opacity of bubbles",
+          "default": 0.7,
+          "minimum": 0.1,
+          "maximum": 1.0
+        }
+      },
+      "required": ["xField", "yField", "sizeField"]
+    },
+    "KpiConfig": {
+      "type": "object",
+      "description": "Configuration for KPI widgets",
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "description": "ID of the data source"
+        },
+        "sourceName": {
+          "type": "string",
+          "description": "Name of the data source"
+        },
+        "visualizationType": {
+          "type": "string",
+          "description": "Type of visualization",
+          "enum": ["kpi"],
+          "default": "kpi"
+        },
+        "valueField": {
+          "type": "string",
+          "description": "Field containing the KPI value"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "formatType": {
+          "type": "string",
+          "description": "Format type for the KPI value",
+          "enum": ["number", "currency", "percentage"],
+          "default": "number"
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Prefix for the KPI value"
+        },
+        "suffix": {
+          "type": "string",
+          "description": "Suffix for the KPI value"
+        },
+        "decimalPlaces": {
+          "type": "integer",
+          "description": "Number of decimal places to show",
+          "default": 2,
+          "minimum": 0,
+          "maximum": 10
+        },
+        "showTrend": {
+          "type": "boolean",
+          "description": "Whether to show trend indicator",
+          "default": false
+        },
+        "trendField": {
+          "type": "string",
+          "description": "Field to calculate trend from"
+        },
+        "trendPeriod": {
+          "type": "string",
+          "description": "Period for trend calculation",
+          "enum": ["day", "week", "month", "quarter", "year"],
+          "default": "month"
+        },
+        "colorThresholds": {
+          "type": "array",
+          "description": "Color thresholds for the KPI",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "number",
+                "description": "Threshold value"
+              },
+              "color": {
+                "type": "string",
+                "description": "Color for this threshold"
+              },
+              "operator": {
+                "type": "string",
+                "enum": ["<", "<=", ">", ">=", "="],
+                "description": "Comparison operator"
+              }
+            },
+            "required": ["value", "color", "operator"]
+          }
+        }
+      },
+      "required": ["valueField"]
+    },
+    "TableConfig": {
+      "type": "object",
+      "description": "Configuration for table widgets",
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "description": "ID of the data source"
+        },
+        "sourceName": {
+          "type": "string",
+          "description": "Name of the data source"
+        },
+        "visualizationType": {
+          "type": "string",
+          "description": "Type of visualization",
+          "enum": ["table"],
+          "default": "table"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "showLabels": {
+          "type": "boolean",
+          "description": "Whether to show labels on the chart",
+          "default": true
+        },
+        "showGrid": {
+          "type": "boolean",
+          "description": "Whether to show grid lines",
+          "default": true
+        },
+        "showLegend": {
+          "type": "boolean",
+          "description": "Whether to show the legend",
+          "default": true
+        },
+        "fields": {
+          "type": "array",
+          "description": "Fields to include in the table",
+          "items": {
+            "type": "string"
+          }
         },
         "columns": {
           "type": "array",

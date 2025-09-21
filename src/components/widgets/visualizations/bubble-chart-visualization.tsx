@@ -64,15 +64,20 @@ export class BubbleChartVisualization {
     }
     
     // For standard configuration with x, y, and size fields specified
-    if (this.config.groupByField && this.config.valueField) {
-      const xField = this.config.groupByField;
-      const yField = this.config.valueField;
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+    const idField = 'idField' in this.config ? this.config.idField : undefined;
+    const parentIdField = 'parentIdField' in this.config ? this.config.parentIdField : undefined;
+    
+    if (groupByField && valueField) {
+      const xField = groupByField;
+      const yField = valueField;
       
       // For size, we'll use a third field if specified, otherwise use the same as y
-      const sizeField = this.config.idField || yField;
+      const sizeField = idField || yField;
       
       // For category (used for coloring), use the parentIdField if specified, otherwise use groupByField
-      const categoryField = this.config.parentIdField || xField;
+      const categoryField = parentIdField || xField;
       
       const processed = rawData.map(item => ({
         x: item[xField] === null ? 'Unknown' : item[xField],
@@ -199,6 +204,12 @@ export class BubbleChartVisualization {
       return <div class="error-message">{this.data.error}</div>;
     }
     
+    // Extract config properties for use in render
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+    const idField = 'idField' in this.config ? this.config.idField : undefined;
+    const parentIdField = 'parentIdField' in this.config ? this.config.parentIdField : undefined;
+    
     const bubbleData = this.processData();
     
     if (bubbleData.length === 0) {
@@ -259,7 +270,7 @@ export class BubbleChartVisualization {
       const color = this.getCategoryColor(item.category, categories);
       
       // Generate tooltip content
-      const tooltipContent = `${item.x}: ${item.y} (Size: ${item.originalData[this.config.idField || this.config.valueField]})`;
+      const tooltipContent = `${item.x}: ${item.y} (Size: ${item.originalData[idField || valueField || '']})`;
       
       return {
         x,
@@ -324,7 +335,7 @@ export class BubbleChartVisualization {
                 key={i} 
                 transform={`translate(${bubble.x}, ${bubble.y})`}
                 style={{ cursor: 'pointer' }}
-                onClick={() => this.handleFilterClick(this.config.groupByField, bubble.data.x)}
+                onClick={() => this.handleFilterClick(groupByField || '', bubble.data.x)}
                 onMouseMove={(event) => this.handleMouseMove(event, bubble.data.x, bubble.data.y, bubble.data.size)}
                 onMouseLeave={() => this.handleMouseLeave()}
               >
@@ -451,11 +462,11 @@ export class BubbleChartVisualization {
         )}
         
         <div class="chart-metadata">
-          {this.config.groupByField && this.config.valueField && (
+          {groupByField && valueField && (
             <div class="chart-info">
-              X: {this.config.groupByField} • Y: {this.config.valueField} • 
-              Size: {this.config.idField || this.config.valueField} • 
-              Color: {this.config.parentIdField || this.config.groupByField}
+              X: {groupByField} • Y: {valueField} • 
+    Size: {idField || valueField || 'N/A'} •
+    Color: {parentIdField || groupByField || 'N/A'}
             </div>
           )}
         </div>

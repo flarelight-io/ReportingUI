@@ -67,9 +67,12 @@ export class ScatterChartVisualization {
     }
     
     // For standard chart types
-    if (this.config.groupByField && this.config.valueField) {
-      const xField = this.config.groupByField;
-      const yField = this.config.valueField;
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+    
+    if (groupByField && valueField) {
+      const xField = groupByField;
+      const yField = valueField;
       
       const processed = rawData.map(item => ({
         x: item[xField] === null ? 'Unknown' : item[xField],
@@ -187,6 +190,11 @@ export class ScatterChartVisualization {
       return <div class="error-message">{this.data.error}</div>;
     }
     
+    // Extract config properties for use in render
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+    const showRegressionLine = 'showRegressionLine' in this.config ? this.config.showRegressionLine : undefined;
+    
     const chartData = this.processData();
     
     if (chartData.length === 0) {
@@ -209,7 +217,7 @@ export class ScatterChartVisualization {
     
     // Calculate regression line if enabled and we have numeric x values
     let regressionLine = null;
-    if (this.config.showRegressionLine) {
+    if (showRegressionLine) {
       // Convert original data points to numeric values for regression calculation
       const numericPoints = chartData
         .filter(item => {
@@ -315,7 +323,7 @@ export class ScatterChartVisualization {
             )}
             
             {/* Draw regression line if enabled */}
-            {this.config.showRegressionLine && regressionLine && (
+            {showRegressionLine && regressionLine && (
               <line
                 x1={regressionLine.x1}
                 y1={regressionLine.y1}
@@ -333,7 +341,7 @@ export class ScatterChartVisualization {
                 key={i} 
                 transform={`translate(${point.x}, ${point.y})`}
                 style={{ cursor: 'pointer' }}
-                onClick={() => this.handleFilterClick(this.config.groupByField, point.category)}
+                onClick={() => this.handleFilterClick(groupByField || '', point.category)}
                 onMouseMove={(event) => this.handleMouseMove(event, point.category, point.value)}
                 onMouseLeave={() => this.handleMouseLeave()}
               >
@@ -477,7 +485,7 @@ export class ScatterChartVisualization {
             )}
             
             {/* Add regression line to legend if it exists */}
-            {this.config.showRegressionLine && regressionLine && (
+            {showRegressionLine && regressionLine && (
               <div class="legend-item">
                 <div class="color-indicator regression-indicator" style={{ backgroundColor: '#ff6b6b' }}></div>
                 <span class="legend-text">
@@ -489,9 +497,9 @@ export class ScatterChartVisualization {
         )}
         
         <div class="chart-metadata">
-          {this.config.groupByField && this.config.valueField && (
+          {groupByField && valueField && (
             <div class="chart-info">
-              Group: {this.config.groupByField} • Value: {this.config.valueField} • Agg: {this.config.aggregation}
+              Group: {groupByField || 'N/A'} • Value: {valueField || 'N/A'} • Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
             </div>
           )}
         </div>

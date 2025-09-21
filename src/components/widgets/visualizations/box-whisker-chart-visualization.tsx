@@ -74,7 +74,8 @@ export class BoxWhiskerChartVisualization {
       return [];
     }
     
-    const { groupByField, valueField } = this.config;
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
     
     if (!groupByField || !valueField) {
       // If no grouping field is provided, we can't create categories for box plots
@@ -183,6 +184,9 @@ export class BoxWhiskerChartVisualization {
     if (this.data.error) {
       return <div class="error-message">{this.data.error}</div>;
     }
+    
+    // Extract config properties for use in render
+    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
     
     const chartData = this.processData();
     
@@ -481,7 +485,7 @@ export class BoxWhiskerChartVisualization {
                     cursor="pointer"
                     onMouseMove={(e) => this.handleMouseMove(e, box.category, box.stats)}
                     onMouseLeave={() => this.handleMouseLeave()}
-                    onClick={() => this.handleFilterClick(this.config.groupByField, box.category)}
+                    onClick={() => this.handleFilterClick(groupByField || '', box.category)}
                   />
                 </g>
               ))}
