@@ -1479,9 +1479,7 @@ export class ReportDemo {
         ];
         
       case 'sample-box-whisker':
-        // Generate data with different statistical distributions for each group
-        const result = [];
-        
+        // Generate box-whisker data with pre-calculated statistics
         const groups = [
           'North American Regional Performance Metrics',
           'European Union Market Performance Indicators', 
@@ -1492,36 +1490,93 @@ export class ReportDemo {
           'Global Digital Transformation Metrics'
         ];
         
-        groups.forEach(group => {
-          // Generate 40-60 data points per group with different distributions
-          const numPoints = 40 + Math.floor(Math.random() * 21);
+        return groups.map((group, index) => {
+          // Generate realistic statistical data
           const baseValue = 30 + Math.random() * 40;
           const spread = 10 + Math.random() * 20;
+          const sampleSize = 40 + Math.floor(Math.random() * 21);
+          const missingCount = Math.floor(Math.random() * 5);
           
-          for (let i = 0; i < numPoints; i++) {
-            let value;
-            if (group.includes('North American')) {
-              // Normal distribution
-              value = baseValue + (Math.random() + Math.random() + Math.random() - 1.5) * spread;
-            } else if (group.includes('European')) {
-              // Slightly skewed distribution
-              value = baseValue + Math.pow(Math.random(), 1.5) * spread * 2;
-            } else if (group.includes('Asia Pacific')) {
-              // Higher variance distribution
-              value = baseValue + (Math.random() + Math.random() - 1) * spread * 1.5;
-            } else {
-              // Mixed distribution
-              value = baseValue + (Math.random() - 0.5) * spread * 2;
-            }
-            
-            result.push({ 
-              group: group, 
-              value: Math.max(0, value) // Ensure non-negative values
-            });
+          // Calculate statistics based on distribution type
+          let mean, stdDev, min, q1, median, q3, max, iqr, lowerWhisker, upperWhisker;
+          let outlierCount = 0;
+          let outliers = [];
+          
+          if (group.includes('North American')) {
+            // Normal distribution
+            mean = baseValue;
+            stdDev = spread * 0.3;
+            min = mean - 2.5 * stdDev;
+            q1 = mean - 0.67 * stdDev;
+            median = mean;
+            q3 = mean + 0.67 * stdDev;
+            max = mean + 2.5 * stdDev;
+          } else if (group.includes('European')) {
+            // Slightly skewed distribution
+            mean = baseValue + spread * 0.2;
+            stdDev = spread * 0.4;
+            min = mean - 2.2 * stdDev;
+            q1 = mean - 0.5 * stdDev;
+            median = mean + 0.1 * stdDev;
+            q3 = mean + 0.8 * stdDev;
+            max = mean + 2.8 * stdDev;
+          } else if (group.includes('Asia Pacific')) {
+            // Higher variance distribution
+            mean = baseValue;
+            stdDev = spread * 0.5;
+            min = mean - 2.8 * stdDev;
+            q1 = mean - 0.8 * stdDev;
+            median = mean;
+            q3 = mean + 0.8 * stdDev;
+            max = mean + 2.8 * stdDev;
+          } else {
+            // Mixed distribution
+            mean = baseValue + spread * 0.1;
+            stdDev = spread * 0.35;
+            min = mean - 2.3 * stdDev;
+            q1 = mean - 0.6 * stdDev;
+            median = mean + 0.05 * stdDev;
+            q3 = mean + 0.7 * stdDev;
+            max = mean + 2.6 * stdDev;
           }
+          
+          iqr = q3 - q1;
+          lowerWhisker = q1 - 1.5 * iqr;
+          upperWhisker = q3 + 1.5 * iqr;
+          
+          // Generate some outliers (limited to 50 for preview)
+          const outlierCountLow = Math.floor(Math.random() * 3);
+          const outlierCountHigh = Math.floor(Math.random() * 3);
+          outlierCount = outlierCountLow + outlierCountHigh;
+          
+          for (let i = 0; i < Math.min(outlierCountLow, 25); i++) {
+            outliers.push(lowerWhisker - Math.random() * stdDev);
+          }
+          for (let i = 0; i < Math.min(outlierCountHigh, 25); i++) {
+            outliers.push(upperWhisker + Math.random() * stdDev);
+          }
+          
+          return {
+            SampleSize: sampleSize,
+            MissingCount: missingCount,
+            Mean: Number(mean.toFixed(2)),
+            StdDev: Number(stdDev.toFixed(2)),
+            Min: Number(min.toFixed(2)),
+            Q1: Number(q1.toFixed(2)),
+            Median: Number(median.toFixed(2)),
+            Q3: Number(q3.toFixed(2)),
+            Max: Number(max.toFixed(2)),
+            IQR: Number(iqr.toFixed(2)),
+            LowerWhisker: Number(lowerWhisker.toFixed(2)),
+            UpperWhisker: Number(upperWhisker.toFixed(2)),
+            OutlierCountLow: outlierCountLow,
+            OutlierCountHigh: outlierCountHigh,
+            OutlierCount: outlierCount,
+            OutliersPreviewJson: outliers.length > 0 ? JSON.stringify(outliers) : null,
+            DataSourceName: group,
+            SampleSourceName: `Sample_${index + 1}`
+          };
         });
-        
-        return result;
       
       case 'sample-descriptive':
         return [

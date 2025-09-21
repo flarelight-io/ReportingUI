@@ -19,12 +19,7 @@ interface BaseDataWidgetConfig {
 // Box-whisker chart specific configuration
 export interface BoxWhiskerChartConfig extends BaseDataWidgetConfig {
   visualizationType: 'box-whisker';
-  groupByField: string;
-  valueField: string;
-  outlierMethod?: 'iqr' | 'standard-deviation';
-  whiskerMultiplier?: number;
   showOutliers?: boolean;
-  minDataPoints?: number;
   boxWidth?: number;
 }
 

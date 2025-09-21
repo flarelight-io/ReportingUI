@@ -3,13 +3,24 @@ import { FilterChangeEventDetail, VisualizationData } from './base-visualization
 import { DataWidgetConfig } from '../data-widget';
 
 interface BoxWhiskerDataItem {
-  category: string;
-  min: number;     // Minimum value
-  q1: number;      // First quartile (25th percentile)
-  median: number;  // Median (50th percentile)
-  q3: number;      // Third quartile (75th percentile)
-  max: number;     // Maximum value
-  outliers?: number[]; // Optional outliers
+  SampleSize: number;
+  MissingCount: number;
+  Mean: number;
+  StdDev: number;
+  Min: number;
+  Q1: number;
+  Median: number;
+  Q3: number;
+  Max: number;
+  IQR: number;
+  LowerWhisker: number | null;
+  UpperWhisker: number | null;
+  OutlierCountLow: number;
+  OutlierCountHigh: number;
+  OutlierCount: number;
+  OutliersPreviewJson: number[] | null;
+  DataSourceName: string;
+  SampleSourceName: string;
 }
 
 @Component({
@@ -30,43 +41,6 @@ export class BoxWhiskerChartVisualization {
   // Reference to the SVG element
   private svgRef?: SVGElement;
   
-  // Calculate statistics for box and whisker plot
-  private calculateStatistics(values: number[]): { min: number, q1: number, median: number, q3: number, max: number, outliers: number[] } {
-    if (!values || values.length === 0) {
-      return { min: 0, q1: 0, median: 0, q3: 0, max: 0, outliers: [] };
-    }
-    
-    // Sort the values
-    const sortedValues = [...values].sort((a, b) => a - b);
-    
-    // Calculate quartiles
-    const q1Index = Math.floor(sortedValues.length * 0.25);
-    const medianIndex = Math.floor(sortedValues.length * 0.5);
-    const q3Index = Math.floor(sortedValues.length * 0.75);
-    
-    const q1 = sortedValues[q1Index];
-    const median = sortedValues[medianIndex];
-    const q3 = sortedValues[q3Index];
-    
-    // Calculate IQR (Interquartile Range)
-    const iqr = q3 - q1;
-    
-    // Calculate whisker boundaries
-    const lowerWhisker = Math.max(...sortedValues.filter(v => v >= q1 - 1.5 * iqr && v <= q1));
-    const upperWhisker = Math.min(...sortedValues.filter(v => v <= q3 + 1.5 * iqr && v >= q3));
-    
-    // Identify outliers (values outside the whiskers)
-    const outliers = sortedValues.filter(v => v < lowerWhisker || v > upperWhisker);
-    
-    return {
-      min: lowerWhisker,
-      q1,
-      median,
-      q3,
-      max: upperWhisker,
-      outliers
-    };
-  }
   
   // Process raw data into format needed for box and whisker plot
   private processData(): BoxWhiskerDataItem[] {
@@ -74,51 +48,42 @@ export class BoxWhiskerChartVisualization {
       return [];
     }
     
-    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
-    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
-    
-    if (!groupByField || !valueField) {
-      // If no grouping field is provided, we can't create categories for box plots
-      return [];
-    }
-    
-    // Group data by the groupByField
-    const groupedData = {};
-    
-    for (const item of this.data.rawData) {
-      const category = item[groupByField];
-      const value = parseFloat(item[valueField]);
-      
-      if (isNaN(value)) continue;
-      
-      if (!groupedData[category]) {
-        groupedData[category] = [];
+    // Process each row as a box-whisker data item
+    return this.data.rawData.map((row) => {
+      // Parse OutliersPreviewJson if it exists
+      let outliers: number[] | null = null;
+      if (row.OutliersPreviewJson) {
+        try {
+          outliers = typeof row.OutliersPreviewJson === 'string' 
+            ? JSON.parse(row.OutliersPreviewJson) 
+            : row.OutliersPreviewJson;
+        } catch (e) {
+          console.warn('Failed to parse OutliersPreviewJson:', e);
+          outliers = null;
+        }
       }
       
-      groupedData[category].push(value);
-    }
-    
-    // Calculate statistics for each group
-    const result: BoxWhiskerDataItem[] = [];
-    
-    for (const category in groupedData) {
-      const values = groupedData[category];
-      if (values.length < 5) continue; // Need at least 5 data points for a meaningful box plot
-      
-      const stats = this.calculateStatistics(values);
-      
-      result.push({
-        category,
-        min: stats.min,
-        q1: stats.q1,
-        median: stats.median,
-        q3: stats.q3,
-        max: stats.max,
-        outliers: stats.outliers
-      });
-    }
-    
-    return result;
+      return {
+        SampleSize: Number(row.SampleSize) || 0,
+        MissingCount: Number(row.MissingCount) || 0,
+        Mean: Number(row.Mean) || 0,
+        StdDev: Number(row.StdDev) || 0,
+        Min: Number(row.Min) || 0,
+        Q1: Number(row.Q1) || 0,
+        Median: Number(row.Median) || 0,
+        Q3: Number(row.Q3) || 0,
+        Max: Number(row.Max) || 0,
+        IQR: Number(row.IQR) || 0,
+        LowerWhisker: row.LowerWhisker ? Number(row.LowerWhisker) : null,
+        UpperWhisker: row.UpperWhisker ? Number(row.UpperWhisker) : null,
+        OutlierCountLow: Number(row.OutlierCountLow) || 0,
+        OutlierCountHigh: Number(row.OutlierCountHigh) || 0,
+        OutlierCount: Number(row.OutlierCount) || 0,
+        OutliersPreviewJson: outliers,
+        DataSourceName: String(row.DataSourceName) || '',
+        SampleSourceName: String(row.SampleSourceName) || ''
+      };
+    });
   }
   
   private getColors() {
@@ -137,18 +102,22 @@ export class BoxWhiskerChartVisualization {
     ];
   }
   
-  private handleMouseMove(event: MouseEvent, category: string, stats: { min: number, q1: number, median: number, q3: number, max: number }) {
+  private handleMouseMove(event: MouseEvent, category: string, item: BoxWhiskerDataItem) {
     // Show tooltip with statistical information
     this.tooltipVisible = true;
     this.tooltipContent = {
       title: category,
       data: [
-        { label: 'Min', value: stats.min.toFixed(2) },
-        { label: 'Q1', value: stats.q1.toFixed(2) },
-        { label: 'Median', value: stats.median.toFixed(2) },
-        { label: 'Q3', value: stats.q3.toFixed(2) },
-        { label: 'Max', value: stats.max.toFixed(2) },
-        { label: 'IQR', value: (stats.q3 - stats.q1).toFixed(2) }
+        { label: 'Sample Size', value: item.SampleSize.toString() },
+        { label: 'Mean', value: item.Mean.toFixed(2) },
+        { label: 'Std Dev', value: item.StdDev.toFixed(2) },
+        { label: 'Min', value: item.Min.toFixed(2) },
+        { label: 'Q1', value: item.Q1.toFixed(2) },
+        { label: 'Median', value: item.Median.toFixed(2) },
+        { label: 'Q3', value: item.Q3.toFixed(2) },
+        { label: 'Max', value: item.Max.toFixed(2) },
+        { label: 'IQR', value: item.IQR.toFixed(2) },
+        { label: 'Outliers', value: item.OutlierCount.toString() }
       ]
     };
     
@@ -186,7 +155,6 @@ export class BoxWhiskerChartVisualization {
     }
     
     // Extract config properties for use in render
-    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
     
     const chartData = this.processData();
     
@@ -198,12 +166,12 @@ export class BoxWhiskerChartVisualization {
     
     // Find the min and max values for scaling
     const allValues = chartData.flatMap(item => [
-      item.min, 
-      item.q1, 
-      item.median, 
-      item.q3, 
-      item.max, 
-      ...(item.outliers || [])
+      item.Min, 
+      item.Q1, 
+      item.Median, 
+      item.Q3, 
+      item.Max, 
+      ...(item.OutliersPreviewJson || [])
     ]);
     
     const minValue = Math.min(...allValues);
@@ -230,13 +198,13 @@ export class BoxWhiskerChartVisualization {
         return viewBoxHeight - padding - scaledValue;
       };
       
-      const boxTop = scaleY(item.q3);
-      const boxBottom = scaleY(item.q1);
+      const boxTop = scaleY(item.Q3);
+      const boxBottom = scaleY(item.Q1);
       const boxHeight = Math.abs(boxBottom - boxTop);
       
-      const minY = scaleY(item.min);
-      const maxY = scaleY(item.max);
-      const medianY = scaleY(item.median);
+      const minY = scaleY(item.Min);
+      const maxY = scaleY(item.Max);
+      const medianY = scaleY(item.Median);
       
       const color = colors[i % colors.length];
       
@@ -251,13 +219,13 @@ export class BoxWhiskerChartVisualization {
       return {
         key: i,
         color,
-        category: item.category,
+        category: item.DataSourceName || item.SampleSourceName || `Group ${i + 1}`,
         stats: {
-          min: item.min,
-          q1: item.q1,
-          median: item.median,
-          q3: item.q3,
-          max: item.max
+          min: item.Min,
+          q1: item.Q1,
+          median: item.Median,
+          q3: item.Q3,
+          max: item.Max
         },
         elements: {
           // Box
@@ -301,7 +269,7 @@ export class BoxWhiskerChartVisualization {
             y2: minY
           },
           // Outliers (if any)
-          outliers: (item.outliers || []).map(outlier => ({
+          outliers: (item.OutliersPreviewJson || []).map(outlier => ({
             cx: x,
             cy: scaleY(outlier),
             r: 0.5
@@ -483,9 +451,9 @@ export class BoxWhiskerChartVisualization {
                     height={box.elements.interactionZone.height}
                     fill="transparent"
                     cursor="pointer"
-                    onMouseMove={(e) => this.handleMouseMove(e, box.category, box.stats)}
+                    onMouseMove={(e) => this.handleMouseMove(e, box.category, chartData[box.key])}
                     onMouseLeave={() => this.handleMouseLeave()}
-                    onClick={() => this.handleFilterClick(groupByField || '', box.category)}
+                    onClick={() => this.handleFilterClick('DataSourceName', chartData[box.key].DataSourceName || chartData[box.key].SampleSourceName)}
                   />
                 </g>
               ))}
@@ -494,7 +462,7 @@ export class BoxWhiskerChartVisualization {
           
           {this.tooltipVisible && (
             <div 
-              class="tooltip" 
+              class="chart-tooltip" 
               style={{ 
                 left: `${this.tooltipPosition.x}px`, 
                 top: `${this.tooltipPosition.y}px`,
@@ -516,14 +484,14 @@ export class BoxWhiskerChartVisualization {
         </div>
         
         {this.config.showLegend && (
-          <div class="legend-container">
+          <div class="chart-legend">
             {chartData.map((item, i) => (
               <div key={i} class="legend-item">
                 <div 
-                  class="legend-color" 
+                  class="color-indicator" 
                   style={{ backgroundColor: colors[i % colors.length] }}
                 ></div>
-                <div class="legend-label">{item.category}</div>
+                <div class="legend-text">{item.DataSourceName || item.SampleSourceName || `Group ${i + 1}`}</div>
               </div>
             ))}
           </div>

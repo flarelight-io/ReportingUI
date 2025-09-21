@@ -1824,14 +1824,6 @@
           "enum": ["box-whisker"],
           "default": "box-whisker"
         },
-        "groupByField": {
-          "type": "string",
-          "description": "Field to group data by (required for box-whisker charts)"
-        },
-        "valueField": {
-          "type": "string",
-          "description": "Field containing numeric values to analyze (required for box-whisker charts)"
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -1852,29 +1844,10 @@
           "description": "Whether to show the legend",
           "default": true
         },
-        "outlierMethod": {
-          "type": "string",
-          "description": "Method for detecting outliers",
-          "enum": ["iqr", "standard-deviation"],
-          "default": "iqr"
-        },
-        "whiskerMultiplier": {
-          "type": "number",
-          "description": "Multiplier for whisker length (1.5 for IQR method)",
-          "default": 1.5,
-          "minimum": 0.5,
-          "maximum": 3.0
-        },
         "showOutliers": {
           "type": "boolean",
           "description": "Whether to show outlier points",
           "default": true
-        },
-        "minDataPoints": {
-          "type": "integer",
-          "description": "Minimum data points required per group to display",
-          "default": 5,
-          "minimum": 1
         },
         "boxWidth": {
           "type": "number",
@@ -1884,7 +1857,7 @@
           "maximum": 1.0
         }
       },
-      "required": ["groupByField", "valueField"]
+      "required": []
     },
     "ScatterChartConfig": {
       "type": "object",
