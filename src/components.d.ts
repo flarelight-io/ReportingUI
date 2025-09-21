@@ -5,6 +5,7 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
+import { AndersonDarlingNormalityTestWidgetConfig } from "./components/widgets/anderson-darling-normality-test-widget";
 import { DataWidgetConfig } from "./components/widgets/data-widget";
 import { FilterChangeEventDetail, VisualizationData } from "./components/widgets/visualizations/base-visualization";
 import { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlation-analysis-widget";
@@ -25,6 +26,7 @@ import { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget"
 import { TextWidgetConfig } from "./components/widgets/text-widget";
 import { WelchAnovaWidgetConfig } from "./components/widgets/welch-anova-widget";
 import { WelchTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/welch-two-sample-hypothesis-test-widget";
+export { AndersonDarlingNormalityTestWidgetConfig } from "./components/widgets/anderson-darling-normality-test-widget";
 export { DataWidgetConfig } from "./components/widgets/data-widget";
 export { FilterChangeEventDetail, VisualizationData } from "./components/widgets/visualizations/base-visualization";
 export { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlation-analysis-widget";
@@ -46,6 +48,34 @@ export { TextWidgetConfig } from "./components/widgets/text-widget";
 export { WelchAnovaWidgetConfig } from "./components/widgets/welch-anova-widget";
 export { WelchTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/welch-two-sample-hypothesis-test-widget";
 export namespace Components {
+    interface AndersonDarlingNormalityTestWidget {
+        /**
+          * @default {}
+         */
+        "config": AndersonDarlingNormalityTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data": any[];
+        "fetchChartData": Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor": boolean;
+        /**
+          * @default false
+         */
+        "isViewer": boolean;
+        /**
+          * @default false
+         */
+        "readOnly": boolean;
+        "reportId"?: string;
+        "widgetId": string;
+        "widgetTitle": string;
+        "width"?: number;
+    }
     interface BarChartVisualization {
         "config": DataWidgetConfig;
         "data": VisualizationData;
@@ -665,6 +695,12 @@ export interface TableVisualizationCustomEvent<T> extends CustomEvent<T> {
     target: HTMLTableVisualizationElement;
 }
 declare global {
+    interface HTMLAndersonDarlingNormalityTestWidgetElement extends Components.AndersonDarlingNormalityTestWidget, HTMLStencilElement {
+    }
+    var HTMLAndersonDarlingNormalityTestWidgetElement: {
+        prototype: HTMLAndersonDarlingNormalityTestWidgetElement;
+        new (): HTMLAndersonDarlingNormalityTestWidgetElement;
+    };
     interface HTMLBarChartVisualizationElementEventMap {
         "filterChange": FilterChangeEventDetail;
     }
@@ -1024,6 +1060,7 @@ declare global {
         new (): HTMLWelchTwoSampleHypothesisTestWidgetElement;
     };
     interface HTMLElementTagNameMap {
+        "anderson-darling-normality-test-widget": HTMLAndersonDarlingNormalityTestWidgetElement;
         "bar-chart-visualization": HTMLBarChartVisualizationElement;
         "base-widget": HTMLBaseWidgetElement;
         "box-whisker-chart-visualization": HTMLBoxWhiskerChartVisualizationElement;
@@ -1061,6 +1098,34 @@ declare global {
     }
 }
 declare namespace LocalJSX {
+    interface AndersonDarlingNormalityTestWidget {
+        /**
+          * @default {}
+         */
+        "config"?: AndersonDarlingNormalityTestWidgetConfig;
+        /**
+          * @default []
+         */
+        "data"?: any[];
+        "fetchChartData"?: Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
+        "isViewer"?: boolean;
+        /**
+          * @default false
+         */
+        "readOnly"?: boolean;
+        "reportId"?: string;
+        "widgetId"?: string;
+        "widgetTitle"?: string;
+        "width"?: number;
+    }
     interface BarChartVisualization {
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
@@ -1637,6 +1702,7 @@ declare namespace LocalJSX {
         "width"?: number;
     }
     interface IntrinsicElements {
+        "anderson-darling-normality-test-widget": AndersonDarlingNormalityTestWidget;
         "bar-chart-visualization": BarChartVisualization;
         "base-widget": BaseWidget;
         "box-whisker-chart-visualization": BoxWhiskerChartVisualization;
@@ -1677,6 +1743,7 @@ export { LocalJSX as JSX };
 declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
+            "anderson-darling-normality-test-widget": LocalJSX.AndersonDarlingNormalityTestWidget & JSXBase.HTMLAttributes<HTMLAndersonDarlingNormalityTestWidgetElement>;
             "bar-chart-visualization": LocalJSX.BarChartVisualization & JSXBase.HTMLAttributes<HTMLBarChartVisualizationElement>;
             "base-widget": LocalJSX.BaseWidget & JSXBase.HTMLAttributes<HTMLBaseWidgetElement>;
             "box-whisker-chart-visualization": LocalJSX.BoxWhiskerChartVisualization & JSXBase.HTMLAttributes<HTMLBoxWhiskerChartVisualizationElement>;

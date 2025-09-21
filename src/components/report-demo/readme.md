@@ -28,6 +28,10 @@ graph TD;
   flare-report-viewer --> one-way-anova-widget
   flare-report-viewer --> welch-anova-widget
   flare-report-viewer --> mann-whitney-u-test-widget
+  flare-report-viewer --> kruskal-wallis-test-widget
+  flare-report-viewer --> shapiro-wilk-test-widget
+  flare-report-viewer --> kolmogorov-smirnov-normality-test-widget
+  flare-report-viewer --> anderson-darling-normality-test-widget
   flare-report-viewer --> data-widget
   text-widget --> base-widget
   source-info-widget --> base-widget
@@ -60,6 +64,10 @@ graph TD;
   welch-anova-widget --> base-widget
   welch-anova-widget --> data-widget
   mann-whitney-u-test-widget --> base-widget
+  kruskal-wallis-test-widget --> base-widget
+  shapiro-wilk-test-widget --> base-widget
+  kolmogorov-smirnov-normality-test-widget --> base-widget
+  anderson-darling-normality-test-widget --> base-widget
   style report-demo fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

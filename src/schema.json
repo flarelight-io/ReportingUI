@@ -197,6 +197,7 @@
             "kruskalWallisTest",
             "shapiroWilkTest",
             "kolmogorovSmirnovNormalityTest",
+            "andersonDarlingNormalityTest",
             "data",
             "table",
             "bar",
@@ -300,6 +301,9 @@
             },
             {
               "$ref": "#/definitions/KolmogorovSmirnovNormalityTestWidgetConfig"
+            },
+            {
+              "$ref": "#/definitions/AndersonDarlingNormalityTestWidgetConfig"
             },
             {
               "$ref": "#/definitions/DataWidgetConfig"
@@ -1517,6 +1521,90 @@
         "hideDCriticalRow": {
           "type": "boolean",
           "description": "Whether to hide the D critical row",
+          "default": false
+        },
+        "hideNullRejectRow": {
+          "type": "boolean",
+          "description": "Whether to hide the null reject row",
+          "default": false
+        }
+      }
+    },
+    "AndersonDarlingNormalityTestWidgetConfig": {
+      "type": "object",
+      "description": "Configuration for Anderson-Darling normality test widgets",
+      "properties": {
+        "analysisId": {
+          "type": "string",
+          "description": "ID of the analysis to display"
+        },
+        "analysisName": {
+          "type": "string",
+          "description": "Name of the analysis"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "Whether to hide the widget title",
+          "default": false
+        },
+        "hideResultBanner": {
+          "type": "boolean",
+          "description": "Whether to hide the result banner",
+          "default": false
+        },
+        "hideDataSourceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the data source row",
+          "default": false
+        },
+        "hideSampleSourceRow": {
+          "type": "boolean",
+          "description": "Whether to hide the sample source row",
+          "default": false
+        },
+        "hideSampleSizeRow": {
+          "type": "boolean",
+          "description": "Whether to hide the sample size row",
+          "default": false
+        },
+        "hideMissingCountRow": {
+          "type": "boolean",
+          "description": "Whether to hide the missing count row",
+          "default": false
+        },
+        "hideMeanRow": {
+          "type": "boolean",
+          "description": "Whether to hide the mean row",
+          "default": false
+        },
+        "hideStdDevRow": {
+          "type": "boolean",
+          "description": "Whether to hide the standard deviation row",
+          "default": false
+        },
+        "hideConfidenceLevelRow": {
+          "type": "boolean",
+          "description": "Whether to hide the confidence level row",
+          "default": false
+        },
+        "hideA2Row": {
+          "type": "boolean",
+          "description": "Whether to hide the A² row",
+          "default": false
+        },
+        "hideA2StarRow": {
+          "type": "boolean",
+          "description": "Whether to hide the A²* row",
+          "default": false
+        },
+        "hidePValueRow": {
+          "type": "boolean",
+          "description": "Whether to hide the p-value row",
+          "default": false
+        },
+        "hideA2StarCriticalRow": {
+          "type": "boolean",
+          "description": "Whether to hide the A²* critical row",
           "default": false
         },
         "hideNullRejectRow": {

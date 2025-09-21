@@ -595,6 +595,19 @@ export class ReportDemo {
           analysisId: 'sample-kolmogorov-smirnov-normality-test',
           analysisName: 'Kolmogorov-Smirnov Normality Test Analysis'
         }
+      },
+      {
+        id: 'anderson-darling-normality-test',
+        type: 'andersonDarlingNormalityTest',
+        title: 'Anderson-Darling Normality Test Analysis',
+        x: 6,
+        y: 53,
+        w: 6,
+        h: 6,
+        config: {
+          analysisId: 'sample-anderson-darling-normality-test',
+          analysisName: 'Anderson-Darling Normality Test Analysis'
+        }
       }
     ],
     sources: [
@@ -772,6 +785,12 @@ export class ReportDemo {
           { name: 'group', displayName: 'Group', type: 'string' },
           { name: 'value', displayName: 'Value', type: 'number' }
         ]
+      },
+      {
+        id: 'sample-anderson-darling-normality-test',
+        name: 'Anderson-Darling Normality Test Analysis',
+        type: 'analysis',
+        analysisType: 'andersonDarlingNormalityTest'
       }
     ]
   };
@@ -1833,6 +1852,22 @@ export class ReportDemo {
           DStat: 0.127,
           PValue: 0.089,
           DCritical: 0.161,
+          NullReject: false
+        }];
+        
+      case 'sample-anderson-darling-normality-test':
+        return [{
+          SampleSize: 25,
+          MissingCount: 1,
+          Mean: 48.32,
+          StdDev: 7.45,
+          DataSourceName: "Anderson-Darling Normality Test Analysis",
+          SampleSourceName: "Normality Test Data",
+          ConfidenceLevel: 95.0,
+          A2: 0.342,
+          A2Star: 0.356,
+          PValue: 0.156,
+          A2StarCritical: 0.752,
           NullReject: false
         }];
       
