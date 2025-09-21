@@ -165,6 +165,16 @@ export class BoxWhiskerChartVisualization {
     const colors = this.getColors();
     
     // Find the min and max values for scaling
+    // First, get the main data range (whiskers, not outliers)
+    const mainDataValues = chartData.flatMap(item => [
+      item.LowerWhisker !== null ? item.LowerWhisker : item.Min,
+      item.UpperWhisker !== null ? item.UpperWhisker : item.Max,
+      item.Q1,
+      item.Median,
+      item.Q3
+    ]);
+    
+    // Get all values including outliers for reference
     const allValues = chartData.flatMap(item => [
       item.Min, 
       item.Q1, 
@@ -174,8 +184,33 @@ export class BoxWhiskerChartVisualization {
       ...(item.OutliersPreviewJson || [])
     ]);
     
-    const minValue = Math.min(...allValues);
-    const maxValue = Math.max(...allValues) * 1.1; // Add 10% padding
+    const mainMinValue = Math.min(...mainDataValues);
+    const mainMaxValue = Math.max(...mainDataValues);
+    const allMinValue = Math.min(...allValues);
+    const allMaxValue = Math.max(...allValues);
+    
+    // Use main data range for scaling, but ensure outliers are visible
+    // If outliers are very extreme, use a more conservative approach
+    const outlierRange = allMaxValue - allMinValue;
+    const mainRange = mainMaxValue - mainMinValue;
+    
+    let minValue, maxValue;
+    if (outlierRange > mainRange * 3) {
+      // If outliers are very extreme, use a more conservative scaling
+      // that shows the main data clearly but still includes some outliers
+      const outlierPadding = mainRange * 0.5; // 50% padding beyond main range
+      minValue = Math.max(allMinValue, mainMinValue - outlierPadding);
+      maxValue = Math.min(allMaxValue, mainMaxValue + outlierPadding);
+    } else {
+      // Normal case: use main data range with padding
+      minValue = mainMinValue;
+      maxValue = mainMaxValue;
+    }
+    
+    // Add 10% padding to the final range
+    const range = maxValue - minValue;
+    minValue -= range * 0.1;
+    maxValue += range * 0.1;
     
     // SVG dimensions
     const viewBoxWidth = 200;
@@ -202,8 +237,9 @@ export class BoxWhiskerChartVisualization {
       const boxBottom = scaleY(item.Q1);
       const boxHeight = Math.abs(boxBottom - boxTop);
       
-      const minY = scaleY(item.Min);
-      const maxY = scaleY(item.Max);
+      // Use proper whisker endpoints, fallback to Min/Max if whiskers are null
+      const lowerWhiskerY = scaleY(item.LowerWhisker !== null ? item.LowerWhisker : item.Min);
+      const upperWhiskerY = scaleY(item.UpperWhisker !== null ? item.UpperWhisker : item.Max);
       const medianY = scaleY(item.Median);
       
       const color = colors[i % colors.length];
@@ -219,7 +255,7 @@ export class BoxWhiskerChartVisualization {
       return {
         key: i,
         color,
-        category: item.DataSourceName || item.SampleSourceName || `Group ${i + 1}`,
+        category: item.SampleSourceName || `Group ${i + 1}`,
         stats: {
           min: item.Min,
           q1: item.Q1,
@@ -242,31 +278,31 @@ export class BoxWhiskerChartVisualization {
             x2: x + (boxWidth / 2),
             y2: medianY
           },
-          // Whiskers (lines from box to min/max)
+          // Whiskers (lines from box to whisker endpoints)
           upperWhisker: {
             x1: x,
             y1: boxTop,
             x2: x,
-            y2: maxY
+            y2: upperWhiskerY
           },
           lowerWhisker: {
             x1: x,
             y1: boxBottom,
             x2: x,
-            y2: minY
+            y2: lowerWhiskerY
           },
-          // Whisker caps (horizontal lines at min/max)
+          // Whisker caps (horizontal lines at whisker endpoints)
           upperCap: {
             x1: x - (boxWidth / 3),
-            y1: maxY,
+            y1: upperWhiskerY,
             x2: x + (boxWidth / 3),
-            y2: maxY
+            y2: upperWhiskerY
           },
           lowerCap: {
             x1: x - (boxWidth / 3),
-            y1: minY,
+            y1: lowerWhiskerY,
             x2: x + (boxWidth / 3),
-            y2: minY
+            y2: lowerWhiskerY
           },
           // Outliers (if any)
           outliers: (item.OutliersPreviewJson || []).map(outlier => ({
@@ -283,9 +319,9 @@ export class BoxWhiskerChartVisualization {
           interactionZone: {
             ...boxBounds,
             x: boxBounds.x1,
-            y: Math.min(maxY, boxBounds.y1),
+            y: Math.min(upperWhiskerY, boxBounds.y1),
             width: boxBounds.x2 - boxBounds.x1,
-            height: Math.max(Math.abs(minY - maxY), Math.abs(boxBounds.y2 - boxBounds.y1))
+            height: Math.max(Math.abs(lowerWhiskerY - upperWhiskerY), Math.abs(boxBounds.y2 - boxBounds.y1))
           }
         }
       };
@@ -424,7 +460,7 @@ export class BoxWhiskerChartVisualization {
                       key={i}
                       cx={outlier.cx}
                       cy={outlier.cy}
-                      r="1"
+                      r={outlier.r}
                       fill="var(--fl-chart-text-color, #333)"
                     />
                   ))}
@@ -491,7 +527,7 @@ export class BoxWhiskerChartVisualization {
                   class="color-indicator" 
                   style={{ backgroundColor: colors[i % colors.length] }}
                 ></div>
-                <div class="legend-text">{item.DataSourceName || item.SampleSourceName || `Group ${i + 1}`}</div>
+                <div class="legend-text">{item.SampleSourceName || `Group ${i + 1}`}</div>
               </div>
             ))}
           </div>
