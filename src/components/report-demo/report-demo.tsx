@@ -608,6 +608,19 @@ export class ReportDemo {
           analysisId: 'sample-anderson-darling-normality-test',
           analysisName: 'Anderson-Darling Normality Test Analysis'
         }
+      },
+      {
+        id: 'box-whisker-normality-plot',
+        type: 'boxWhiskerNormalityPlot',
+        title: 'Box-Whisker Normality Plot',
+        x: 0,
+        y: 59,
+        w: 6,
+        h: 6,
+        config: {
+          analysisId: 'sample-box-whisker-normality-plot',
+          analysisName: 'Box-Whisker Normality Plot'
+        }
       }
     ],
     sources: [
@@ -791,6 +804,12 @@ export class ReportDemo {
         name: 'Anderson-Darling Normality Test Analysis',
         type: 'analysis',
         analysisType: 'andersonDarlingNormalityTest'
+      },
+      {
+        id: 'sample-box-whisker-normality-plot',
+        name: 'Box-Whisker Normality Plot',
+        type: 'analysis',
+        analysisType: 'boxWhiskerNormalityPlot'
       }
     ]
   };
@@ -1577,6 +1596,59 @@ export class ReportDemo {
             SampleSourceName: `Sample_${index + 1}`
           };
         });
+      
+      case 'sample-box-whisker-normality-plot':
+        // Generate box-whisker normality plot data with pre-calculated statistics
+        const baseValue = 30 + Math.random() * 40;
+        const spread = 10 + Math.random() * 20;
+        const sampleSize = 40 + Math.floor(Math.random() * 21);
+        const missingCount = Math.floor(Math.random() * 5);
+        
+        // Calculate statistics for a normal distribution
+        const mean = baseValue;
+        const stdDev = spread * 0.3;
+        const min = mean - 2.5 * stdDev;
+        const q1 = mean - 0.67 * stdDev;
+        const median = mean;
+        const q3 = mean + 0.67 * stdDev;
+        const max = mean + 2.5 * stdDev;
+        const iqr = q3 - q1;
+        const lowerWhisker = q1 - 1.5 * iqr;
+        const upperWhisker = q3 + 1.5 * iqr;
+        
+        // Generate some outliers (limited to 50 for preview)
+        const outlierCountLow = Math.floor(Math.random() * 3);
+        const outlierCountHigh = Math.floor(Math.random() * 3);
+        const outlierCount = outlierCountLow + outlierCountHigh;
+        const outliers = [];
+        
+        for (let i = 0; i < Math.min(outlierCountLow, 25); i++) {
+          outliers.push(lowerWhisker - Math.random() * stdDev);
+        }
+        for (let i = 0; i < Math.min(outlierCountHigh, 25); i++) {
+          outliers.push(upperWhisker + Math.random() * stdDev);
+        }
+        
+        return [{
+          SampleSize: sampleSize,
+          MissingCount: missingCount,
+          Mean: Number(mean.toFixed(4)),
+          StdDev: Number(stdDev.toFixed(4)),
+          Min: Number(min.toFixed(4)),
+          Q1: Number(q1.toFixed(4)),
+          Median: Number(median.toFixed(4)),
+          Q3: Number(q3.toFixed(4)),
+          Max: Number(max.toFixed(4)),
+          IQR: Number(iqr.toFixed(4)),
+          LowerWhisker: Number(lowerWhisker.toFixed(4)),
+          UpperWhisker: Number(upperWhisker.toFixed(4)),
+          OutlierCountLow: outlierCountLow,
+          OutlierCountHigh: outlierCountHigh,
+          OutlierCount: outlierCount,
+          OutliersPreviewJson: outliers.length > 0 ? JSON.stringify(outliers) : null,
+          DataSourceName: 'Global Performance Dataset',
+          SampleSourceName: 'Normality Analysis Sample'
+        }];
       
       case 'sample-descriptive':
         return [

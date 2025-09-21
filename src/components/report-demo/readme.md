@@ -32,6 +32,7 @@ graph TD;
   flare-report-viewer --> shapiro-wilk-test-widget
   flare-report-viewer --> kolmogorov-smirnov-normality-test-widget
   flare-report-viewer --> anderson-darling-normality-test-widget
+  flare-report-viewer --> box-whisker-normality-plot-widget
   flare-report-viewer --> data-widget
   text-widget --> base-widget
   source-info-widget --> base-widget
@@ -68,6 +69,7 @@ graph TD;
   shapiro-wilk-test-widget --> base-widget
   kolmogorov-smirnov-normality-test-widget --> base-widget
   anderson-darling-normality-test-widget --> base-widget
+  box-whisker-normality-plot-widget --> data-widget
   style report-demo fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

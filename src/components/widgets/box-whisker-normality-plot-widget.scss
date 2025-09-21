@@ -1,0 +1,32 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.box-whisker-normality-plot-widget-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--fl-text-color-secondary, #6b7280);
+  font-size: 0.875rem;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--fl-error-color, #ef4444);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 16px;
+}

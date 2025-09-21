@@ -30,6 +30,8 @@ export * from './components/widgets/mann-whitney-u-test-widget';
 export * from './components/widgets/kruskal-wallis-test-widget';
 export * from './components/widgets/shapiro-wilk-test-widget';
 export * from './components/widgets/kolmogorov-smirnov-normality-test-widget';
+export * from './components/widgets/anderson-darling-normality-test-widget';
+export * from './components/widgets/box-whisker-normality-plot-widget';
 // We will add other widget exports as they are converted
 
 // Export main report viewer component

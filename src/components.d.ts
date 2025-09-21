@@ -8,6 +8,7 @@ import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { AndersonDarlingNormalityTestWidgetConfig } from "./components/widgets/anderson-darling-normality-test-widget";
 import { DataWidgetConfig } from "./components/widgets/data-widget";
 import { FilterChangeEventDetail, VisualizationData } from "./components/widgets/visualizations/base-visualization";
+import { BoxWhiskerNormalityPlotWidgetConfig } from "./components/widgets/box-whisker-normality-plot-widget";
 import { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlation-analysis-widget";
 import { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data-widget";
 import { DataSource, Filter } from "./api/types/common";
@@ -29,6 +30,7 @@ import { WelchTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/w
 export { AndersonDarlingNormalityTestWidgetConfig } from "./components/widgets/anderson-darling-normality-test-widget";
 export { DataWidgetConfig } from "./components/widgets/data-widget";
 export { FilterChangeEventDetail, VisualizationData } from "./components/widgets/visualizations/base-visualization";
+export { BoxWhiskerNormalityPlotWidgetConfig } from "./components/widgets/box-whisker-normality-plot-widget";
 export { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlation-analysis-widget";
 export { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data-widget";
 export { DataSource, Filter } from "./api/types/common";
@@ -101,6 +103,34 @@ export namespace Components {
     interface BoxWhiskerChartVisualization {
         "config": DataWidgetConfig;
         "data": VisualizationData;
+    }
+    interface BoxWhiskerNormalityPlotWidget {
+        /**
+          * @default {}
+         */
+        "config": BoxWhiskerNormalityPlotWidgetConfig;
+        /**
+          * @default []
+         */
+        "data": any[];
+        "fetchChartData": Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor": boolean;
+        /**
+          * @default false
+         */
+        "isViewer": boolean;
+        /**
+          * @default false
+         */
+        "readOnly": boolean;
+        "reportId"?: string;
+        "widgetId": string;
+        "widgetTitle": string;
+        "width"?: number;
     }
     interface BubbleChartVisualization {
         "config": DataWidgetConfig;
@@ -741,6 +771,12 @@ declare global {
         prototype: HTMLBoxWhiskerChartVisualizationElement;
         new (): HTMLBoxWhiskerChartVisualizationElement;
     };
+    interface HTMLBoxWhiskerNormalityPlotWidgetElement extends Components.BoxWhiskerNormalityPlotWidget, HTMLStencilElement {
+    }
+    var HTMLBoxWhiskerNormalityPlotWidgetElement: {
+        prototype: HTMLBoxWhiskerNormalityPlotWidgetElement;
+        new (): HTMLBoxWhiskerNormalityPlotWidgetElement;
+    };
     interface HTMLBubbleChartVisualizationElementEventMap {
         "filterChange": FilterChangeEventDetail;
     }
@@ -1064,6 +1100,7 @@ declare global {
         "bar-chart-visualization": HTMLBarChartVisualizationElement;
         "base-widget": HTMLBaseWidgetElement;
         "box-whisker-chart-visualization": HTMLBoxWhiskerChartVisualizationElement;
+        "box-whisker-normality-plot-widget": HTMLBoxWhiskerNormalityPlotWidgetElement;
         "bubble-chart-visualization": HTMLBubbleChartVisualizationElement;
         "clustered-bar-chart-visualization": HTMLClusteredBarChartVisualizationElement;
         "correlation-analysis-widget": HTMLCorrelationAnalysisWidgetElement;
@@ -1153,6 +1190,34 @@ declare namespace LocalJSX {
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: BoxWhiskerChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
+    }
+    interface BoxWhiskerNormalityPlotWidget {
+        /**
+          * @default {}
+         */
+        "config"?: BoxWhiskerNormalityPlotWidgetConfig;
+        /**
+          * @default []
+         */
+        "data"?: any[];
+        "fetchChartData"?: Function;
+        "height"?: number;
+        /**
+          * @default false
+         */
+        "isInEditor"?: boolean;
+        /**
+          * @default false
+         */
+        "isViewer"?: boolean;
+        /**
+          * @default false
+         */
+        "readOnly"?: boolean;
+        "reportId"?: string;
+        "widgetId"?: string;
+        "widgetTitle"?: string;
+        "width"?: number;
     }
     interface BubbleChartVisualization {
         "config"?: DataWidgetConfig;
@@ -1706,6 +1771,7 @@ declare namespace LocalJSX {
         "bar-chart-visualization": BarChartVisualization;
         "base-widget": BaseWidget;
         "box-whisker-chart-visualization": BoxWhiskerChartVisualization;
+        "box-whisker-normality-plot-widget": BoxWhiskerNormalityPlotWidget;
         "bubble-chart-visualization": BubbleChartVisualization;
         "clustered-bar-chart-visualization": ClusteredBarChartVisualization;
         "correlation-analysis-widget": CorrelationAnalysisWidget;
@@ -1747,6 +1813,7 @@ declare module "@stencil/core" {
             "bar-chart-visualization": LocalJSX.BarChartVisualization & JSXBase.HTMLAttributes<HTMLBarChartVisualizationElement>;
             "base-widget": LocalJSX.BaseWidget & JSXBase.HTMLAttributes<HTMLBaseWidgetElement>;
             "box-whisker-chart-visualization": LocalJSX.BoxWhiskerChartVisualization & JSXBase.HTMLAttributes<HTMLBoxWhiskerChartVisualizationElement>;
+            "box-whisker-normality-plot-widget": LocalJSX.BoxWhiskerNormalityPlotWidget & JSXBase.HTMLAttributes<HTMLBoxWhiskerNormalityPlotWidgetElement>;
             "bubble-chart-visualization": LocalJSX.BubbleChartVisualization & JSXBase.HTMLAttributes<HTMLBubbleChartVisualizationElement>;
             "clustered-bar-chart-visualization": LocalJSX.ClusteredBarChartVisualization & JSXBase.HTMLAttributes<HTMLClusteredBarChartVisualizationElement>;
             "correlation-analysis-widget": LocalJSX.CorrelationAnalysisWidget & JSXBase.HTMLAttributes<HTMLCorrelationAnalysisWidgetElement>;
