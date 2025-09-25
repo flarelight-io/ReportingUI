@@ -198,26 +198,7 @@
             "shapiroWilkTest",
             "kolmogorovSmirnovNormalityTest",
             "andersonDarlingNormalityTest",
-            "data",
-            "table",
-            "bar",
-            "line",
-            "pie",
-            "donut",
-            "hbar",
-            "scatter",
-            "sunburst",
-            "heatmap",
-            "bubble",
-            "kpi",
-            "histogram",
-            "stacked-bar",
-            "stacked-hbar",
-            "clustered-bar",
-            "clustered-hbar",
-            "lollipop",
-            "lollipop-h",
-            "box-whisker"
+            "data"
           ]
         },
         "title": {
@@ -304,63 +285,6 @@
             },
             {
               "$ref": "#/definitions/AndersonDarlingNormalityTestWidgetConfig"
-            },
-            {
-              "$ref": "#/definitions/TableConfig"
-            },
-            {
-              "$ref": "#/definitions/BarChartConfig"
-            },
-            {
-              "$ref": "#/definitions/LineChartConfig"
-            },
-            {
-              "$ref": "#/definitions/PieChartConfig"
-            },
-            {
-              "$ref": "#/definitions/DonutChartConfig"
-            },
-            {
-              "$ref": "#/definitions/HBarChartConfig"
-            },
-            {
-              "$ref": "#/definitions/ScatterChartConfig"
-            },
-            {
-              "$ref": "#/definitions/SunburstChartConfig"
-            },
-            {
-              "$ref": "#/definitions/HeatmapConfig"
-            },
-            {
-              "$ref": "#/definitions/BubbleChartConfig"
-            },
-            {
-              "$ref": "#/definitions/KpiConfig"
-            },
-            {
-              "$ref": "#/definitions/HistogramConfig"
-            },
-            {
-              "$ref": "#/definitions/StackedBarChartConfig"
-            },
-            {
-              "$ref": "#/definitions/StackedHBarChartConfig"
-            },
-            {
-              "$ref": "#/definitions/ClusteredBarChartConfig"
-            },
-            {
-              "$ref": "#/definitions/ClusteredHBarChartConfig"
-            },
-            {
-              "$ref": "#/definitions/LollipopChartConfig"
-            },
-            {
-              "$ref": "#/definitions/LollipopHChartConfig"
-            },
-            {
-              "$ref": "#/definitions/BoxWhiskerChartConfig"
             },
             {
               "$ref": "#/definitions/DataWidgetConfig"
