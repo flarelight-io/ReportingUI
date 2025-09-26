@@ -106,6 +106,10 @@ export namespace Components {
     }
     interface BoxWhiskerNormalityPlotWidget {
         /**
+          * @default []
+         */
+        "availableSources": any[];
+        /**
           * @default {}
          */
         "config": BoxWhiskerNormalityPlotWidgetConfig;
@@ -1192,6 +1196,10 @@ declare namespace LocalJSX {
         "onFilterChange"?: (event: BoxWhiskerChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
     interface BoxWhiskerNormalityPlotWidget {
+        /**
+          * @default []
+         */
+        "availableSources"?: any[];
         /**
           * @default {}
          */

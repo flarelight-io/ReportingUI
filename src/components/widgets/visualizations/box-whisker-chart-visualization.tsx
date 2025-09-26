@@ -144,6 +144,13 @@ export class BoxWhiskerChartVisualization {
       });
     }
   }
+
+
+  private calculateOptimalDimensions() {
+    // Use fixed dimensions for now to prevent hover issues
+    // This ensures consistent sizing regardless of container changes
+    return { width: 200, height: 120 };
+  }
   
   render() {
     if (this.data.loading) {
@@ -189,38 +196,40 @@ export class BoxWhiskerChartVisualization {
     const allMinValue = Math.min(...allValues);
     const allMaxValue = Math.max(...allValues);
     
-    // Use main data range for scaling, but ensure outliers are visible
-    // If outliers are very extreme, use a more conservative approach
+    // Use all data range (including outliers) for scaling to ensure outliers are visible
+    // But add reasonable padding to prevent outliers from touching chart edges
     const outlierRange = allMaxValue - allMinValue;
     const mainRange = mainMaxValue - mainMinValue;
     
     let minValue, maxValue;
     if (outlierRange > mainRange * 3) {
-      // If outliers are very extreme, use a more conservative scaling
+      // If outliers are very extreme, use a more conservative approach
       // that shows the main data clearly but still includes some outliers
-      const outlierPadding = mainRange * 0.5; // 50% padding beyond main range
+      const outlierPadding = mainRange * 0.3; // 30% padding beyond main range
       minValue = Math.max(allMinValue, mainMinValue - outlierPadding);
       maxValue = Math.min(allMaxValue, mainMaxValue + outlierPadding);
     } else {
-      // Normal case: use main data range with padding
-      minValue = mainMinValue;
-      maxValue = mainMaxValue;
+      // Normal case: use all data range (including outliers)
+      minValue = allMinValue;
+      maxValue = allMaxValue;
     }
     
-    // Add 10% padding to the final range
+    // Add 5% padding to the final range to ensure outliers don't touch edges
     const range = maxValue - minValue;
-    minValue -= range * 0.1;
-    maxValue += range * 0.1;
+    const rangePadding = range * 0.05;
+    minValue -= rangePadding;
+    maxValue += rangePadding;
     
-    // SVG dimensions
-    const viewBoxWidth = 200;
-    const viewBoxHeight = 120;
-    const padding = 15;
+    // Calculate optimal SVG dimensions based on container size
+    const { width: viewBoxWidth, height: viewBoxHeight } = this.calculateOptimalDimensions();
+    const padding = Math.min(15, Math.round(viewBoxWidth * 0.075)); // Responsive padding
     
     // Calculate box width and spacing
     const boxCount = chartData.length;
     const availableWidth = viewBoxWidth - (padding * 2);
-    const boxWidth = Math.min(30, (availableWidth / boxCount) * 0.7); // Box width, maximum 30 units
+    // Use the boxWidth config setting (default 0.8, range 0.1-1.0)
+    const boxWidthRatio = (this.config as any).boxWidth || 0.8;
+    const boxWidth = Math.min(30, (availableWidth / boxCount) * boxWidthRatio);
     const boxSpacing = (availableWidth - (boxWidth * boxCount)) / (boxCount + 1); // Even spacing
     
     // Create box and whisker elements

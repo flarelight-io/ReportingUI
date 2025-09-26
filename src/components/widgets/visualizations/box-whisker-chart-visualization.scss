@@ -49,7 +49,7 @@
   flex: 1;
   position: relative;
   overflow: hidden;
-  min-height: 200px;
+  min-height: 0; /* Allow container to shrink/expand */
   display: flex;
   align-items: center;
   justify-content: center;

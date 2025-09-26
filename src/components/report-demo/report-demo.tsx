@@ -619,7 +619,12 @@ export class ReportDemo {
         h: 6,
         config: {
           analysisId: 'sample-box-whisker-normality-plot',
-          analysisName: 'Box-Whisker Normality Plot'
+          analysisName: 'Box-Whisker Normality Plot',
+          showOutliers: true,
+          showGrid: true,
+          showLabels: true,
+          showLegend: true,
+          boxWidth: 0.8
         }
       }
     ],
@@ -1617,16 +1622,19 @@ export class ReportDemo {
         const upperWhisker = q3 + 1.5 * iqr;
         
         // Generate some outliers (limited to 50 for preview)
-        const outlierCountLow = Math.floor(Math.random() * 3);
-        const outlierCountHigh = Math.floor(Math.random() * 3);
+        // Create more extreme outliers to test the chart scaling
+        const outlierCountLow = Math.floor(Math.random() * 5) + 2; // 2-6 low outliers
+        const outlierCountHigh = Math.floor(Math.random() * 5) + 2; // 2-6 high outliers
         const outlierCount = outlierCountLow + outlierCountHigh;
         const outliers = [];
         
+        // Generate extreme low outliers (much further from whisker)
         for (let i = 0; i < Math.min(outlierCountLow, 25); i++) {
-          outliers.push(lowerWhisker - Math.random() * stdDev);
+          outliers.push(lowerWhisker - (2 + Math.random() * 3) * stdDev); // 2-5 std devs below whisker
         }
+        // Generate extreme high outliers (much further from whisker)
         for (let i = 0; i < Math.min(outlierCountHigh, 25); i++) {
-          outliers.push(upperWhisker + Math.random() * stdDev);
+          outliers.push(upperWhisker + (2 + Math.random() * 3) * stdDev); // 2-5 std devs above whisker
         }
         
         return [{
