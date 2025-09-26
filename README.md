@@ -130,6 +130,132 @@ Plus multiple visualization components:
 - Sunburst charts
 - And more...
 
+## Creating a Bundle for Report Generator Apps
+
+If you need a single JavaScript file that you can drop into your report generator application, you can create a bundled version using esbuild.
+
+### Step 1: Build the Stencil Components
+
+First, ensure your Stencil components are built:
+
+```bash
+npm run build
+```
+
+### Step 2: Create the Bundle
+
+Run the esbuild bundling script:
+
+```bash
+npm run bundle:esbuild
+```
+
+This will create a single file called `flarelight-reporting-esbuild.js` that includes:
+- Complete Stencil runtime
+- All visualization components
+- Automatic custom element registration
+- Global helper functions
+- PuppeteerSharp compatibility fixes
+
+### Step 3: Use the Bundle
+
+The generated bundle can be included in any HTML page:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Report</title>
+</head>
+<body>
+    <h1>Sales Dashboard</h1>
+    
+    <!-- Include the bundle -->
+    <script src="flarelight-reporting-esbuild.js"></script>
+    
+    <!-- Create components programmatically -->
+    <div id="kpi-container"></div>
+    <div id="chart-container"></div>
+    
+    <script>
+        // Wait for components to be ready
+        window.addEventListener('flarelight-components-ready', async () => {
+            // Create a KPI widget
+            const kpi = await window.FlarelightReporting.createElement('kpi-visualization', {
+                config: {
+                    title: "Revenue",
+                    kpiFormatType: "currency"
+                },
+                data: {
+                    rawData: [{ value: 125000, previousValue: 120000, trend: "up" }],
+                    loading: false
+                }
+            });
+            document.getElementById('kpi-container').appendChild(kpi);
+            
+            // Create a bar chart
+            const barChart = await window.FlarelightReporting.createElement('bar-chart-visualization', {
+                config: {
+                    title: "Sales by Region",
+                    visualizationType: "bar",
+                    groupByField: "region",
+                    valueField: "sales"
+                },
+                data: {
+                    rawData: [
+                        { region: "North", sales: 12000 },
+                        { region: "South", sales: 19000 },
+                        { region: "East", sales: 3000 },
+                        { region: "West", sales: 5000 }
+                    ],
+                    loading: false
+                }
+            });
+            document.getElementById('chart-container').appendChild(barChart);
+        });
+    </script>
+</body>
+</html>
+```
+
+### Bundle Features
+
+- **File Size**: ~391 KB (includes complete runtime)
+- **Format**: IIFE (Immediately Invoked Function Expression)
+- **Target**: ES2017 (compatible with modern browsers)
+- **Dependencies**: None (everything bundled)
+- **PuppeteerSharp**: Compatible with automatic baseURI fixes
+
+### Available Helper Functions
+
+The bundle provides these global helper functions:
+
+```javascript
+// Check if components are ready
+window.FlarelightReporting.isReady
+
+// Wait for components to be ready
+await window.FlarelightReporting.whenReady()
+
+// Create any component
+await window.FlarelightReporting.createElement('kpi-visualization', config, data)
+
+// Create KPI specifically
+await window.FlarelightReporting.createKPI(config, value, previousValue, trend)
+
+// Create charts
+await window.FlarelightReporting.createChart('bar', config, data)
+
+// Render complete reports
+await window.FlarelightReporting.renderReport(container, reportConfig)
+```
+
+### Demo Files
+
+After running the bundle command, you'll also get:
+- `demo-esbuild.html` - Interactive demo showing all components
+- `bundle-meta.json` - Bundle analysis and dependency information
+
 ## Contributing
 
 Please refer to the internal development guidelines for contribution information.
