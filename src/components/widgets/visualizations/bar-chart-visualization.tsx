@@ -168,13 +168,13 @@ export class BarChartVisualization {
         }
         
         return {
-          x: 5,
+          x: 5, // Horizontal bars should be glued to Y-axis (left edge)
           y,
           width: scaledValue,
           height: barHeight,
           color: colors[index % colors.length],
           label: {
-            x: 5 + scaledValue + 2,
+            x: 5 + scaledValue + 2, // Label position matches bar position
             y: y + barHeight / 2,
             text: `${item.category} (${item.value})`
           },
@@ -182,8 +182,8 @@ export class BarChartVisualization {
           value: item.value
         };
       } else {
-        // For vertical bars
-        const x = 5 + (index * step * 0.95);
+        // For vertical bars - add small spacing from X-axis (bottom edge)
+        const x = 8 + (index * step * 0.95);
         const width = step * 0.7; // Bar width is 70% of available slot
         
         return {
