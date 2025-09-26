@@ -36,12 +36,22 @@ export class BoxWhiskerNormalityPlotWidget {
   @State() analysisData: any[] = [];
   @State() error: string | null = null;
 
-  componentWillLoad() {
-    // Set up event listeners for direct data updates
+  private isMounted: boolean = false;
+  private lastFetchTimestamp: number = 0;
+  private fetchInProgress: boolean = false;
+
+  connectedCallback() {
+    this.isMounted = true;
+    
+    // Setup listener for direct data updates via events
     this.el.addEventListener('dataUpdate', (event: CustomEvent) => {
       if (event.detail) {
         this.analysisData = event.detail;
         this.loading = false;
+        this.error = null;
+      } else {
+        // If detail is null, it means we should refetch the data
+        this.fetchData(true); // Force refresh
       }
     });
 
@@ -50,6 +60,15 @@ export class BoxWhiskerNormalityPlotWidget {
       if (event.detail) {
         // Handle any config updates if needed
       }
+    });
+
+    // Add listeners for filter clearing and application
+    window.addEventListener('filters-cleared', () => {
+      this.fetchData(true);
+    });
+    
+    window.addEventListener('filters-applied', () => {
+      this.fetchData(true);
     });
 
     // Check if we have data from props
@@ -64,9 +83,13 @@ export class BoxWhiskerNormalityPlotWidget {
   }
 
   disconnectedCallback() {
+    this.isMounted = false;
+    
     // Clean up event listeners
     this.el.removeEventListener('dataUpdate', null);
     this.el.removeEventListener('configUpdate', null);
+    window.removeEventListener('filters-cleared', null);
+    window.removeEventListener('filters-applied', null);
   }
 
   @Watch('data')
@@ -74,17 +97,46 @@ export class BoxWhiskerNormalityPlotWidget {
     if (newData && newData.length > 0) {
       this.analysisData = newData;
       this.loading = false;
+      this.error = null;
     }
   }
 
-  private async fetchData() {
+  @Watch('config')
+  configChanged(newValue: BoxWhiskerNormalityPlotWidgetConfig, oldValue?: BoxWhiskerNormalityPlotWidgetConfig) {
+    if (newValue.analysisId !== oldValue?.analysisId && newValue.analysisId) {
+      this.fetchData(true);
+    }
+  }
+
+  private async fetchData(forceRefresh: boolean = false) {
     if (!this.config.analysisId) {
       this.loading = false;
       return;
     }
 
+    // Throttle fetch calls and prevent concurrent fetches
+    const now = Date.now();
+    if (!forceRefresh && now - this.lastFetchTimestamp < 300) {
+      return;
+    }
+    
+    if (!forceRefresh && this.fetchInProgress) {
+      return;
+    }
+    
+    this.lastFetchTimestamp = now;
+    this.fetchInProgress = true;
+
+    // Skip if component is not mounted
+    if (!this.isMounted) {
+      this.loading = false;
+      this.fetchInProgress = false;
+      return;
+    }
+
     try {
       this.loading = true;
+      this.error = null;
 
       // Use the standard getChartData method
       const chartDataRequest: ChartDataRequest = {
@@ -108,6 +160,8 @@ export class BoxWhiskerNormalityPlotWidget {
       console.error('Failed to fetch box-whisker normality plot data:', error);
       this.error = 'Failed to load data';
       this.loading = false;
+    } finally {
+      this.fetchInProgress = false;
     }
   }
 
