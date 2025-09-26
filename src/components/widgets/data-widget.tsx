@@ -390,6 +390,7 @@ export class DataWidget {
     const labelField = 'labelField' in this.config ? this.config.labelField : undefined;
     const aggregation = 'aggregation' in this.config ? this.config.aggregation : undefined;
     const fields = 'fields' in this.config ? this.config.fields : undefined;
+    const columns = 'columns' in this.config ? this.config.columns : undefined;
     
     // Skip if necessary conditions aren't met
     if (!sourceId || !this.isMounted) {
@@ -447,6 +448,20 @@ export class DataWidget {
           visualizationType === 'clustered-hbar') {
         // For multi-series charts, use multiple value fields
         if (fields && fields.length > 0) {
+          request.valueFields = fields.map(field => ({
+            fieldName: field,
+            aggregation: aggregation === 'none' ? undefined : aggregation
+          }));
+        }
+      } else if (visualizationType === 'table') {
+        // For table visualization, use configured columns as value fields
+        if (columns && columns.length > 0) {
+          request.valueFields = columns.map(column => ({
+            fieldName: column.field,
+            aggregation: aggregation === 'none' ? undefined : aggregation
+          }));
+        } else if (fields && fields.length > 0) {
+          // Fallback to fields if columns not configured
           request.valueFields = fields.map(field => ({
             fieldName: field,
             aggregation: aggregation === 'none' ? undefined : aggregation
