@@ -626,6 +626,90 @@ export class ReportDemo {
           showLegend: true,
           boxWidth: 0.8
         }
+      },
+      // KPI Widgets Section
+      {
+        id: 'kpi-basic',
+        type: 'data',
+        title: 'Basic KPI',
+        x: 6,
+        y: 59,
+        w: 2,
+        h: 2,
+        config: {
+          sourceId: 'sample-kpi',
+          visualizationType: 'kpi',
+          valueField: 'value',
+          prefix: '$',
+          format: '##,##'
+        }
+      },
+      {
+        id: 'kpi-with-trend',
+        type: 'data',
+        title: 'KPI with Trend',
+        x: 8,
+        y: 59,
+        w: 2,
+        h: 2,
+        config: {
+          sourceId: 'sample-kpi-with-trend',
+          visualizationType: 'kpi',
+          valueField: 'currentRevenue',
+          previousValueField: 'previousRevenue',
+          prefix: '$',
+          format: '##,##',
+          showTrend: true
+        }
+      },
+      {
+        id: 'kpi-percentage',
+        type: 'data',
+        title: 'Percentage KPI',
+        x: 10,
+        y: 59,
+        w: 2,
+        h: 2,
+        config: {
+          sourceId: 'sample-kpi-percentage',
+          visualizationType: 'kpi',
+          valueField: 'value',
+          format: '##.#',
+          suffix: '%'
+        }
+      },
+      {
+        id: 'kpi-custom-format',
+        type: 'data',
+        title: 'Custom Format KPI',
+        x: 6,
+        y: 61,
+        w: 3,
+        h: 2,
+        config: {
+          sourceId: 'sample-kpi-custom-format',
+          visualizationType: 'kpi',
+          valueField: 'value',
+          format: '##.###,##',
+          prefix: '€',
+          suffix: 'M'
+        }
+      },
+      {
+        id: 'kpi-currency',
+        type: 'data',
+        title: 'Currency KPI',
+        x: 9,
+        y: 61,
+        w: 3,
+        h: 2,
+        config: {
+          sourceId: 'sample-kpi-currency',
+          visualizationType: 'kpi',
+          valueField: 'value',
+          prefix: '$',
+          format: '##,##.##'
+        }
       }
     ],
     sources: [
@@ -815,6 +899,47 @@ export class ReportDemo {
         name: 'Box-Whisker Normality Plot',
         type: 'analysis',
         analysisType: 'boxWhiskerNormalityPlot'
+      },
+      {
+        id: 'sample-kpi',
+        name: 'Basic KPI Data',
+        type: 'mock',
+        fields: [
+          { name: 'value', displayName: 'Value', type: 'number' }
+        ]
+      },
+      {
+        id: 'sample-kpi-with-trend',
+        name: 'KPI with Trend Data',
+        type: 'mock',
+        fields: [
+          { name: 'currentRevenue', displayName: 'Current Revenue', type: 'number' },
+          { name: 'previousRevenue', displayName: 'Previous Revenue', type: 'number' }
+        ]
+      },
+      {
+        id: 'sample-kpi-currency',
+        name: 'Currency KPI Data',
+        type: 'mock',
+        fields: [
+          { name: 'value', displayName: 'Value', type: 'number' }
+        ]
+      },
+      {
+        id: 'sample-kpi-percentage',
+        name: 'Percentage KPI Data',
+        type: 'mock',
+        fields: [
+          { name: 'value', displayName: 'Value', type: 'number' }
+        ]
+      },
+      {
+        id: 'sample-kpi-custom-format',
+        name: 'Custom Format KPI Data',
+        type: 'mock',
+        fields: [
+          { name: 'value', displayName: 'Value', type: 'number' }
+        ]
       }
     ]
   };
@@ -1500,6 +1625,26 @@ export class ReportDemo {
       case 'sample-kpi':
         return [
           { value: 12750000 }
+        ];
+        
+      case 'sample-kpi-with-trend':
+        return [
+          { currentRevenue: 15750000, previousRevenue: 14200000 }
+        ];
+        
+      case 'sample-kpi-currency':
+        return [
+          { value: 2847500 }
+        ];
+        
+      case 'sample-kpi-percentage':
+        return [
+          { value: 0.847 }
+        ];
+        
+      case 'sample-kpi-custom-format':
+        return [
+          { value: 1234567.89 }
         ];
         
       case 'sample-box-whisker':

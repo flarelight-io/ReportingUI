@@ -2006,16 +2006,18 @@
           "type": "string",
           "description": "Field containing the KPI value"
         },
+        "previousValueField": {
+          "type": "string",
+          "description": "Field containing the previous value for trend comparison"
+        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
           "default": false
         },
-        "formatType": {
+        "format": {
           "type": "string",
-          "description": "Format type for the KPI value",
-          "enum": ["number", "currency", "percentage"],
-          "default": "number"
+          "description": "Custom format pattern for the KPI value (e.g., '##.###,##')"
         },
         "prefix": {
           "type": "string",
@@ -2025,27 +2027,10 @@
           "type": "string",
           "description": "Suffix for the KPI value"
         },
-        "decimalPlaces": {
-          "type": "integer",
-          "description": "Number of decimal places to show",
-          "default": 2,
-          "minimum": 0,
-          "maximum": 10
-        },
         "showTrend": {
           "type": "boolean",
           "description": "Whether to show trend indicator",
           "default": false
-        },
-        "trendField": {
-          "type": "string",
-          "description": "Field to calculate trend from"
-        },
-        "trendPeriod": {
-          "type": "string",
-          "description": "Period for trend calculation",
-          "enum": ["day", "week", "month", "quarter", "year"],
-          "default": "month"
         },
         "colorThresholds": {
           "type": "array",

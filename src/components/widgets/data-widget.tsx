@@ -60,13 +60,11 @@ export interface BubbleChartConfig extends BaseDataWidgetConfig {
 export interface KpiConfig extends BaseDataWidgetConfig {
   visualizationType: 'kpi';
   valueField: string;
-  formatType?: 'number' | 'currency' | 'percentage';
+  previousValueField?: string;
+  format?: string;
   prefix?: string;
   suffix?: string;
-  decimalPlaces?: number;
   showTrend?: boolean;
-  trendField?: string;
-  trendPeriod?: 'day' | 'week' | 'month' | 'quarter' | 'year';
   colorThresholds?: Array<{
     value: number;
     color: string;
