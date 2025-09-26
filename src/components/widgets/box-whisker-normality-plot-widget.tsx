@@ -29,6 +29,7 @@ export class BoxWhiskerNormalityPlotWidget {
   @Prop() isInEditor: boolean = false;
   @Prop() isViewer: boolean = false;
   @Prop() config: BoxWhiskerNormalityPlotWidgetConfig = {};
+  @Prop() availableSources: any[] = [];
   @Prop() fetchChartData: Function;
   @Prop() data: any[] = [];
 
@@ -75,10 +76,12 @@ export class BoxWhiskerNormalityPlotWidget {
     if (this.data && this.data.length > 0) {
       this.analysisData = this.data;
       this.loading = false;
-    } else if (this.config.analysisId) {
+      this.error = null;
+    } else if (this.config && this.config.analysisId) {
       this.fetchData();
     } else {
       this.loading = false;
+      this.error = null;
     }
   }
 
@@ -103,14 +106,25 @@ export class BoxWhiskerNormalityPlotWidget {
 
   @Watch('config')
   configChanged(newValue: BoxWhiskerNormalityPlotWidgetConfig, oldValue?: BoxWhiskerNormalityPlotWidgetConfig) {
+    // Handle config changes more robustly
+    if (!newValue || !newValue.analysisId) {
+      // Config was cleared or is invalid - don't fetch data
+      console.warn(`Box-whisker widget ${this.widgetId}: Config was cleared or invalid`, { newValue, oldValue });
+      this.loading = false;
+      this.error = null;
+      return;
+    }
+    
     if (newValue.analysisId !== oldValue?.analysisId && newValue.analysisId) {
+      console.log(`Box-whisker widget ${this.widgetId}: Config analysisId changed from ${oldValue?.analysisId} to ${newValue.analysisId}`);
       this.fetchData(true);
     }
   }
 
   private async fetchData(forceRefresh: boolean = false) {
-    if (!this.config.analysisId) {
+    if (!this.config || !this.config.analysisId) {
       this.loading = false;
+      this.error = null;
       return;
     }
 
@@ -206,6 +220,7 @@ export class BoxWhiskerNormalityPlotWidget {
             widgetId={this.widgetId}
             widgetTitle={this.widgetTitle}
             config={chartConfig}
+            availableSources={this.availableSources}
             data={this.analysisData}
             fetchChartData={this.fetchChartData}
             readOnly={this.readOnly}
