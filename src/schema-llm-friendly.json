@@ -1,0 +1,284 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Flarelight Report Configuration - LLM Optimized",
+  "description": "Compact JSON schema with clear examples for LLM report generation",
+  "type": "object",
+  "properties": {
+    "sources": {"type": "array", "items": {"$ref": "#/definitions/DataSource"}},
+    "widgets": {"type": "array", "items": {"$ref": "#/definitions/Widget"}},
+    "layouts": {
+      "type": "object",
+      "properties": {
+        "lg": {"type": "array", "items": {"$ref": "#/definitions/LayoutItem"}},
+        "md": {"type": "array", "items": {"$ref": "#/definitions/LayoutItem"}},
+        "sm": {"type": "array", "items": {"$ref": "#/definitions/LayoutItem"}},
+        "xs": {"type": "array", "items": {"$ref": "#/definitions/LayoutItem"}}
+      }
+    }
+  },
+  "anyOf": [{"required": ["widgets"]}, {"required": ["layouts", "widgets"]}],
+  "definitions": {
+    "DataSource": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "name": {"type": "string"},
+        "description": {"type": "string"},
+        "type": {"enum": ["DataImport", "DataPreparation", "AnalysisResult"]},
+        "fields": {"type": "array", "items": {"$ref": "#/definitions/DataField"}},
+        "metadata": {"type": "object", "additionalProperties": true}
+      },
+      "required": ["id", "name", "type", "fields"]
+    },
+    "DataField": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "displayName": {"type": "string"},
+        "type": {"enum": ["string", "number", "date", "boolean", "object"]},
+        "isCalculated": {"type": "boolean", "default": false},
+        "format": {"type": "string"},
+        "description": {"type": "string"},
+        "metadata": {"type": "object", "additionalProperties": true}
+      },
+      "required": ["name", "displayName", "type"]
+    },
+    "LayoutItem": {
+      "type": "object",
+      "properties": {
+        "i": {"type": "string"},
+        "x": {"type": "integer", "minimum": 0, "maximum": 11},
+        "y": {"type": "integer", "minimum": 0},
+        "w": {"type": "integer", "minimum": 1, "maximum": 12},
+        "h": {"type": "integer", "minimum": 1}
+      },
+      "required": ["i", "x", "y", "w", "h"]
+    },
+    "Widget": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"enum": [
+          "text", "sourceInfo", "descriptiveAnalysis", "correlationAnalysis",
+          "oneSampleHypothesisTest", "oneSampleWilcoxonSignedRank", "pairedTwoSampleWilcoxonSignedRank",
+          "independentTwoSampleHypothesisTest", "pairedTwoSampleHypothesisTest", "welchTwoSampleHypothesisTest",
+          "WelchANOVA", "oneWayANOVA", "mannWhitneyUTest", "kruskalWallisTest",
+          "shapiroWilkTest", "kolmogorovSmirnovNormalityTest", "andersonDarlingNormalityTest", "data"
+        ]},
+        "title": {"type": "string"},
+        "x": {"type": "integer", "minimum": 0, "maximum": 11},
+        "y": {"type": "integer", "minimum": 0},
+        "w": {"type": "integer", "minimum": 1, "maximum": 12},
+        "h": {"type": "integer", "minimum": 1},
+        "hideTitle": {"type": "boolean", "default": false},
+        "config": {"oneOf": [
+          {"$ref": "#/definitions/TextConfig"},
+          {"$ref": "#/definitions/SourceInfoConfig"},
+          {"$ref": "#/definitions/AnalysisConfig"},
+          {"$ref": "#/definitions/DataConfig"}
+        ]}
+      },
+      "required": ["id", "type", "title", "x", "y", "w", "h"]
+    },
+    "TextConfig": {
+      "type": "object",
+      "properties": {
+        "text": {"type": "string"},
+        "fontSize": {"enum": ["small", "medium", "large"], "default": "medium"},
+        "textAlign": {"enum": ["left", "center", "right"], "default": "left"},
+        "verticalAlign": {"enum": ["top", "middle", "bottom"], "default": "top"},
+        "hideTitle": {"type": "boolean", "default": false},
+        "enableFormatting": {"type": "boolean", "default": false},
+        "titleText": {"type": "string"},
+        "titleSize": {"enum": ["h1", "h2", "h3"], "default": "h3"},
+        "showDivider": {"type": "boolean", "default": false},
+        "dividerStyle": {"enum": ["solid", "dashed", "dotted"], "default": "solid"}
+      },
+      "required": ["text"]
+    },
+    "SourceInfoConfig": {
+      "type": "object",
+      "properties": {
+        "sourceId": {"type": "string"},
+        "hideTitle": {"type": "boolean", "default": false},
+        "showFieldList": {"type": "boolean", "default": true}
+      },
+      "required": ["sourceId"]
+    },
+    "AnalysisConfig": {
+      "type": "object",
+      "properties": {
+        "analysisId": {"type": "string"},
+        "analysisName": {"type": "string"},
+        "hideTitle": {"type": "boolean", "default": false},
+        "hideResultBanner": {"type": "boolean", "default": false},
+        "hideDataSourceRow": {"type": "boolean", "default": false}
+      },
+      "required": ["analysisId", "analysisName"]
+    },
+    "DataConfig": {
+      "type": "object",
+      "properties": {
+        "sourceId": {"type": "string"},
+        "sourceName": {"type": "string"},
+        "visualizationType": {"enum": [
+          "table", "bar", "line", "pie", "donut", "hbar", "scatter", "sunburst",
+          "heatmap", "bubble", "kpi", "histogram", "stacked-bar", "stacked-hbar",
+          "clustered-bar", "clustered-hbar", "lollipop", "lollipop-h", "box-whisker"
+        ], "default": "table"},
+        "fields": {"type": "array", "items": {"type": "string"}},
+        "hideTitle": {"type": "boolean", "default": false},
+        "showLabels": {"type": "boolean", "default": true},
+        "showGrid": {"type": "boolean", "default": true},
+        "showLegend": {"type": "boolean", "default": true},
+        "groupByField": {"type": "string"},
+        "valueField": {"type": "string"},
+        "labelField": {"type": "string"},
+        "aggregation": {"enum": ["none", "sum", "avg", "count", "min", "max"], "default": "none"},
+        "xField": {"type": "string"},
+        "yField": {"type": "string"},
+        "sizeField": {"type": "string"},
+        "idField": {"type": "string"},
+        "parentIdField": {"type": "string"},
+        "equalSegments": {"type": "boolean", "default": false},
+        "columns": {"type": "array", "items": {"type": "object", "properties": {"field": {"type": "string"}, "header": {"type": "string"}}, "required": ["field", "header"]}},
+        "kpiFormatType": {"enum": ["number", "currency", "percentage"], "default": "number"},
+        "kpiPrefix": {"type": "string"},
+        "kpiSuffix": {"type": "string"},
+        "showRegressionLine": {"type": "boolean", "default": false},
+        "showOutliers": {"type": "boolean", "default": true},
+        "boxWidth": {"type": "number", "minimum": 0.1, "maximum": 1.0, "default": 0.8},
+        "colorScale": {"type": "array", "items": {"type": "string"}},
+        "colorScaleType": {"enum": ["sequential", "diverging", "categorical"], "default": "sequential"},
+        "showValues": {"type": "boolean", "default": false},
+        "valueFormat": {"enum": ["number", "percentage", "currency"], "default": "number"}
+      },
+      "required": ["sourceId", "sourceName"]
+    }
+  },
+  "examples": {
+    "textWidget": {
+      "id": "text1",
+      "type": "text",
+      "title": "Report Header",
+      "x": 0, "y": 0, "w": 12, "h": 2,
+      "config": {
+        "text": "# Sales Report\\n\\nThis report shows quarterly sales performance.",
+        "fontSize": "large",
+        "textAlign": "center",
+        "enableFormatting": true
+      }
+    },
+    "kpiWidget": {
+      "id": "kpi1",
+      "type": "data",
+      "title": "Total Revenue",
+      "x": 0, "y": 2, "w": 3, "h": 2,
+      "config": {
+        "sourceId": "sales_data",
+        "sourceName": "Sales Data",
+        "visualizationType": "kpi",
+        "valueField": "total_revenue",
+        "kpiFormatType": "currency",
+        "kpiPrefix": "$"
+      }
+    },
+    "barChart": {
+      "id": "chart1",
+      "type": "data",
+      "title": "Sales by Region",
+      "x": 3, "y": 2, "w": 9, "h": 4,
+      "config": {
+        "sourceId": "sales_data",
+        "sourceName": "Sales Data",
+        "visualizationType": "bar",
+        "groupByField": "region",
+        "valueField": "sales_amount",
+        "aggregation": "sum"
+      }
+    },
+    "scatterPlot": {
+      "id": "scatter1",
+      "type": "data",
+      "title": "Price vs Sales",
+      "x": 0, "y": 6, "w": 6, "h": 4,
+      "config": {
+        "sourceId": "sales_data",
+        "sourceName": "Sales Data",
+        "visualizationType": "scatter",
+        "xField": "price",
+        "yField": "sales_amount",
+        "showRegressionLine": true
+      }
+    },
+    "tableWidget": {
+      "id": "table1",
+      "type": "data",
+      "title": "Sales Details",
+      "x": 6, "y": 6, "w": 6, "h": 4,
+      "config": {
+        "sourceId": "sales_data",
+        "sourceName": "Sales Data",
+        "visualizationType": "table",
+        "fields": ["region", "product", "sales_amount", "quantity"],
+        "columns": [
+          {"field": "region", "header": "Region"},
+          {"field": "product", "header": "Product"},
+          {"field": "sales_amount", "header": "Sales Amount"},
+          {"field": "quantity", "header": "Quantity"}
+        ]
+      }
+    },
+    "pieChart": {
+      "id": "pie1",
+      "type": "data",
+      "title": "Market Share",
+      "x": 0, "y": 10, "w": 4, "h": 4,
+      "config": {
+        "sourceId": "sales_data",
+        "sourceName": "Sales Data",
+        "visualizationType": "pie",
+        "groupByField": "region",
+        "valueField": "sales_amount",
+        "aggregation": "sum"
+      }
+    },
+    "heatmapWidget": {
+      "id": "heatmap1",
+      "type": "data",
+      "title": "Sales Heatmap",
+      "x": 4, "y": 10, "w": 8, "h": 4,
+      "config": {
+        "sourceId": "sales_data",
+        "sourceName": "Sales Data",
+        "visualizationType": "heatmap",
+        "xField": "region",
+        "yField": "product",
+        "valueField": "sales_amount",
+        "showValues": true,
+        "valueFormat": "currency"
+      }
+    }
+  },
+  "visualizationRequirements": {
+    "table": "Requires: fields array OR columns array",
+    "bar": "Requires: groupByField + valueField + aggregation",
+    "line": "Requires: groupByField + valueField + aggregation",
+    "pie": "Requires: groupByField + valueField + aggregation",
+    "donut": "Requires: groupByField + valueField + aggregation",
+    "hbar": "Requires: groupByField + valueField + aggregation",
+    "scatter": "Requires: xField + yField",
+    "bubble": "Requires: xField + yField + sizeField",
+    "kpi": "Requires: valueField",
+    "histogram": "Requires: valueField",
+    "sunburst": "Requires: idField + parentIdField + valueField + labelField",
+    "heatmap": "Requires: xField + yField + valueField",
+    "stacked-bar": "Requires: groupByField + fields array + aggregation",
+    "stacked-hbar": "Requires: groupByField + fields array + aggregation",
+    "clustered-bar": "Requires: groupByField + fields array + aggregation",
+    "clustered-hbar": "Requires: groupByField + fields array + aggregation",
+    "lollipop": "Requires: groupByField + valueField + aggregation",
+    "lollipop-h": "Requires: groupByField + valueField + aggregation",
+    "box-whisker": "Requires: groupByField (optional)"
+  }
+}
