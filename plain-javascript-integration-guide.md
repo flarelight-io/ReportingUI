@@ -37,9 +37,49 @@ npm install @flarelight-io/reporting --save
 
 ## Integration into plain JavaScript
 
-### 1. Include the script in your HTML
+### 1. Include the CSS and JavaScript in your HTML
 
-You can include the Flarelight Reporting library in your HTML file using one of these methods:
+You need to include both the CSS theme file and the JavaScript library. Here are the methods:
+
+**Method 1: Using CDN links**
+
+```html
+<!-- Include the theme CSS -->
+<link rel="stylesheet" href="https://unpkg.com/@flarelight-io/reporting/dist/flarelight-reporting/flarelight-reporting.css">
+
+<!-- Include the JavaScript -->
+<script type="module">
+  import { defineCustomElements } from 'https://unpkg.com/@flarelight-io/reporting/loader/index.js';
+  defineCustomElements();
+</script>
+```
+
+**Method 2: Using local files from node_modules**
+
+```html
+<!-- Include the theme CSS -->
+<link rel="stylesheet" href="node_modules/@flarelight-io/reporting/dist/flarelight-reporting/flarelight-reporting.css">
+
+<!-- Include the JavaScript -->
+<script type="module" src="node_modules/@flarelight-io/reporting/dist/flarelight-reporting/flarelight-reporting.esm.js"></script>
+```
+
+**Method 3: Using a bundler**
+
+If you're using a bundler like Webpack, you can import both in your JavaScript file:
+
+```javascript
+// Import the theme CSS
+import '@flarelight-io/reporting/dist/flarelight-reporting/flarelight-reporting.css';
+
+// Import and define the custom elements
+import { defineCustomElements } from '@flarelight-io/reporting/loader';
+defineCustomElements();
+```
+
+### 2. Alternative: Include the script in your HTML (Legacy method)
+
+You can also include the Flarelight Reporting library in your HTML file using one of these methods:
 
 **Method 1: Using script tag with unpkg**
 
@@ -68,7 +108,7 @@ defineCustomElements();
 <script type="module" src="node_modules/@flarelight-io/reporting/dist/flarelight-reporting/flarelight-reporting.esm.js"></script>
 ```
 
-### 2. Create HTML structure for your report
+### 3. Create HTML structure for your report
 
 ```html
 <!DOCTYPE html>
@@ -107,7 +147,7 @@ defineCustomElements();
 </html>
 ```
 
-### 3. Configure and initialize the report
+### 4. Configure and initialize the report
 
 ```javascript
 // Sample JavaScript code to initialize the report

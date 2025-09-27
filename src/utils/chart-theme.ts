@@ -309,13 +309,14 @@ export class ChartThemeUtils {
 
   static formatNumber(value: number): string {
     if (value >= 1000000000) {
-      return (value / 1000000000).toFixed(1) + 'B';
+      return (value / 1000000000).toFixed(3).replace(/\.?0+$/, '') + 'B';
     } else if (value >= 1000000) {
-      return (value / 1000000).toFixed(1) + 'M';
+      return (value / 1000000).toFixed(3).replace(/\.?0+$/, '') + 'M';
     } else if (value >= 1000) {
-      return (value / 1000).toFixed(1) + 'K';
+      return (value / 1000).toFixed(3).replace(/\.?0+$/, '') + 'K';
     }
-    return value.toString();
+    // For smaller numbers, format to max 3 decimal places and remove trailing zeros
+    return parseFloat(value.toFixed(3)).toString();
   }
 
   static snapToPixel(value: number): number {

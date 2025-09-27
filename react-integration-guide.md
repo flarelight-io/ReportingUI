@@ -37,7 +37,16 @@ npm install @your-organization/flarelight-reporting --save
 
 ## Integration into React
 
-### 1. Register StencilJS Components
+### 1. Import the Theme CSS
+
+First, you need to import the theme CSS file that contains all the styling variables. Add this import to your application's entry file (usually `src/index.js` or `src/index.tsx`):
+
+```jsx
+// Import the Flarelight Reporting theme CSS
+import '@your-organization/flarelight-reporting/dist/flarelight-reporting/flarelight-reporting.css';
+```
+
+### 2. Register StencilJS Components
 
 In your application's entry file (usually `src/index.js` or `src/index.tsx`), add the following:
 
@@ -63,7 +72,7 @@ root.render(
 );
 ```
 
-### 2. Create TypeScript Declarations (if using TypeScript)
+### 3. Create TypeScript Declarations (if using TypeScript)
 
 Create a file called `custom-elements.d.ts` in your `src` directory:
 
@@ -97,7 +106,7 @@ declare namespace JSX {
 }
 ```
 
-### 3. Create a Report Component
+### 4. Create a Report Component
 
 Create a new React component to use the Flarelight Reporting library:
 
@@ -233,7 +242,7 @@ function ReportPage() {
 export default ReportPage;
 ```
 
-### 4. Add CSS for the Report Container
+### 5. Add CSS for the Report Container
 
 Create a CSS file for your Report component (e.g., `ReportPage.css`):
 
@@ -270,7 +279,7 @@ flare-report-viewer {
 }
 ```
 
-### 5. Add the Report Component to your App
+### 6. Add the Report Component to your App
 
 Update your `App.js` or `App.tsx` to include the Report component:
 
@@ -379,9 +388,18 @@ export default ReportPage;
 If the components aren't rendering, ensure that:
 
 1. You've properly called `defineCustomElements()` in your app's entry point
-2. You're not encountering any JavaScript errors in the console
-3. Your Azure Artifacts authentication is working correctly
-4. You've properly configured your .npmrc file
+2. You've imported the theme CSS file (`@your-organization/flarelight-reporting/dist/flarelight-reporting/flarelight-reporting.css`)
+3. You're not encountering any JavaScript errors in the console
+4. Your Azure Artifacts authentication is working correctly
+5. You've properly configured your .npmrc file
+
+### Missing Styling
+
+If the components are rendering but appear unstyled or with incorrect colors:
+
+1. Ensure you've imported the theme CSS file in your app's entry point
+2. Check that the CSS file path is correct and the file exists in your node_modules
+3. Verify that your bundler (Webpack, Vite, etc.) is processing the CSS import correctly
 
 ### TypeScript Errors
 
