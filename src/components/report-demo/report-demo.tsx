@@ -283,7 +283,7 @@ export class ReportDemo {
           visualizationType: 'lollipop',
           groupByField: 'category',
           valueField: 'value',
-          showGrid: false,
+          showGrid: true,
           showLabels: true
         }
       },
@@ -300,7 +300,7 @@ export class ReportDemo {
           visualizationType: 'lollipop-h',
           groupByField: 'category',
           valueField: 'value',
-          showGrid: false,
+          showGrid: true,
           showLabels: true
         }
       },

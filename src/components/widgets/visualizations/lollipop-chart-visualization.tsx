@@ -1,6 +1,7 @@
 import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
+import { ChartThemeUtils, ChartAnimations } from '../../../utils/chart-theme';
 
 interface ChartDataItem {
   category: string;
@@ -24,26 +25,24 @@ export class LollipopChartVisualization {
   @Prop() data: VisualizationData;
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
+  @State() themeVersion: number = 0; // Force re-render when theme changes
   
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
+
+  componentWillLoad() {
+    // Listen for theme changes
+    ChartThemeUtils.onThemeChange(() => {
+      this.themeVersion++;
+    });
+  }
 
   private handleFilterClick(field: string, value: any) {
     this.filterChange.emit({ sourceId: this.config.sourceId, field, value });
   }
 
   private getColors(): string[] {
-    return [
-      'var(--fl-chart-color-1, #4f46e5)', // indigo-600
-      'var(--fl-chart-color-2, #0ea5e9)', // sky-500
-      'var(--fl-chart-color-3, #10b981)', // emerald-500
-      'var(--fl-chart-color-4, #f59e0b)', // amber-500
-      'var(--fl-chart-color-5, #ef4444)', // red-500
-      'var(--fl-chart-color-6, #8b5cf6)', // violet-500
-      'var(--fl-chart-color-7, #ec4899)', // pink-500
-      'var(--fl-chart-color-8, #06b6d4)', // cyan-500
-      'var(--fl-chart-color-9, #84cc16)', // lime-500
-      'var(--fl-chart-color-10, #f97316)'  // orange-500
-    ];
+    const theme = ChartThemeUtils.getTheme();
+    return theme.series;
   }
 
   private processData(): ChartDataItem[] {
@@ -95,9 +94,16 @@ export class LollipopChartVisualization {
   private handleMouseMove(event: MouseEvent, item: ChartDataItem) {
     const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
     if (svgRect) {
+      // Format tooltip text with proper line breaks for long categories
+      const formattedValue = ChartThemeUtils.formatNumber(item.value);
+      const maxCategoryLength = 30;
+      const truncatedCategory = item.category.length > maxCategoryLength 
+        ? `${item.category.substring(0, maxCategoryLength)}...` 
+        : item.category;
+      
       this.tooltip = {
         visible: true,
-        text: `${item.category}: ${item.value}`,
+        text: `${truncatedCategory}\n${formattedValue}`,
         x: event.clientX - svgRect.left,
         y: event.clientY - svgRect.top
       };
@@ -130,6 +136,7 @@ export class LollipopChartVisualization {
     // Use safe string comparison to avoid type errors
     const isHorizontal = String(this.config.visualizationType) === 'lollipop-h';
     const colors = this.getColors();
+    const theme = ChartThemeUtils.getTheme();
     const mainColor = colors[0]; // Use first color as the main color
     
     // Find the maximum value for scaling
@@ -230,30 +237,48 @@ export class LollipopChartVisualization {
             height="100%" 
             viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`} 
             preserveAspectRatio="xMidYMin meet"
+            {...ChartThemeUtils.getSVGAttributes()}
           >
+            {/* Define gradients and filters for modern styling */}
+            <defs>
+              <radialGradient id="lollipopGradient" cx="50%" cy="30%" r="70%">
+                <stop offset="0%" stop-color={mainColor} stop-opacity="1"/>
+                <stop offset="100%" stop-color={mainColor} stop-opacity="0.8"/>
+              </radialGradient>
+              <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
+              </filter>
+            </defs>
             {this.config.showGrid && (
               <g>
-                {/* Draw grid lines */}
+                {/* Draw Y-axis grid lines only (PowerBI style) */}
                 {[0, 25, 50, 75, 100].map((pos, i) => (
-                  <g key={i}>
-                    <line x1="5" y1={pos} x2={viewBoxWidth - 5} y2={pos} stroke="var(--fl-chart-grid-color, #ccc)" stroke-width="0.5" />
-                    {Array.from({length: 5}).map((_, j) => {
-                      const xPos = 5 + (j * (viewBoxWidth - 10) / 4);
-                      return <line key={`v-${j}`} x1={xPos} y1="5" x2={xPos} y2={viewBoxHeight - 5} stroke="var(--fl-chart-grid-color, #ccc)" stroke-width="0.5" />
-                    })}
-                  </g>
+                  <line 
+                    key={i}
+                    x1="5" 
+                    y1={ChartThemeUtils.snapToPixel(pos)} 
+                    x2={viewBoxWidth - 5} 
+                    y2={ChartThemeUtils.snapToPixel(pos)} 
+                    stroke="var(--fl-chart-grid-color)" 
+                    stroke-width="1" 
+                    opacity={theme.gridlines.opacity}
+                  />
                 ))}
               </g>
             )}
             
-            {/* Draw lollipops */}
+            {/* Draw lollipops with modern styling */}
             {lollipops.map((lollipop, i) => (
               <g 
                 key={i}
-                style={{ cursor: 'pointer' }}
+                style={{ 
+                  cursor: 'pointer',
+                  transition: ChartAnimations.getHoverTransition()
+                }}
                 onMouseMove={(e) => this.handleMouseMove(e, { category: lollipop.category, value: lollipop.value })}
                 onMouseLeave={() => this.handleMouseLeave()}
                 onClick={() => this.handleFilterClick(groupByField || '', lollipop.category)}
+                class="lollipop-animated"
               >
                 {/* Line part of lollipop */}
                 <line 
@@ -262,7 +287,12 @@ export class LollipopChartVisualization {
                   x2={lollipop.line.x2} 
                   y2={lollipop.line.y2} 
                   stroke={mainColor} 
-                  stroke-width={strokeWidth} 
+                  stroke-width={strokeWidth}
+                  class="line-animated"
+                  style={{
+                    animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
+                    animationFillMode: 'both'
+                  }}
                 />
                 
                 {/* Circle part of lollipop */}
@@ -270,14 +300,34 @@ export class LollipopChartVisualization {
                   cx={lollipop.circle.cx} 
                   cy={lollipop.circle.cy} 
                   r={lollipop.circle.r} 
-                  fill={mainColor} 
+                  fill="url(#lollipopGradient)"
+                  class="point-animated point-glow"
+                  style={{
+                    animationDelay: `${ChartAnimations.getStaggerDelay(i) + 100}ms`,
+                    animationFillMode: 'both'
+                  }}
+                  filter="url(#softShadow)"
                 />
               </g>
             ))}
             
-            {/* X and Y axis */}
-            <line x1="5" y1={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} x2={viewBoxWidth - 5} y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} stroke="var(--fl-chart-axis-color, #333)" stroke-width="1" />
-            <line x1="5" y1="5" x2="5" y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} stroke="var(--fl-chart-axis-color, #333)" stroke-width="1" />
+            {/* X and Y axis with proper styling */}
+            <line 
+              x1="5" 
+              y1={ChartThemeUtils.snapToPixel(isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5)} 
+              x2={viewBoxWidth - 5} 
+              y2={ChartThemeUtils.snapToPixel(isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5)} 
+              stroke="var(--fl-chart-axis-color)" 
+              stroke-width="1" 
+            />
+            <line 
+              x1={ChartThemeUtils.snapToPixel(5)} 
+              y1="5" 
+              x2={ChartThemeUtils.snapToPixel(5)} 
+              y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} 
+              stroke="var(--fl-chart-axis-color)" 
+              stroke-width="1" 
+            />
             
             {/* Show values if enabled */}
             {this.config.showLabels && (
@@ -289,10 +339,19 @@ export class LollipopChartVisualization {
                     y={isHorizontal ? lollipop.circle.cy : lollipop.circle.cy - circleRadius - 2} 
                     font-size={fontSize * 0.8} 
                     text-anchor="middle" 
-                    fill="var(--fl-chart-text-color, #555)"
-                    font-weight="bold"
+                    fill="var(--fl-chart-text-color)"
+                    font-family={theme.fontFamily}
+                    font-weight="600"
+                    paint-order="stroke fill"
+                    stroke="rgba(0,0,0,0.1)"
+                    stroke-width="0.5"
+                    class="text-animated"
+                    style={{
+                      animationDelay: `${ChartAnimations.getStaggerDelay(i) + 150}ms`,
+                      animationFillMode: 'both'
+                    }}
                   >
-                    {chartData[i].value}
+                    {ChartThemeUtils.formatNumber(chartData[i].value)}
                   </text>
                 ))}
               </g>
@@ -323,8 +382,15 @@ export class LollipopChartVisualization {
                       y={105} 
                       font-size={adjustedFontSize}
                       text-anchor="end"
-                      fill="var(--fl-chart-text-color, #333)"
-                      transform={`rotate(-45, ${lollipop.label.x}, 105)`}
+                      fill="var(--fl-chart-text-color)"
+                      font-family={theme.fontFamily}
+                      font-weight="500"
+                      class="text-rotated-animated"
+                      style={{
+                        animationDelay: `${ChartAnimations.getStaggerDelay(i) + 150}ms`,
+                        animationFillMode: 'both',
+                        transformOrigin: `${lollipop.label.x}px 105px`
+                      }}
                     >
                       {displayText}
                     </text>
@@ -333,7 +399,7 @@ export class LollipopChartVisualization {
               </g>
             )}
             
-            {/* For horizontal lollipops, show category labels on the left */}
+            {/* For horizontal lollipops, show category labels at the end of each lollipop */}
             {isHorizontal && (
               <g>
                 {lollipops.map((lollipop, i) => {
@@ -345,12 +411,19 @@ export class LollipopChartVisualization {
                   return (
                     <text 
                       key={i} 
-                      x={3} 
+                      x={lollipop.circle.cx + circleRadius + 2} 
                       y={lollipop.line.y1} 
                       font-size={fontSize} 
-                      text-anchor="end"
+                      text-anchor="start"
                       dominant-baseline="middle" 
-                      fill="var(--fl-chart-text-color, #555)"
+                      fill="var(--fl-chart-text-color)"
+                      font-family={theme.fontFamily}
+                      font-weight="500"
+                      class="text-animated"
+                      style={{
+                        animationDelay: `${ChartAnimations.getStaggerDelay(i) + 150}ms`,
+                        animationFillMode: 'both'
+                      }}
                     >
                       {displayText}
                     </text>
@@ -360,20 +433,34 @@ export class LollipopChartVisualization {
             )}
           </svg>
           
-          {/* Tooltip */}
+          {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
-              class="chart-tooltip"
+              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltip.x}px`, 
                 top: `${this.tooltip.y}px`,
                 transform: 'translate(-50%, -100%)'
               }}
             >
-              {this.tooltip.text}
+              <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
+                {this.tooltip.text}
+              </div>
             </div>
           )}
         </div>
+        
+        {/* Legend with PowerBI-grade styling */}
+        {(this.config.showLegend !== false) && (
+          <div class="chart-legend">
+            <div class="legend-item">
+              <div class="color-indicator" style={{ backgroundColor: mainColor }}></div>
+              <span class="legend-text">
+                {valueField || 'Value'}
+              </span>
+            </div>
+          </div>
+        )}
         
         <div class="chart-info-text">
           {groupByField && valueField && (

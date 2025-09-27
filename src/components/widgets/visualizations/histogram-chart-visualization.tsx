@@ -1,6 +1,7 @@
 import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
+import { ChartThemeUtils, ChartAnimations } from '../../../utils/chart-theme';
 
 interface HistogramBin {
   label: string;
@@ -18,7 +19,7 @@ interface TooltipState {
 
 @Component({
   tag: 'histogram-chart-visualization',
-  styleUrl: 'histogram-chart-visualization.scss',
+  styleUrl: 'bar-chart-visualization.scss', // Reuse the bar chart styling
   shadow: true
 })
 export class HistogramChartVisualization {
@@ -26,8 +27,16 @@ export class HistogramChartVisualization {
   @Prop() data: VisualizationData;
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
+  @State() themeVersion: number = 0; // Force re-render when theme changes
   
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
+
+  componentWillLoad() {
+    // Listen for theme changes
+    ChartThemeUtils.onThemeChange(() => {
+      this.themeVersion++;
+    });
+  }
 
   private handleFilterClick(fieldName: string, value: any) {
     if (this.config.sourceId && fieldName) {
@@ -42,9 +51,16 @@ export class HistogramChartVisualization {
   private handleMouseMove(event: MouseEvent, label: string, count: number) {
     const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
     if (svgRect) {
+      // Format tooltip text with proper line breaks for long labels
+      const formattedCount = ChartThemeUtils.formatNumber(count);
+      const maxLabelLength = 30;
+      const truncatedLabel = label.length > maxLabelLength 
+        ? `${label.substring(0, maxLabelLength)}...` 
+        : label;
+      
       this.tooltip = {
         visible: true,
-        text: `${label}: ${count}`,
+        text: `${truncatedLabel}\n${formattedCount}`,
         x: event.clientX - svgRect.left,
         y: event.clientY - svgRect.top
       };
@@ -141,23 +157,24 @@ export class HistogramChartVisualization {
     // Find the maximum count for scaling
     const maxCount = Math.max(...histogramData.map(bin => bin.count));
     
-    // Set viewBox dimensions
-    const viewBoxWidth = 100;
-    const viewBoxHeight = 60;
-    const padding = 10; // Space for labels
+    // Set viewBox dimensions to match other charts
+    const viewBoxWidth = 200;
+    const viewBoxHeight = 100;
+    const padding = 5; // Space for labels
     
     // Calculate bar dimensions
-    const barWidth = (viewBoxWidth - (padding * 2)) / histogramData.length;
+    const barWidth = (viewBoxWidth - 10) / histogramData.length;
     const actualBarWidth = barWidth; // Full width, no gap
     
-    // Define colors
+    // Define colors and theme
     const colors = this.getColors();
+    const theme = ChartThemeUtils.getTheme();
     
     // Generate the bars
     const bars = histogramData.map((bin, index) => {
-      const x = padding + (index * barWidth);
-      const height = ((bin.count / maxCount) * (viewBoxHeight - (padding * 2)));
-      const y = viewBoxHeight - padding - height;
+      const x = 5 + (index * barWidth);
+      const height = ((bin.count / maxCount) * 90);
+      const y = 95 - height;
       
       return {
         x,
@@ -171,66 +188,71 @@ export class HistogramChartVisualization {
     });
     
     return (
-      <div class="histogram-chart-container">
+      <div class="bar-chart-container">
         <div class="visualization-container">
           <svg 
             width="100%" 
             height="100%" 
             viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
             preserveAspectRatio="xMidYMid meet"
+            {...ChartThemeUtils.getSVGAttributes()}
           >
+            {/* Define gradients and filters for modern styling */}
+            <defs>
+              <linearGradient id="histogramGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color={colors[0]} stop-opacity="1"/>
+                <stop offset="100%" stop-color={colors[0]} stop-opacity="0.85"/>
+              </linearGradient>
+              <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
+              </filter>
+            </defs>
             {this.config.showGrid && (
-              <>
-                {/* Horizontal grid lines */}
+              <g>
+                {/* Draw Y-axis grid lines only (PowerBI style) */}
                 {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const y = viewBoxHeight - padding - (ratio * (viewBoxHeight - (padding * 2)));
+                  const yPos = 95 - (ratio * 90);
                   return (
                     <line 
-                      key={`h-${i}`}
+                      key={i}
                       x1="5" 
-                      y1={y} 
+                      y1={ChartThemeUtils.snapToPixel(yPos)} 
                       x2={viewBoxWidth - 5} 
-                      y2={y} 
-                      stroke="var(--fl-chart-grid-color, #ccc)" 
-                      stroke-width="0.5"
-                      stroke-dasharray="1,1"
+                      y2={ChartThemeUtils.snapToPixel(yPos)} 
+                      stroke="var(--fl-chart-grid-color)" 
+                      stroke-width="1" 
+                      opacity={theme.gridlines.opacity}
                     />
                   );
                 })}
-                
-                {/* Vertical grid lines */}
-                {bars.map((bar, i) => (
-                  <line 
-                    key={`v-${i}`}
-                    x1={bar.x + (bar.width / 2)} 
-                    y1="5" 
-                    x2={bar.x + (bar.width / 2)} 
-                    y2={viewBoxHeight - 5} 
-                    stroke="var(--fl-chart-grid-color, #ccc)" 
-                    stroke-width="0.5"
-                    stroke-dasharray="1,1"
-                  />
-                ))}
-              </>
+              </g>
             )}
             
-            {/* Draw histogram bars */}
+            {/* Draw histogram bars with modern styling */}
             {bars.map((bar, i) => (
               <g 
                 key={i}
-                style={{ cursor: 'pointer' }}
+                style={{ 
+                  cursor: 'pointer',
+                  transition: ChartAnimations.getHoverTransition()
+                }}
                 onClick={() => this.handleFilterClick(valueField || '', bar.bin.label)}
                 onMouseMove={(event) => this.handleMouseMove(event, bar.bin.label, bar.bin.count)}
                 onMouseLeave={() => this.handleMouseLeave()}
+                class="bar-animated"
               >
                 <rect 
                   x={bar.x} 
                   y={bar.y} 
                   width={bar.width} 
                   height={bar.height || 0.1} // Ensure a minimum height for zero values
-                  fill={bar.color}
-                  stroke="var(--fl-border-color, rgba(255, 255, 255, 0.2))"
-                  stroke-width="0.2"
+                  fill="url(#histogramGradient)"
+                  class="bar-glow"
+                  style={{
+                    animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
+                    animationFillMode: 'both'
+                  }}
+                  filter="url(#softShadow)"
                 />
                 
                 {/* Show count on top of bars if enabled */}
@@ -238,31 +260,41 @@ export class HistogramChartVisualization {
                   <text 
                     x={bar.x + (bar.width / 2)}
                     y={bar.y - 2}
-                    font-size="2.5"
+                    font-size="4"
                     text-anchor="middle"
-                    fill="var(--fl-chart-text-color, #666)"
+                    fill="var(--fl-chart-text-color)"
+                    font-family={theme.fontFamily}
+                    font-weight="600"
+                    paint-order="stroke fill"
+                    stroke="rgba(0,0,0,0.1)"
+                    stroke-width="0.5"
+                    class="text-animated"
+                    style={{
+                      animationDelay: `${ChartAnimations.getStaggerDelay(i) + 100}ms`,
+                      animationFillMode: 'both'
+                    }}
                   >
-                    {bar.bin.count}
+                    {ChartThemeUtils.formatNumber(bar.bin.count)}
                   </text>
                 )}
               </g>
             ))}
             
-            {/* Axes */}
+            {/* X and Y axis with proper styling */}
             <line 
               x1="5" 
-              y1={viewBoxHeight - padding} 
+              y1={ChartThemeUtils.snapToPixel(viewBoxHeight - 5)} 
               x2={viewBoxWidth - 5} 
-              y2={viewBoxHeight - padding} 
-              stroke="var(--fl-chart-axis-color, #333)" 
+              y2={ChartThemeUtils.snapToPixel(viewBoxHeight - 5)} 
+              stroke="var(--fl-chart-axis-color)" 
               stroke-width="1" 
             />
             <line 
-              x1="5" 
+              x1={ChartThemeUtils.snapToPixel(5)} 
               y1="5" 
-              x2="5" 
-              y2={viewBoxHeight - padding} 
-              stroke="var(--fl-chart-axis-color, #333)" 
+              x2={ChartThemeUtils.snapToPixel(5)} 
+              y2={viewBoxHeight - 5} 
+              stroke="var(--fl-chart-axis-color)" 
               stroke-width="1" 
             />
             
@@ -280,10 +312,18 @@ export class HistogramChartVisualization {
                 <text 
                   key={`x-label-${i}`}
                   x={bar.x + (bar.width / 2)}
-                  y={viewBoxHeight - 2}
-                  font-size="2.5"
-                  text-anchor="middle"
-                  fill="var(--fl-chart-text-color, #666)"
+                  y={105}
+                  font-size="4"
+                  text-anchor="end"
+                  fill="var(--fl-chart-text-color)"
+                  font-family={theme.fontFamily}
+                  font-weight="500"
+                  class="text-rotated-animated"
+                  style={{
+                    animationDelay: `${ChartAnimations.getStaggerDelay(i) + 150}ms`,
+                    animationFillMode: 'both',
+                    transformOrigin: `${bar.x + (bar.width / 2)}px 105px`
+                  }}
                 >
                   {truncatedLabel}
                 </text>
@@ -292,54 +332,67 @@ export class HistogramChartVisualization {
             
             {/* Y-axis labels */}
             {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-              const y = viewBoxHeight - padding - (ratio * (viewBoxHeight - (padding * 2)));
+              const yPos = 95 - (ratio * 90);
               const value = Math.round(ratio * maxCount);
               
               return (
                 <text 
                   key={`y-label-${i}`}
                   x="3"
-                  y={y}
-                  font-size="2.5"
+                  y={yPos}
+                  font-size="4"
                   text-anchor="end"
                   dominant-baseline="middle"
-                  fill="var(--fl-chart-text-color, #666)"
+                  fill="var(--fl-chart-text-color)"
+                  font-family={theme.fontFamily}
+                  font-weight="500"
+                  class="text-animated"
+                  style={{
+                    animationDelay: `${ChartAnimations.getStaggerDelay(i) + 150}ms`,
+                    animationFillMode: 'both'
+                  }}
                 >
-                  {value}
+                  {ChartThemeUtils.formatNumber(value)}
                 </text>
               );
             })}
           </svg>
           
-          {/* Tooltip */}
+          {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
-              class="chart-tooltip"
+              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltip.x}px`, 
                 top: `${this.tooltip.y}px`,
                 transform: 'translate(-50%, -100%)'
               }}
             >
-              {this.tooltip.text}
+              <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
+                {this.tooltip.text}
+              </div>
             </div>
           )}
         </div>
         
-        {this.config.showLegend && (
+        {/* Legend with PowerBI-grade styling */}
+        {(this.config.showLegend !== false) && (
           <div class="chart-legend">
             <div class="legend-item">
               <div class="color-indicator" style={{ backgroundColor: colors[0] }}></div>
-                <span class="legend-text">{valueField || "Count"}</span>
+              <span class="legend-text">
+                {valueField || "Count"}
+              </span>
             </div>
           </div>
         )}
         
-        <div class="chart-metadata">
+        <div class="chart-info-text">
           {groupByField && valueField && (
-            <div class="chart-info">
-              Group: {groupByField || 'N/A'} • Value: {valueField || 'N/A'} • Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
-            </div>
+            <span>
+              Group: {groupByField} • Value: {valueField} • 
+              Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
+            </span>
           )}
         </div>
       </div>
@@ -347,17 +400,7 @@ export class HistogramChartVisualization {
   }
   
   private getColors(): string[] {
-    return [
-      'var(--fl-chart-color-1, #4299e1)', 
-      'var(--fl-chart-color-2, #48bb78)', 
-      'var(--fl-chart-color-3, #f6ad55)', 
-      'var(--fl-chart-color-4, #f56565)', 
-      'var(--fl-chart-color-5, #9f7aea)', 
-      'var(--fl-chart-color-6, #38b2ac)', 
-      'var(--fl-chart-color-7, #ed8936)', 
-      'var(--fl-chart-color-8, #667eea)',
-      'var(--fl-chart-color-9, #fc8181)', 
-      'var(--fl-chart-color-10, #68d391)'
-    ];
+    const theme = ChartThemeUtils.getTheme();
+    return theme.series;
   }
 } 
