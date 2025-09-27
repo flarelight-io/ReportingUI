@@ -25,8 +25,16 @@ export class LineChartVisualization {
   @Prop() data: VisualizationData;
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
+  @State() themeVersion: number = 0;
   
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
+
+  componentWillLoad() {
+    // Listen for theme changes to force re-render
+    ChartThemeUtils.onThemeChange(() => {
+      this.themeVersion++;
+    });
+  }
 
   private handleFilterClick(fieldName: string, value: any) {
     if (this.config.sourceId && fieldName) {
@@ -41,9 +49,15 @@ export class LineChartVisualization {
   private handleMouseMove(event: MouseEvent, category: string | number, value: number) {
     const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
     if (svgRect) {
+      // Format tooltip text with line breaks and proper formatting
+      const formattedValue = ChartThemeUtils.formatNumber(value);
+      const displayCategory = String(category).length > 20 
+        ? String(category).substring(0, 20) + '...' 
+        : String(category);
+      
       this.tooltip = {
         visible: true,
-        text: `${category}: ${value}`,
+        text: `${displayCategory}\n${formattedValue}`,
         x: event.clientX - svgRect.left,
         y: event.clientY - svgRect.top
       };
@@ -192,39 +206,44 @@ export class LineChartVisualization {
                 <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
               </filter>
             </defs>
-            {/* Draw grid lines if enabled - PowerBI style (Y-axis only) */}
+            {/* Draw subtle grid lines if enabled */}
             {this.config.showGrid && (
               <g>
-                {[0, 25, 50, 75, 100].map((pos, i) => (
-                  <line 
-                    key={`h-${i}`} 
-                    x1="5" 
-                    y1={ChartThemeUtils.snapToPixel(pos)} 
-                    x2={viewBoxWidth - 5} 
-                    y2={ChartThemeUtils.snapToPixel(pos)} 
-                    stroke="var(--fl-chart-grid-color)" 
-                    stroke-width="1" 
-                    opacity={theme.gridlines.opacity}
-                  />
-                ))}
+                {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+                  const y = viewBoxHeight - 5 - ratio * (viewBoxHeight - 10);
+                  return (
+                    <line 
+                      key={`h-${i}`} 
+                      x1="5" 
+                      y1={ChartThemeUtils.snapToPixel(y)} 
+                      x2={viewBoxWidth - 5} 
+                      y2={ChartThemeUtils.snapToPixel(y)} 
+                      stroke="var(--fl-chart-grid-color)" 
+                      stroke-width="0.5" 
+                      opacity="0.2"
+                    />
+                  );
+                })}
               </g>
             )}
             
-            {/* Draw line with modern styling */}
+            {/* Draw line with clean styling */}
             <path 
               d={pathString} 
               fill="none" 
               stroke={colors[0]} 
-              stroke-width={theme.lineStrokeWidth}
+              stroke-width="1"
               stroke-linecap="round"
               stroke-linejoin="round"
-              filter="url(#softShadow)"
+              class="line-animated"
               style={{
-                transition: ChartAnimations.getHoverTransition()
+                transition: ChartAnimations.getHoverTransition(),
+                animationDelay: '100ms',
+                animationFillMode: 'both'
               }}
             />
             
-            {/* Draw points with modern styling */}
+            {/* Draw points with subtle styling */}
             {points.map((point, i) => (
               <g 
                 key={i} 
@@ -240,23 +259,42 @@ export class LineChartVisualization {
                 <circle 
                   cx="0" 
                   cy="0" 
-                  r={theme.pointRadius} 
+                  r="0.8" 
                   fill={colors[0]}
                   stroke="white"
-                  stroke-width="2"
-                  filter="url(#softShadow)"
+                  stroke-width="0.5"
+                  opacity="0.6"
+                  class="point-animated"
+                  style={{
+                    animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
+                    animationFillMode: 'both'
+                  }}
+                />
+                {/* Subtle hover state */}
+                <circle 
+                  cx="0" 
+                  cy="0" 
+                  r="2" 
+                  fill="transparent"
+                  stroke="transparent"
+                  stroke-width="0"
+                  class="point-hover"
+                  style={{
+                    transition: ChartAnimations.getHoverTransition()
+                  }}
                 />
               </g>
             ))}
             
-            {/* X and Y axis with proper styling */}
+            {/* X and Y axis with subtle styling */}
             <line 
               x1="5" 
               y1={ChartThemeUtils.snapToPixel(viewBoxHeight - 5)} 
               x2={viewBoxWidth - 5} 
               y2={ChartThemeUtils.snapToPixel(viewBoxHeight - 5)} 
               stroke="var(--fl-chart-axis-color)" 
-              stroke-width="1" 
+              stroke-width="0.5" 
+              opacity="0.6"
             />
             <line 
               x1={ChartThemeUtils.snapToPixel(5)} 
@@ -264,7 +302,8 @@ export class LineChartVisualization {
               x2={ChartThemeUtils.snapToPixel(5)} 
               y2={viewBoxHeight - 5} 
               stroke="var(--fl-chart-axis-color)" 
-              stroke-width="1" 
+              stroke-width="0.5" 
+              opacity="0.6"
             />
             
             {/* Labels (only show if not too many points) */}
@@ -355,12 +394,14 @@ export class LineChartVisualization {
                 transform: 'translate(-50%, -100%)'
               }}
             >
-              {this.tooltip.text}
+              <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
+                {this.tooltip.text}
+              </div>
             </div>
           )}
         </div>
         
-        {this.config.showLegend && (
+        {(this.config.showLegend !== false) && (
           <div class="chart-legend">
             <div class="legend-item">
               <div class="color-indicator" style={{ backgroundColor: colors[0] }}></div>

@@ -270,7 +270,7 @@ export class PieChartVisualization {
             {/* Tooltip */}
             {this.tooltip.visible && (
               <div 
-                class="chart-tooltip"
+                class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
                 style={{ 
                   left: `${this.tooltip.x}px`, 
                   top: `${this.tooltip.y}px`,
@@ -547,7 +547,7 @@ export class PieChartVisualization {
           {/* Tooltip */}
           {this.tooltip.visible && (
             <div 
-              class="chart-tooltip"
+              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltip.x}px`, 
                 top: `${this.tooltip.y}px`,

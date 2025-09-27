@@ -36,6 +36,8 @@ export const chartTheme: Record<ChartMode, any> = {
       "#a75bf4",            // 70% intensity
       "#b667ff",            // 65% intensity
     ],
+    // analytical elements (regression lines, trend indicators, etc.)
+    regressionColor: "#0D9488",  // teal-600 - deep teal for analytical elements
     // effects
     shadow: { dx: 0, dy: 1, blur: 1.6, opacity: 0.18 },
     // gridline policy
@@ -73,6 +75,8 @@ export const chartTheme: Record<ChartMode, any> = {
       "#ffb3fe",           // 70% intensity
       "#ffc8ff",           // 65% intensity
     ],
+    // analytical elements (regression lines, trend indicators, etc.)
+    regressionColor: "#22d3ee",  // cyan-400 - vibrant cyan for analytical elements in dark mode
     shadow: { dx: 0, dy: 1, blur: 2.0, opacity: 0.22 },
     gridlines: { x: false, y: true, opacity: 0.55 },
     barGradient: [alpha(baseDark, 1), alpha("#000000", 0.10)],

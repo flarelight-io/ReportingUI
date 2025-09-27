@@ -143,7 +143,8 @@ export class ReportDemo {
           groupByField: 'x',
           valueField: 'y',
           showGrid: true,
-          showRegressionLine: true
+          showRegressionLine: true,
+          showLegend: true
         }
       },
       {

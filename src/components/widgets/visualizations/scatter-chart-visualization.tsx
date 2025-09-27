@@ -1,6 +1,7 @@
 import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
+import { ChartThemeUtils, ChartAnimations } from '../../../utils/chart-theme';
 
 interface ScatterDataPoint {
   x: string | number;
@@ -30,8 +31,16 @@ export class ScatterChartVisualization {
   @Prop() data: VisualizationData;
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
+  @State() themeVersion: number = 0;
   
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
+
+  componentWillLoad() {
+    // Listen for theme changes to force re-render
+    ChartThemeUtils.onThemeChange(() => {
+      this.themeVersion++;
+    });
+  }
 
   private handleFilterClick(fieldName: string, value: any) {
     if (this.config.sourceId && fieldName) {
@@ -46,9 +55,15 @@ export class ScatterChartVisualization {
   private handleMouseMove(event: MouseEvent, category: string | number, value: number) {
     const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
     if (svgRect) {
+      // Format tooltip text with line breaks and proper formatting
+      const formattedValue = ChartThemeUtils.formatNumber(value);
+      const displayCategory = String(category).length > 20 
+        ? String(category).substring(0, 20) + '...' 
+        : String(category);
+      
       this.tooltip = {
         visible: true,
-        text: `${category}: ${value}`,
+        text: `${displayCategory}\n${formattedValue}`,
         x: event.clientX - svgRect.left,
         y: event.clientY - svgRect.top
       };
@@ -272,8 +287,9 @@ export class ScatterChartVisualization {
       }
     }
     
-    // Define colors
+    // Define colors and theme
     const colors = this.getColors();
+    const theme = ChartThemeUtils.getTheme();
     
     return (
       <div class="scatter-chart-container">
@@ -283,22 +299,30 @@ export class ScatterChartVisualization {
             height="100%" 
             viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
             preserveAspectRatio="xMidYMid meet"
+            {...ChartThemeUtils.getSVGAttributes()}
           >
+            {/* Define gradients and filters for modern styling */}
+            <defs>
+              <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
+              </filter>
+            </defs>
+            {/* Draw subtle grid lines if enabled */}
             {this.config.showGrid && (
               <>
-                {/* Draw grid lines, adjusted for viewbox width */}
+                {/* Horizontal grid lines */}
                 {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
                   const y = viewBoxHeight - 5 - ratio * (viewBoxHeight - 10);
                   return (
                     <line 
                       key={`h-${i}`}
                       x1="5" 
-                      y1={y} 
+                      y1={ChartThemeUtils.snapToPixel(y)} 
                       x2={viewBoxWidth - 5} 
-                      y2={y} 
-                      stroke="var(--fl-chart-grid-color, #ccc)" 
+                      y2={ChartThemeUtils.snapToPixel(y)} 
+                      stroke="var(--fl-chart-grid-color)" 
                       stroke-width="0.5"
-                      stroke-dasharray={i > 0 ? "1,1" : ""}
+                      opacity="0.2"
                     />
                   );
                 })}
@@ -309,13 +333,13 @@ export class ScatterChartVisualization {
                   return (
                     <line 
                       key={`v-${i}`}
-                      x1={x} 
+                      x1={ChartThemeUtils.snapToPixel(x)} 
                       y1="5" 
-                      x2={x} 
+                      x2={ChartThemeUtils.snapToPixel(x)} 
                       y2={viewBoxHeight - 5} 
-                      stroke="var(--fl-chart-grid-color, #ccc)" 
+                      stroke="var(--fl-chart-grid-color)" 
                       stroke-width="0.5"
-                      stroke-dasharray={i > 0 ? "1,1" : ""}
+                      opacity="0.2"
                     />
                   );
                 })}
@@ -329,18 +353,26 @@ export class ScatterChartVisualization {
                 y1={regressionLine.y1}
                 x2={regressionLine.x2}
                 y2={regressionLine.y2}
-                stroke="#ff6b6b"
+                stroke={theme.regressionColor}
                 stroke-width="1"
-                stroke-dasharray="1,0"
+                stroke-dasharray="none"
+                opacity="0.9"
+                class="regression-line"
+                style={{
+                  transition: ChartAnimations.getHoverTransition()
+                }}
               />
             )}
             
-            {/* Draw points */}
+            {/* Draw points with modern styling */}
             {points.map((point, i) => (
               <g 
                 key={i} 
                 transform={`translate(${point.x}, ${point.y})`}
-                style={{ cursor: 'pointer' }}
+                style={{ 
+                  cursor: 'pointer',
+                  transition: ChartAnimations.getHoverTransition()
+                }}
                 onClick={() => this.handleFilterClick(groupByField || '', point.category)}
                 onMouseMove={(event) => this.handleMouseMove(event, point.category, point.value)}
                 onMouseLeave={() => this.handleMouseLeave()}
@@ -348,29 +380,52 @@ export class ScatterChartVisualization {
                 <circle 
                   cx="0" 
                   cy="0" 
-                  r="1.5" 
+                  r="1.2" 
                   fill={colors[i % colors.length]} 
-                  opacity="0.8"
+                  stroke="white"
+                  stroke-width="0.5"
+                  opacity="0.7"
+                  class="point-animated"
+                  style={{
+                    animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
+                    animationFillMode: 'both'
+                  }}
+                  filter="url(#softShadow)"
+                />
+                {/* Subtle hover state */}
+                <circle 
+                  cx="0" 
+                  cy="0" 
+                  r="2.5" 
+                  fill="transparent"
+                  stroke="transparent"
+                  stroke-width="0"
+                  class="point-hover"
+                  style={{
+                    transition: ChartAnimations.getHoverTransition()
+                  }}
                 />
               </g>
             ))}
             
-            {/* X and Y axis */}
+            {/* X and Y axis with subtle styling */}
             <line 
               x1="5" 
-              y1={viewBoxHeight - 5} 
+              y1={ChartThemeUtils.snapToPixel(viewBoxHeight - 5)} 
               x2={viewBoxWidth - 5} 
-              y2={viewBoxHeight - 5} 
-              stroke="var(--fl-chart-axis-color, #333)" 
-              stroke-width="1" 
+              y2={ChartThemeUtils.snapToPixel(viewBoxHeight - 5)} 
+              stroke="var(--fl-chart-axis-color)" 
+              stroke-width="0.5" 
+              opacity="0.6"
             />
             <line 
-              x1="5" 
+              x1={ChartThemeUtils.snapToPixel(5)} 
               y1="5" 
-              x2="5" 
+              x2={ChartThemeUtils.snapToPixel(5)} 
               y2={viewBoxHeight - 5} 
-              stroke="var(--fl-chart-axis-color, #333)" 
-              stroke-width="1" 
+              stroke="var(--fl-chart-axis-color)" 
+              stroke-width="0.5" 
+              opacity="0.6"
             />
             
             {/* Labels (only show if not too many points) */}
@@ -447,19 +502,21 @@ export class ScatterChartVisualization {
           {/* Tooltip */}
           {this.tooltip.visible && (
             <div 
-              class="chart-tooltip"
+              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltip.x}px`, 
                 top: `${this.tooltip.y}px`,
                 transform: 'translate(-50%, -100%)'
               }}
             >
-              {this.tooltip.text}
+              <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
+                {this.tooltip.text}
+              </div>
             </div>
           )}
         </div>
         
-        {this.config.showLegend && (
+        {(this.config.showLegend !== false) && (
           <div class="chart-legend">
             {chartData.length <= 10 ? (
               // If we have a reasonable number of points, show them each in the legend
@@ -487,7 +544,7 @@ export class ScatterChartVisualization {
             {/* Add regression line to legend if it exists */}
             {showRegressionLine && regressionLine && (
               <div class="legend-item">
-                <div class="color-indicator regression-indicator" style={{ backgroundColor: '#ff6b6b' }}></div>
+                <div class="color-indicator regression-indicator" style={{ backgroundColor: theme.regressionColor }}></div>
                 <span class="legend-text">
                   Regression Line (R² = {regressionLine.r2.toFixed(2)})
                 </span>
@@ -508,11 +565,7 @@ export class ScatterChartVisualization {
   }
   
   private getColors(): string[] {
-    return [
-      '#4299e1', '#48bb78', '#f6ad55', '#f56565', 
-      '#9f7aea', '#38b2ac', '#ed8936', '#667eea',
-      '#fc8181', '#68d391', '#cbd5e0', '#feb2b2',
-      '#90cdf4', '#c6f6d5', '#fbd38d', '#e9d8fd'
-    ];
+    const theme = ChartThemeUtils.getTheme();
+    return theme.series;
   }
 } 
