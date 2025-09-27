@@ -160,7 +160,6 @@ export class HistogramChartVisualization {
     // Set viewBox dimensions to match other charts
     const viewBoxWidth = 200;
     const viewBoxHeight = 100;
-    const padding = 5; // Space for labels
     
     // Calculate bar dimensions
     const barWidth = (viewBoxWidth - 10) / histogramData.length;

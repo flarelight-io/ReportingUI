@@ -1829,56 +1829,90 @@ export class ReportDemo {
           { 
             Name: 'Customer Satisfaction Score', 
             'Customer Satisfaction Score': 1.00, 
-            'Revenue Growth Rate': 0.78, 
-            'Market Share Percentage': 0.65, 
-            'Employee Engagement Index': 0.72,
-            'Digital Transformation Score': 0.58,
-            'Operational Efficiency Rating': 0.83
+            'Revenue Growth Rate': 0.85, 
+            'Market Share Percentage': 0.42, 
+            'Employee Engagement Index': 0.78,
+            'Digital Transformation Score': 0.15,
+            'Operational Efficiency Rating': 0.91,
+            'Customer Churn Rate': -0.73,
+            'Support Ticket Volume': -0.68
           },
           { 
             Name: 'Revenue Growth Rate', 
-            'Customer Satisfaction Score': 0.78, 
+            'Customer Satisfaction Score': 0.85, 
             'Revenue Growth Rate': 1.00, 
-            'Market Share Percentage': 0.89, 
-            'Employee Engagement Index': 0.45,
-            'Digital Transformation Score': 0.67,
-            'Operational Efficiency Rating': 0.76
+            'Market Share Percentage': 0.67, 
+            'Employee Engagement Index': 0.23,
+            'Digital Transformation Score': 0.45,
+            'Operational Efficiency Rating': 0.58,
+            'Customer Churn Rate': -0.52,
+            'Support Ticket Volume': -0.41
           },
           { 
             Name: 'Market Share Percentage', 
-            'Customer Satisfaction Score': 0.65, 
-            'Revenue Growth Rate': 0.89, 
+            'Customer Satisfaction Score': 0.42, 
+            'Revenue Growth Rate': 0.67, 
             'Market Share Percentage': 1.00, 
-            'Employee Engagement Index': 0.38,
-            'Digital Transformation Score': 0.72,
-            'Operational Efficiency Rating': 0.69
+            'Employee Engagement Index': 0.12,
+            'Digital Transformation Score': 0.38,
+            'Operational Efficiency Rating': 0.34,
+            'Customer Churn Rate': -0.28,
+            'Support Ticket Volume': -0.19
           },
           { 
             Name: 'Employee Engagement Index', 
-            'Customer Satisfaction Score': 0.72, 
-            'Revenue Growth Rate': 0.45, 
-            'Market Share Percentage': 0.38, 
+            'Customer Satisfaction Score': 0.78, 
+            'Revenue Growth Rate': 0.23, 
+            'Market Share Percentage': 0.12, 
             'Employee Engagement Index': 1.00,
-            'Digital Transformation Score': 0.29,
-            'Operational Efficiency Rating': 0.81
+            'Digital Transformation Score': -0.15,
+            'Operational Efficiency Rating': 0.67,
+            'Customer Churn Rate': -0.45,
+            'Support Ticket Volume': -0.52
           },
           { 
             Name: 'Digital Transformation Score', 
-            'Customer Satisfaction Score': 0.58, 
-            'Revenue Growth Rate': 0.67, 
-            'Market Share Percentage': 0.72, 
-            'Employee Engagement Index': 0.29,
+            'Customer Satisfaction Score': 0.15, 
+            'Revenue Growth Rate': 0.45, 
+            'Market Share Percentage': 0.38, 
+            'Employee Engagement Index': -0.15,
             'Digital Transformation Score': 1.00,
-            'Operational Efficiency Rating': 0.54
+            'Operational Efficiency Rating': 0.28,
+            'Customer Churn Rate': 0.08,
+            'Support Ticket Volume': 0.12
           },
           { 
             Name: 'Operational Efficiency Rating', 
-            'Customer Satisfaction Score': 0.83, 
-            'Revenue Growth Rate': 0.76, 
-            'Market Share Percentage': 0.69, 
-            'Employee Engagement Index': 0.81,
-            'Digital Transformation Score': 0.54,
-            'Operational Efficiency Rating': 1.00
+            'Customer Satisfaction Score': 0.91, 
+            'Revenue Growth Rate': 0.58, 
+            'Market Share Percentage': 0.34, 
+            'Employee Engagement Index': 0.67,
+            'Digital Transformation Score': 0.28,
+            'Operational Efficiency Rating': 1.00,
+            'Customer Churn Rate': -0.61,
+            'Support Ticket Volume': -0.55
+          },
+          { 
+            Name: 'Customer Churn Rate', 
+            'Customer Satisfaction Score': -0.73, 
+            'Revenue Growth Rate': -0.52, 
+            'Market Share Percentage': -0.28, 
+            'Employee Engagement Index': -0.45,
+            'Digital Transformation Score': 0.08,
+            'Operational Efficiency Rating': -0.61,
+            'Customer Churn Rate': 1.00,
+            'Support Ticket Volume': 0.82
+          },
+          { 
+            Name: 'Support Ticket Volume', 
+            'Customer Satisfaction Score': -0.68, 
+            'Revenue Growth Rate': -0.41, 
+            'Market Share Percentage': -0.19, 
+            'Employee Engagement Index': -0.52,
+            'Digital Transformation Score': 0.12,
+            'Operational Efficiency Rating': -0.55,
+            'Customer Churn Rate': 0.82,
+            'Support Ticket Volume': 1.00
           }
         ];
       

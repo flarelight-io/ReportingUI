@@ -688,6 +688,10 @@ export interface ClusteredBarChartVisualizationCustomEvent<T> extends CustomEven
     detail: T;
     target: HTMLClusteredBarChartVisualizationElement;
 }
+export interface CorrelationAnalysisWidgetCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLCorrelationAnalysisWidgetElement;
+}
 export interface HeatmapVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLHeatmapVisualizationElement;
@@ -815,7 +819,18 @@ declare global {
         prototype: HTMLClusteredBarChartVisualizationElement;
         new (): HTMLClusteredBarChartVisualizationElement;
     };
+    interface HTMLCorrelationAnalysisWidgetElementEventMap {
+        "filterChange": { sourceId: string; field: string; value: any };
+    }
     interface HTMLCorrelationAnalysisWidgetElement extends Components.CorrelationAnalysisWidget, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLCorrelationAnalysisWidgetElementEventMap>(type: K, listener: (this: HTMLCorrelationAnalysisWidgetElement, ev: CorrelationAnalysisWidgetCustomEvent<HTMLCorrelationAnalysisWidgetElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLCorrelationAnalysisWidgetElementEventMap>(type: K, listener: (this: HTMLCorrelationAnalysisWidgetElement, ev: CorrelationAnalysisWidgetCustomEvent<HTMLCorrelationAnalysisWidgetElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLCorrelationAnalysisWidgetElement: {
         prototype: HTMLCorrelationAnalysisWidgetElement;
@@ -1256,6 +1271,7 @@ declare namespace LocalJSX {
           * @default false
          */
         "isViewer"?: boolean;
+        "onFilterChange"?: (event: CorrelationAnalysisWidgetCustomEvent<{ sourceId: string; field: string; value: any }>) => void;
         /**
           * @default false
          */

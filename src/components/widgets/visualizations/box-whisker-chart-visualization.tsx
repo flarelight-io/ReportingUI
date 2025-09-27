@@ -39,9 +39,7 @@ export class BoxWhiskerChartVisualization {
   @State() tooltipContent: { title: string, data: { label: string, value: any }[] } = { title: '', data: [] };
   @State() tooltipPosition: { x: number, y: number } = { x: 0, y: 0 };
   @State() themeVersion: number = 0; // Force re-render when theme changes
-  
-  // Reference to the SVG element
-  private svgRef?: SVGElement;
+
 
   componentWillLoad() {
     // Listen for theme changes
@@ -347,7 +345,6 @@ export class BoxWhiskerChartVisualization {
             height="100%" 
             viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
             preserveAspectRatio="xMidYMid meet"
-            ref={(el) => this.svgRef = el}
             style={{ maxHeight: '100%' }}
             {...ChartThemeUtils.getSVGAttributes()}
           >

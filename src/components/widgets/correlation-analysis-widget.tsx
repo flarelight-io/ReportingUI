@@ -1,5 +1,6 @@
-import { Component, Prop, h, Host, State, Watch, Element } from '@stencil/core';
+import { Component, Prop, h, Host, State, Watch, Element, Event, EventEmitter } from '@stencil/core';
 import { ChartDataRequest } from '../../api/types/common';
+import { ChartThemeUtils, ChartAnimations } from '../../utils/chart-theme';
 
 export interface CorrelationAnalysisWidgetConfig {
   analysisId?: string;
@@ -46,6 +47,9 @@ export class CorrelationAnalysisWidget {
   @State() fields: string[] = [];
   @State() isKpiMode: boolean = false;
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
+  @State() themeVersion: number = 0; // Force re-render when theme changes
+  
+  @Event() filterChange: EventEmitter<{ sourceId: string; field: string; value: any }>;
   
   private svgRef: SVGElement;
   
@@ -59,6 +63,11 @@ export class CorrelationAnalysisWidget {
   ];
   
   componentWillLoad() {
+    // Listen for theme changes
+    ChartThemeUtils.onThemeChange(() => {
+      this.themeVersion++;
+    });
+    
     // Set up event listeners for direct data updates
     this.el.addEventListener('dataUpdate', (event: CustomEvent) => {
       if (event.detail) {
@@ -156,19 +165,36 @@ export class CorrelationAnalysisWidget {
     }
   }
   
-  // Helper function to get color for correlation value
+  // Helper function to get color for correlation value using theme
   private getCorrelationColor(value: number): string {
-    if (value <= -0.7) return this.colorScale[0]; // Strong negative
-    if (value <= -0.3) return this.colorScale[1]; // Moderate negative
-    if (value <= 0.3) return this.colorScale[2];  // Weak correlation
-    if (value <= 0.7) return this.colorScale[3];  // Moderate positive
-    return this.colorScale[4]; // Strong positive
+    const theme = ChartThemeUtils.getTheme();
+    
+    // Create a professional correlation color scale with better contrast:
+    // - Primary theme color with gradient for positive values (0 to +1)
+    // - Highlight color for neutral/zero values (0)
+    // - Shades of highlight color for negative values (-1 to 0)
+    
+    // For positive values: use primary theme color with increasing intensity
+    if (value > 0) {
+      if (value >= 0.7) return theme.series[0]; // Strong positive - full primary color
+      if (value >= 0.3) return theme.series[2]; // Moderate positive - use 3rd color for better contrast
+      return theme.series[4]; // Weak positive - use 5th color for better contrast
+    }
+    
+    // For zero: use highlight/neutral color
+    if (value === 0) {
+      return theme.regressionColor; // Use the analytical highlight color
+    }
+    
+    // For negative values: use shades of highlight color with better contrast
+    if (value >= -0.3) return theme.regressionColor + 'CC'; // Weak negative - highlight with high opacity
+    if (value >= -0.7) return theme.regressionColor + '99'; // Moderate negative - medium opacity
+    return theme.regressionColor + '66'; // Strong negative - lower opacity but still visible
   }
   
-  // Format correlation value for display
+  // Format correlation value for display using theme utilities
   private formatCorrelationValue(value: number): string {
-    // Round to 2 decimal places
-    return value.toFixed(2);
+    return ChartThemeUtils.formatNumber(value);
   }
   
   // Handle mouse move for tooltip
@@ -189,11 +215,24 @@ export class CorrelationAnalysisWidget {
     this.tooltip = { ...this.tooltip, visible: false };
   }
   
+  // Handle filter click for interactivity
+  private handleFilterClick(fieldName: string, value: any) {
+    if (this.config.analysisId && fieldName) {
+      this.filterChange.emit({
+        sourceId: this.config.analysisId,
+        field: fieldName,
+        value: value
+      });
+    }
+  }
+  
   // Render KPI mode (when only 2 fields)
   private renderKpiVisualization() {
     if (!this.correlationData || this.correlationData.length === 0) {
       return <div class="empty-data">No correlation data available</div>;
     }
+    
+    const theme = ChartThemeUtils.getTheme();
     
     // Get the first row (should be the only one for KPI mode)
     const row = this.correlationData[0];
@@ -248,15 +287,38 @@ export class CorrelationAnalysisWidget {
     
     return (
       <div class="kpi-container">
-        <div class="kpi-value" style={{ color: this.getCorrelationColor(value) }}>
+        <div 
+          class="kpi-value" 
+          style={{ 
+            color: this.getCorrelationColor(value),
+            fontFamily: theme.fontFamily,
+            animationDelay: '100ms',
+            animationFillMode: 'both'
+          }}
+        >
           {formattedValue}
         </div>
         
-        <div class={`kpi-strength ${strengthClass}`}>
+        <div 
+          class={`kpi-strength ${strengthClass}`}
+          style={{
+            fontFamily: theme.fontFamily,
+            animationDelay: '200ms',
+            animationFillMode: 'both'
+          }}
+        >
           {strengthLabel}
         </div>
         
-        <div class="kpi-fields">
+        <div 
+          class="kpi-fields"
+          style={{
+            fontFamily: theme.fontFamily,
+            color: theme.labelColor,
+            animationDelay: '300ms',
+            animationFillMode: 'both'
+          }}
+        >
           Between {row.Name} and {field}
         </div>
       </div>
@@ -282,27 +344,60 @@ export class CorrelationAnalysisWidget {
       matrix.push(matrixRow);
     });
     
-    const cellSize = Math.max(45, Math.floor(Math.min(this.width || 300, this.height || 300) / rowFields.length));
-    const fontSize = Math.max(8, Math.min(11, cellSize * 0.4));
-    const maxTextLength = Math.max(...rowFields.map(field => field.length));
-    const paddingLeft = 60 + maxTextLength * fontSize * 0.1;
-    const paddingTop = 100; // Increased top padding significantly for x-axis labels
+    const theme = ChartThemeUtils.getTheme();
+    
+    // Calculate cell size based on available space and number of fields
+    const availableWidth = this.width || 400;
+    const availableHeight = this.height || 400;
+    const maxFields = Math.max(rowFields.length, this.fields.length);
+    
+    // Ensure minimum cell size but allow for more fields
+    const cellSize = Math.max(35, Math.floor(Math.min(availableWidth, availableHeight) / (maxFields + 2)));
+    const fontSize = Math.max(8, Math.min(12, cellSize * 0.35));
+    
+    // Calculate padding based on text length
+    const maxTextLength = Math.max(
+      ...rowFields.map(field => field.length),
+      ...this.fields.map(field => field.length)
+    );
+    const paddingLeft = Math.max(80, maxTextLength * fontSize * 0.6);
+    const paddingTop = Math.max(80, maxTextLength * fontSize * 0.4);
     
     // Calculate dimensions
-    const gridSize = cellSize * rowFields.length;
-    const svgWidth = Math.max(Math.min(this.width || 300, this.height || 300), gridSize + paddingLeft * 1.5);
-    const svgHeight = Math.max(Math.min(this.width || 300, this.height || 300) - 80, gridSize + paddingTop * 1.5);
+    const gridWidth = cellSize * this.fields.length;
+    const gridHeight = cellSize * rowFields.length;
+    const svgWidth = paddingLeft + gridWidth + 20; // Add some margin
+    const svgHeight = paddingTop + gridHeight + 20; // Add some margin
     
     return (
-      <div class="heatmap-container" style={{ flexDirection: 'column' }}>
-        <div class="heatmap-visualization">
+      <div class="heatmap-container">
+        <div class="visualization-container">
           <svg 
             ref={(el) => this.svgRef = el}
-            width={svgWidth} 
-            height={svgHeight} 
+            width="100%" 
+            height="100%" 
             viewBox={`0 0 ${svgWidth} ${svgHeight}`}
             preserveAspectRatio="xMidYMid meet"
+            {...ChartThemeUtils.getSVGAttributes()}
           >
+            {/* Define gradients and filters for modern styling */}
+            <defs>
+              {/* Create gradient definitions for the correlation scale */}
+              {Array.from({ length: 7 }, (_, i) => {
+                // Create a more granular scale: -1, -0.7, -0.3, 0, 0.3, 0.7, 1
+                const value = -1 + (i / 3) * 2; // -1, -0.33, 0.33, 1
+                const color = this.getCorrelationColor(value);
+                return (
+                  <linearGradient key={`correlationGradient-${i}`} id={`correlationGradient-${i}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color={color} stop-opacity="1"/>
+                    <stop offset="100%" stop-color={color} stop-opacity="0.85"/>
+                  </linearGradient>
+                );
+              })}
+              <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
+              </filter>
+            </defs>
             {/* Y-axis labels (field names) */}
             {rowFields.map((field, i) => (
               <text
@@ -312,8 +407,14 @@ export class CorrelationAnalysisWidget {
                 text-anchor="end"
                 dominant-baseline="middle"
                 font-size={fontSize}
-                font-family="sans-serif"
-                fill="var(--fl-chart-text-color, #333)"
+                font-family={theme.fontFamily}
+                font-weight="500"
+                fill={theme.labelColor}
+                class="text-animated"
+                style={{
+                  animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
+                  animationFillMode: 'both'
+                }}
               >
                 {field}
               </text>
@@ -328,9 +429,16 @@ export class CorrelationAnalysisWidget {
                 text-anchor="start"
                 dominant-baseline="middle"
                 font-size={fontSize}
-                font-family="sans-serif"
-                fill="var(--fl-chart-text-color, #333)"
+                font-family={theme.fontFamily}
+                font-weight="500"
+                fill={theme.labelColor}
                 transform={`rotate(-45, ${paddingLeft + i * cellSize + cellSize / 2}, ${paddingTop - field.length * fontSize * 0.1})`}
+                class="text-rotated-animated"
+                style={{
+                  animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
+                  animationFillMode: 'both',
+                  transformOrigin: `${paddingLeft + i * cellSize + cellSize / 2}px ${paddingTop - field.length * fontSize * 0.1}px`
+                }}
               >
                 {field}
               </text>
@@ -340,20 +448,38 @@ export class CorrelationAnalysisWidget {
             {matrix.map((row, i) => (
               row.map((value, j) => {
                 const tooltipText = `${rowFields[i]} & ${this.fields[j]}: ${this.formatCorrelationValue(value)}`;
+                const cellIndex = i * row.length + j;
+                
+                // Calculate gradient index based on correlation value
+                const normalizedValue = (value + 1) / 2; // Convert from [-1,1] to [0,1]
+                const gradientIndex = Math.min(6, Math.floor(normalizedValue * 6));
                 
                 return (
-                  <g key={`cell-${i}-${j}`}
+                  <g 
+                    key={`cell-${i}-${j}`}
                     onMouseMove={(e) => this.handleMouseMove(e, tooltipText)}
                     onMouseLeave={() => this.handleMouseLeave()}
+                    onClick={() => this.handleFilterClick(
+                      rowFields[i],
+                      this.fields[j]
+                    )}
                   >
                     <rect
                       x={paddingLeft + j * cellSize}
                       y={paddingTop + i * cellSize}
                       width={cellSize}
                       height={cellSize}
-                      fill={this.getCorrelationColor(value)}
-                      stroke="var(--fl-border-color, rgba(255, 255, 255, 0.2))"
+                      fill={`url(#correlationGradient-${gradientIndex})`}
+                      stroke={theme.border}
                       stroke-width="0.5"
+                      class="cell-animated cell-glow"
+                      style={{ 
+                        cursor: 'pointer',
+                        transition: ChartAnimations.getHoverTransition(),
+                        animationDelay: `${ChartAnimations.getStaggerDelay(cellIndex)}ms`,
+                        animationFillMode: 'both'
+                      }}
+                      filter="url(#softShadow)"
                     />
                     
                     {/* Show correlation values in cells if configured */}
@@ -364,9 +490,14 @@ export class CorrelationAnalysisWidget {
                         text-anchor="middle"
                         dominant-baseline="middle"
                         font-size={fontSize}
-                        font-family="sans-serif"
-                        fill={this.getTextColor(value)}
+                        font-family={theme.fontFamily}
                         font-weight="bold"
+                        fill={this.getTextColor(value)}
+                        class="text-animated"
+                        style={{
+                          animationDelay: `${ChartAnimations.getStaggerDelay(cellIndex) + 100}ms`,
+                          animationFillMode: 'both'
+                        }}
                       >
                         {this.formatCorrelationValue(value)}
                       </text>
@@ -377,55 +508,119 @@ export class CorrelationAnalysisWidget {
             ))}
           </svg>
           
-          {/* Tooltip */}
+          {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
-              class="heatmap-tooltip"
+              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltip.x}px`, 
-                top: `${this.tooltip.y}px`
+                top: `${this.tooltip.y}px`,
+                transform: 'translate(-50%, -100%)'
               }}
             >
-              {this.tooltip.text}
+              <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
+                {this.tooltip.text}
+              </div>
             </div>
           )}
         </div>
         
-        {/* Color scale legend - positioned below the chart */}
-        <div class="color-legend">
+        {/* Color legend with PowerBI-grade styling */}
+        <div class="chart-legend">
           <div class="legend-item">
-            <div class="color-box" style={{ backgroundColor: this.colorScale[0] }}></div>
-            <span class="legend-text">-1.0</span>
+            <div 
+              class="color-indicator" 
+              style={{ 
+                backgroundColor: this.getCorrelationColor(-1.0)
+              }}
+            ></div>
+            <span class="legend-text">Strong -</span>
           </div>
           <div class="legend-item">
-            <div class="color-box" style={{ backgroundColor: this.colorScale[1] }}></div>
-            <span class="legend-text">-0.5</span>
+            <div 
+              class="color-indicator" 
+              style={{ 
+                backgroundColor: this.getCorrelationColor(-0.5)
+              }}
+            ></div>
+            <span class="legend-text">Moderate -</span>
           </div>
           <div class="legend-item">
-            <div class="color-box" style={{ backgroundColor: this.colorScale[2] }}></div>
-            <span class="legend-text">0</span>
+            <div 
+              class="color-indicator" 
+              style={{ 
+                backgroundColor: this.getCorrelationColor(0.0)
+              }}
+            ></div>
+            <span class="legend-text">Neutral</span>
           </div>
           <div class="legend-item">
-            <div class="color-box" style={{ backgroundColor: this.colorScale[3] }}></div>
-            <span class="legend-text">0.5</span>
+            <div 
+              class="color-indicator" 
+              style={{ 
+                backgroundColor: this.getCorrelationColor(0.5)
+              }}
+            ></div>
+            <span class="legend-text">Moderate +</span>
           </div>
           <div class="legend-item">
-            <div class="color-box" style={{ backgroundColor: this.colorScale[4] }}></div>
-            <span class="legend-text">1.0</span>
+            <div 
+              class="color-indicator" 
+              style={{ 
+                backgroundColor: this.getCorrelationColor(1.0)
+              }}
+            ></div>
+            <span class="legend-text">Strong +</span>
           </div>
         </div>
       </div>
     );
   }
   
-  // Helper to determine text color based on background color
+  // Helper to determine text color based on background color brightness
   private getTextColor(value: number): string {
-    // Use light text on dark backgrounds and dark text on light backgrounds
-    if (Math.abs(value) > 0.5) {
-      return 'var(--fl-text-light, #ffffff)';
+    const theme = ChartThemeUtils.getTheme();
+    const backgroundColor = this.getCorrelationColor(value);
+    
+    // Calculate the brightness of the background color
+    const brightness = this.getColorBrightness(backgroundColor);
+    
+    // Use light text on dark backgrounds, dark text on light backgrounds
+    return brightness < 0.5 ? theme.panel : theme.labelColor;
+  }
+  
+  // Helper to calculate color brightness (0 = black, 1 = white)
+  private getColorBrightness(hexColor: string): number {
+    // Remove # if present
+    const hex = hexColor.replace('#', '');
+    
+    // Handle hex colors with alpha (e.g., #RRGGBBAA)
+    let r, g, b;
+    if (hex.length === 8) {
+      // Has alpha channel
+      r = parseInt(hex.substr(0, 2), 16);
+      g = parseInt(hex.substr(2, 2), 16);
+      b = parseInt(hex.substr(4, 2), 16);
+      const alpha = parseInt(hex.substr(6, 2), 16) / 255;
+      
+      // Blend with white background (assuming white background)
+      r = Math.round(r * alpha + 255 * (1 - alpha));
+      g = Math.round(g * alpha + 255 * (1 - alpha));
+      b = Math.round(b * alpha + 255 * (1 - alpha));
+    } else if (hex.length === 6) {
+      // No alpha channel
+      r = parseInt(hex.substr(0, 2), 16);
+      g = parseInt(hex.substr(2, 2), 16);
+      b = parseInt(hex.substr(4, 2), 16);
     } else {
-      return 'var(--fl-text-dark, #000000)';
+      // Fallback for invalid hex
+      return 0.5;
     }
+    
+    // Calculate relative luminance using the standard formula
+    // This gives a value between 0 (black) and 1 (white)
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance;
   }
   
   render() {

@@ -5,22 +5,62 @@
   overflow: hidden;
 }
 
+/* Animation keyframes */
+@keyframes bubbleEnter {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes textFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .bubble-chart-container {
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: 4px;
-  box-sizing: border-box;
   overflow: hidden;
-  background-color: var(--fl-chart-background);
+  justify-content: center;
+  background-color: var(--fl-chart-panel);
+  border-radius: var(--fl-chart-radius);
+  box-shadow: var(--fl-chart-shadow);
+  padding: 8px;
+  transition: box-shadow 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    box-shadow: var(--fl-chart-shadow-hover);
+  }
 }
 
 .visualization-container {
   flex: 1;
   position: relative;
-  overflow: hidden;
-  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    max-height: 400px;
+    max-width: 400px;
+    overflow: visible;
+  }
 }
 
 .loading-spinner {
@@ -29,8 +69,9 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: var(--fl-text-color-secondary, #6b7280);
-  font-size: 0.875rem;
+  color: var(--fl-chart-text-secondary);
+  font-size: var(--fl-chart-font-size);
+  font-family: var(--fl-chart-font-family);
   
   &::after {
     content: '';
@@ -51,8 +92,9 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: var(--fl-error-color, #ef4444);
-  font-size: 0.875rem;
+  color: var(--fl-error-color);
+  font-size: var(--fl-chart-font-size);
+  font-family: var(--fl-chart-font-family);
   text-align: center;
   padding: 16px;
 }
@@ -63,8 +105,9 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: var(--fl-text-color-secondary, #6b7280);
-  font-size: 0.875rem;
+  color: var(--fl-chart-text-secondary);
+  font-size: var(--fl-chart-font-size);
+  font-family: var(--fl-chart-font-family);
 }
 
 .bubble {
@@ -72,8 +115,30 @@
 
   &:hover {
     opacity: 0.9;
-    stroke-width: 2;
   }
+}
+
+.bubble-animated {
+  animation: bubbleEnter 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+// Enhanced glow effect for bubbles
+.bubble-glow {
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.25)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.2));
+  }
+}
+
+// Theme-aware glow effects
+[data-theme="light"] .bubble-glow:hover {
+  filter: brightness(1.1) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.2)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.15));
+}
+
+[data-theme="dark"] .bubble-glow:hover {
+  filter: brightness(1.15) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.3));
 }
 
 .bubble-label {
@@ -82,71 +147,91 @@
   user-select: none;
 }
 
-/* Tooltip styling */
+.text-animated {
+  animation: textFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Tooltip styling - PowerBI grade */
 .chart-tooltip {
   position: absolute;
   z-index: 10;
-  background-color: var(--fl-card-background, #fff);
-  backdrop-filter: blur(4px);
-  color: var(--fl-text-color-primary, #1f2937);
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid var(--fl-border-color, #d1d5db);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  font-size: 12px;
+  background-color: var(--fl-chart-panel);
+  backdrop-filter: blur(8px);
+  color: var(--fl-chart-text-primary);
+  padding: 12px 16px;
+  border-radius: var(--fl-chart-radius);
+  border: 1px solid var(--fl-chart-border);
+  box-shadow: var(--fl-chart-shadow);
+  font-size: var(--fl-chart-font-size);
+  font-family: var(--fl-chart-font-family);
+  font-weight: 500;
   pointer-events: none;
   white-space: pre-line;
-  max-width: 200px;
+  max-width: 250px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 120ms cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 120ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  div {
+    line-height: 1.4;
+  }
 }
 
+/* Legend styling - PowerBI grade */
 .chart-legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 6px;
   margin-top: 8px;
-  padding: 0 8px;
-  overflow: visible;
+  padding: 8px 0 0 0;
+  border-top: 1px solid var(--fl-chart-border);
+  font-family: var(--fl-chart-font-family);
+  max-height: 80px;
+  overflow-y: auto;
+  flex-shrink: 0;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  margin-right: 12px;
-  margin-bottom: 4px;
   cursor: pointer;
-
+  transition: opacity 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 2px 4px;
+  border-radius: 3px;
+  
   &:hover {
     opacity: 0.8;
+    background-color: var(--fl-hover-color);
   }
 }
 
 .color-indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 0;
+  margin-right: 4px;
   flex-shrink: 0;
+  transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  .legend-item:hover & {
+    transform: scale(1.1);
+  }
 }
 
 .legend-text {
-  font-size: 0.75rem;
-  color: var(--fl-text-color-secondary, #4b5563);
+  font-size: 10px;
+  color: var(--fl-chart-text-color);
+  font-weight: 500;
   white-space: nowrap;
+  overflow: hidden;
 }
 
-.chart-metadata {
-  padding: 4px 8px;
-  font-size: 0.6875rem;
-  color: var(--fl-text-color-secondary, #6b7280);
-  text-align: center;
-  margin-top: 4px;
-}
-
-.chart-info {
-  font-size: 0.6875rem;
-  color: var(--fl-text-color-secondary, #6b7280);
-}
 
 @keyframes spinner {
   to {

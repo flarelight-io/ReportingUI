@@ -176,9 +176,9 @@ export class ChartThemeUtils {
     return theme.series[index % theme.series.length];
   }
 
-  static createGradient(id: string, colors: string[]): string {
-    return `url(#${id})`;
-  }
+    static createGradient(id: string, _colors: string[]): string {      
+      return `url(#${id})`;
+    }
 
   static getShadowFilter(): string {
     const theme = this.getTheme();

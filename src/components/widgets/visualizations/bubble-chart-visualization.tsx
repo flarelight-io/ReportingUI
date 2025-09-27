@@ -1,6 +1,7 @@
 import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
+import { ChartThemeUtils, ChartAnimations } from '../../../utils/chart-theme';
 
 interface BubbleDataPoint {
   x: string | number;
@@ -27,8 +28,16 @@ export class BubbleChartVisualization {
   @Prop() data: VisualizationData;
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
+  @State() themeVersion: number = 0; // Force re-render when theme changes
   
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
+
+  componentWillLoad() {
+    // Listen for theme changes
+    ChartThemeUtils.onThemeChange(() => {
+      this.themeVersion++;
+    });
+  }
 
   private handleFilterClick(fieldName: string, value: any) {
     if (this.config.sourceId && fieldName) {
@@ -43,9 +52,17 @@ export class BubbleChartVisualization {
   private handleMouseMove(event: MouseEvent, category: string | number, value: number, size: any) {
     const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
     if (svgRect) {
+      // Format tooltip text with proper line breaks for long categories
+      const formattedValue = ChartThemeUtils.formatNumber(value);
+      const formattedSize = ChartThemeUtils.formatNumber(size);
+      const maxCategoryLength = 30;
+      const truncatedCategory = String(category).length > maxCategoryLength 
+        ? `${String(category).substring(0, maxCategoryLength)}...` 
+        : String(category);
+      
       this.tooltip = {
         visible: true,
-        text: `${category}: ${value} (Size: ${size})`,
+        text: `${truncatedCategory}\nY: ${formattedValue}\nSize: ${formattedSize}`,
         x: event.clientX - svgRect.left,
         y: event.clientY - svgRect.top
       };
@@ -187,12 +204,8 @@ export class BubbleChartVisualization {
   }
   
   private getColors(): string[] {
-    return [
-      '#4285F4', '#EA4335', '#FBBC05', '#34A853', '#FF6D01', 
-      '#46BDC6', '#7BAAF7', '#F07B72', '#FCD04F', '#71C287',
-      '#FFA550', '#76CFCF', '#ABD0FD', '#F7B1AB', '#FEE29C',
-      '#ADC7C0'
-    ];
+    const theme = ChartThemeUtils.getTheme();
+    return theme.series;
   }
 
   render() {
@@ -208,9 +221,9 @@ export class BubbleChartVisualization {
     const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
     const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
     const idField = 'idField' in this.config ? this.config.idField : undefined;
-    const parentIdField = 'parentIdField' in this.config ? this.config.parentIdField : undefined;
     
     const bubbleData = this.processData();
+    const theme = ChartThemeUtils.getTheme();
     
     if (bubbleData.length === 0) {
       return <div class="empty-data">No data available</div>;
@@ -291,11 +304,28 @@ export class BubbleChartVisualization {
             viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
             preserveAspectRatio="xMidYMid meet"
           >
+            <defs>
+              {/* Gradient definitions for bubbles */}
+              {bubbles.map((bubble, index) => {
+                const colorIndex = categories.indexOf(bubble.data.category);
+                return (
+                  <linearGradient key={`bubbleGradient-${index}`} id={`bubbleGradient-${colorIndex}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color={bubble.color} stop-opacity="0.9" />
+                    <stop offset="100%" stop-color={bubble.color} stop-opacity="0.6" />
+                  </linearGradient>
+                );
+              })}
+              
+              {/* Soft shadow filter */}
+              <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.1)" flood-opacity="0.3"/>
+              </filter>
+            </defs>
             {this.config.showGrid && (
               <>
                 {/* Horizontal grid lines */}
                 {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const y = viewBoxHeight - yPadding - ratio * (viewBoxHeight - 2 * yPadding);
+                  const y = ChartThemeUtils.snapToPixel(viewBoxHeight - yPadding - ratio * (viewBoxHeight - 2 * yPadding));
                   return (
                     <line 
                       key={`h-${i}`}
@@ -303,16 +333,17 @@ export class BubbleChartVisualization {
                       y1={y} 
                       x2={viewBoxWidth - xPadding} 
                       y2={y} 
-                      stroke="var(--fl-chart-grid-color, #ccc)" 
+                      stroke="var(--fl-chart-grid-color)" 
                       stroke-width="0.5"
                       stroke-dasharray={i > 0 ? "1,1" : ""}
+                      opacity={theme.gridlines.opacity}
                     />
                   );
                 })}
                 
                 {/* Vertical grid lines */}
                 {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const x = xPadding + ratio * (viewBoxWidth - 2 * xPadding);
+                  const x = ChartThemeUtils.snapToPixel(xPadding + ratio * (viewBoxWidth - 2 * xPadding));
                   return (
                     <line 
                       key={`v-${i}`}
@@ -320,9 +351,10 @@ export class BubbleChartVisualization {
                       y1={yPadding} 
                       x2={x} 
                       y2={viewBoxHeight - yPadding} 
-                      stroke="var(--fl-chart-grid-color, #ccc)" 
+                      stroke="var(--fl-chart-grid-color)" 
                       stroke-width="0.5"
                       stroke-dasharray={i > 0 ? "1,1" : ""}
+                      opacity={theme.gridlines.opacity}
                     />
                   );
                 })}
@@ -330,60 +362,67 @@ export class BubbleChartVisualization {
             )}
             
             {/* Draw bubbles */}
-            {bubbles.map((bubble, i) => (
-              <g 
-                key={i} 
-                transform={`translate(${bubble.x}, ${bubble.y})`}
-                style={{ cursor: 'pointer' }}
-                onClick={() => this.handleFilterClick(groupByField || '', bubble.data.x)}
-                onMouseMove={(event) => this.handleMouseMove(event, bubble.data.x, bubble.data.y, bubble.data.size)}
-                onMouseLeave={() => this.handleMouseLeave()}
-              >
-                <circle 
-                  cx="0" 
-                  cy="0" 
-                  r={bubble.r}
-                  fill={bubble.color} 
-                  opacity="0.7"
-                  stroke={bubble.color}
-                  stroke-width="1"
-                  class="bubble"
+            {bubbles.map((bubble, i) => {
+              const colorIndex = categories.indexOf(bubble.data.category);
+              return (
+                <g 
+                  key={i} 
+                  transform={`translate(${bubble.x}, ${bubble.y})`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => this.handleFilterClick(groupByField || '', bubble.data.x)}
+                  onMouseMove={(event) => this.handleMouseMove(event, bubble.data.x, bubble.data.y, bubble.data.size)}
+                  onMouseLeave={() => this.handleMouseLeave()}
                 >
-                </circle>
-                
-                {this.config.showLabels && (
-                  <text 
-                    key={`value-${i}`} 
-                    x="0" 
-                    y={-bubble.r - 2} 
-                    text-anchor="middle" 
-                    font-size="3" 
-                    fill="var(--fl-chart-text-color, #333)"
-                    class="bubble-label"
-                  >
-                    {typeof bubble.data.x === 'string' && bubble.data.x.length > 10 
-                      ? bubble.data.x.substring(0, 10) + '...' 
-                      : bubble.data.x}
-                  </text>
-                )}
-              </g>
-            ))}
+                  <circle 
+                    cx="0" 
+                    cy="0" 
+                    r={bubble.r}
+                    fill={`url(#bubbleGradient-${colorIndex})`}
+                    class="bubble bubble-animated bubble-glow"
+                    style={{ 
+                      transition: ChartAnimations.getHoverTransition(),
+                      animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`
+                    }}
+                    filter="url(#softShadow)"
+                  />
+                  
+                  {this.config.showLabels && (
+                    <text 
+                      key={`value-${i}`} 
+                      x="0" 
+                      y={-bubble.r - 2} 
+                      text-anchor="middle" 
+                      font-size="3" 
+                      fill={theme.labelColor}
+                      font-family={theme.fontFamily}
+                      font-weight="500"
+                      class="bubble-label text-animated"
+                      style={{ animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms` }}
+                    >
+                      {typeof bubble.data.x === 'string' && bubble.data.x.length > 10 
+                        ? bubble.data.x.substring(0, 10) + '...' 
+                        : bubble.data.x}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
             
             {/* X and Y axis */}
             <line 
-              x1={xPadding} 
-              y1={viewBoxHeight - yPadding} 
-              x2={viewBoxWidth - xPadding} 
-              y2={viewBoxHeight - yPadding} 
-              stroke="var(--fl-chart-axis-color, #333)" 
+              x1={ChartThemeUtils.snapToPixel(xPadding)} 
+              y1={ChartThemeUtils.snapToPixel(viewBoxHeight - yPadding)} 
+              x2={ChartThemeUtils.snapToPixel(viewBoxWidth - xPadding)} 
+              y2={ChartThemeUtils.snapToPixel(viewBoxHeight - yPadding)} 
+              stroke="var(--fl-chart-axis-color)" 
               stroke-width="1" 
             />
             <line 
-              x1={xPadding} 
-              y1={yPadding} 
-              x2={xPadding} 
-              y2={viewBoxHeight - yPadding} 
-              stroke="var(--fl-chart-axis-color, #333)" 
+              x1={ChartThemeUtils.snapToPixel(xPadding)} 
+              y1={ChartThemeUtils.snapToPixel(yPadding)} 
+              x2={ChartThemeUtils.snapToPixel(xPadding)} 
+              y2={ChartThemeUtils.snapToPixel(viewBoxHeight - yPadding)} 
+              stroke="var(--fl-chart-axis-color)" 
               stroke-width="1" 
             />
             
@@ -400,9 +439,13 @@ export class BubbleChartVisualization {
                   font-size="3" 
                   text-anchor="end" 
                   dominant-baseline="middle" 
-                  fill="var(--fl-chart-text-color, #666)"
+                  fill={theme.labelColor}
+                  font-family={theme.fontFamily}
+                  font-weight="500"
+                  class="text-animated"
+                  style={{ animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms` }}
                 >
-                  {value.toFixed(value > 100 ? 0 : value > 10 ? 1 : 2)}
+                  {value.toFixed(3).replace(/\.?0+$/, '')}
                 </text>
               );
             })}
@@ -419,9 +462,13 @@ export class BubbleChartVisualization {
                   y={viewBoxHeight - yPadding + 3} 
                   font-size="3" 
                   text-anchor="middle" 
-                  fill="var(--fl-chart-text-color, #666)"
+                  fill={theme.labelColor}
+                  font-family={theme.fontFamily}
+                  font-weight="500"
+                  class="text-animated"
+                  style={{ animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms` }}
                 >
-                  {value.toFixed(value > 100 ? 0 : value > 10 ? 1 : 2)}
+                  {value.toFixed(3).replace(/\.?0+$/, '')}
                 </text>
               );
             })}
@@ -430,14 +477,14 @@ export class BubbleChartVisualization {
           {/* Tooltip */}
           {this.tooltip.visible && (
             <div 
-              class="chart-tooltip"
+              class="chart-tooltip visible"
               style={{ 
                 left: `${this.tooltip.x}px`, 
                 top: `${this.tooltip.y}px`,
                 transform: 'translate(-50%, -100%)'
               }}
             >
-              {this.tooltip.text}
+              <div>{this.tooltip.text}</div>
             </div>
           )}
         </div>
@@ -461,15 +508,6 @@ export class BubbleChartVisualization {
           </div>
         )}
         
-        <div class="chart-metadata">
-          {groupByField && valueField && (
-            <div class="chart-info">
-              X: {groupByField} • Y: {valueField} • 
-    Size: {idField || valueField || 'N/A'} •
-    Color: {parentIdField || groupByField || 'N/A'}
-            </div>
-          )}
-        </div>
       </div>
     );
   }

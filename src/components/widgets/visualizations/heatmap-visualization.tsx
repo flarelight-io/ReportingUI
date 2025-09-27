@@ -32,7 +32,6 @@ export class HeatmapVisualization {
   
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
   
-  private svgRef: SVGElement;
 
   componentWillLoad() {
     // Listen for theme changes
@@ -302,7 +301,6 @@ export class HeatmapVisualization {
             height="100%" 
             viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
             preserveAspectRatio="xMidYMid meet"
-            ref={(el) => this.svgRef = el}
             {...ChartThemeUtils.getSVGAttributes()}
           >
             {/* Define gradients and filters for modern styling */}
