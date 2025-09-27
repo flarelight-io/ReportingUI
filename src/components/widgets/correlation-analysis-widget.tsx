@@ -1,6 +1,6 @@
 import { Component, Prop, h, Host, State, Watch, Element, Event, EventEmitter } from '@stencil/core';
 import { ChartDataRequest } from '../../api/types/common';
-import { ChartThemeUtils, ChartAnimations } from '../../utils/chart-theme';
+import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../utils/chart-theme';
 
 export interface CorrelationAnalysisWidgetConfig {
   analysisId?: string;
@@ -41,6 +41,7 @@ export class CorrelationAnalysisWidget {
   @Prop() config: CorrelationAnalysisWidgetConfig = {};
   @Prop() fetchChartData: Function;
   @Prop() data: any[] = [];
+  @Prop() colorTheme: ColorTheme = "brand";
   
   @State() loading: boolean = true;
   @State() correlationData: any[] = [];
@@ -52,15 +53,7 @@ export class CorrelationAnalysisWidget {
   @Event() filterChange: EventEmitter<{ sourceId: string; field: string; value: any }>;
   
   private svgRef: SVGElement;
-  
-  // Default colors for the heatmap
-  private colorScale = [
-    'var(--fl-correlation-negative-strong, #3f00ff)', // Strong negative (-1.0 to -0.7)
-    'var(--fl-correlation-negative-moderate, #8280ff)', // Moderate negative (-0.7 to -0.3)
-    'var(--fl-correlation-neutral, #e2e2ff)', // Weak negative/positive (-0.3 to 0.3)
-    'var(--fl-correlation-positive-moderate, #ff8f80)', // Moderate positive (0.3 to 0.7)
-    'var(--fl-correlation-positive-strong, #ff0f00)'  // Strong positive (0.7 to 1.0)
-  ];
+
   
   componentWillLoad() {
     // Listen for theme changes
@@ -75,12 +68,18 @@ export class CorrelationAnalysisWidget {
       }
     });
     
+    // Setup listener for color theme changes
+    this.el.addEventListener('colorThemeChange', (event: CustomEvent) => {
+      if (event.detail && event.detail.colorTheme) {
+        this.colorTheme = event.detail.colorTheme;
+      }
+    });
+    
     // Listen for config updates
     this.el.addEventListener('configUpdate', (event: CustomEvent) => {
       if (event.detail) {
-        if (event.detail.colorScale) {
-          this.colorScale = event.detail.colorScale;
-        }
+        // Theme changes are handled by the theme change listener
+        // Custom color scales can still be applied via config if needed
       }
     });
     
@@ -97,6 +96,7 @@ export class CorrelationAnalysisWidget {
   disconnectedCallback() {
     // Clean up event listeners
     this.el.removeEventListener('dataUpdate', null);
+    this.el.removeEventListener('colorThemeChange', null);
     this.el.removeEventListener('configUpdate', null);
   }
   
@@ -113,9 +113,8 @@ export class CorrelationAnalysisWidget {
       this.fetchData();
     }
     
-    if (newValue.colorScale) {
-      this.colorScale = newValue.colorScale;
-    }
+    // Theme changes are handled by the theme change listener
+    // Custom color scales can still be applied via config if needed
   }
   
   // Process incoming data
@@ -167,7 +166,7 @@ export class CorrelationAnalysisWidget {
   
   // Helper function to get color for correlation value using theme
   private getCorrelationColor(value: number): string {
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
     // Create a professional correlation color scale with better contrast:
     // - Primary theme color with gradient for positive values (0 to +1)
@@ -232,7 +231,7 @@ export class CorrelationAnalysisWidget {
       return <div class="empty-data">No correlation data available</div>;
     }
     
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
     // Get the first row (should be the only one for KPI mode)
     const row = this.correlationData[0];
@@ -344,7 +343,7 @@ export class CorrelationAnalysisWidget {
       matrix.push(matrixRow);
     });
     
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
     // Calculate cell size based on available space and number of fields
     const availableWidth = this.width || 400;
@@ -579,7 +578,7 @@ export class CorrelationAnalysisWidget {
   
   // Helper to determine text color based on background color brightness
   private getTextColor(value: number): string {
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     const backgroundColor = this.getCorrelationColor(value);
     
     // Calculate the brightness of the background color

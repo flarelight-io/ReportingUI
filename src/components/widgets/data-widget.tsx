@@ -276,6 +276,13 @@ export class DataWidget {
     }
   }
   
+  // Watch for changes to the colorTheme prop
+  @Watch('colorTheme')
+  colorThemeChanged() {
+    // Force re-render when color theme changes
+    // The visualization components will pick up the new theme
+  }
+  
   // Add method to refresh data on demand
   public refreshData() {
     if (DEBUG_MODE) console.log('refreshData called for widget', this.widgetId);
@@ -345,13 +352,19 @@ export class DataWidget {
   @Watch('config')
   configChanged() {
     if (DEBUG_MODE) console.log('Config changed for widget', this.widgetId);
-    this.fetchDataFromSource();
+    // Only fetch data if we don't already have data from props
+    if (!this.data || this.data.length === 0) {
+      this.fetchDataFromSource();
+    }
   }
   
   @Watch('activeFilters')
   activeFiltersChanged() {
     if (DEBUG_MODE) console.log('Active filters changed for widget', this.widgetId, this.activeFilters);
-    this.fetchDataFromSource();
+    // Only fetch data if we don't already have data from props
+    if (!this.data || this.data.length === 0) {
+      this.fetchDataFromSource();
+    }
   }
   
   @Listen('filterChange')

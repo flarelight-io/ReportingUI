@@ -51,6 +51,12 @@
           }
         }
       }
+    },
+    "colorTheme": {
+      "type": "string",
+      "description": "Global color theme for the report",
+      "enum": ["brand", "rainbow", "blue", "grayscale", "rainbow-alt"],
+      "default": "brand"
     }
   },
   "anyOf": [
@@ -435,6 +441,11 @@
           "items": {
             "type": "string"
           }
+        },
+        "colorTheme": {
+          "type": "string",
+          "description": "Color theme override for this widget",
+          "enum": ["brand", "rainbow", "blue", "grayscale", "rainbow-alt"]
         }
       }
     },
@@ -1727,6 +1738,11 @@
             },
             "required": ["field", "header"]
           }
+        },
+        "colorTheme": {
+          "type": "string",
+          "description": "Color theme override for this widget",
+          "enum": ["brand", "rainbow", "blue", "grayscale", "rainbow-alt"]
         }
       }
     },
@@ -1826,6 +1842,11 @@
           "default": 0.8,
           "minimum": 0.1,
           "maximum": 1.0
+        },
+        "colorTheme": {
+          "type": "string",
+          "description": "Color theme override for this widget",
+          "enum": ["brand", "rainbow", "blue", "grayscale", "rainbow-alt"]
         }
       },
       "required": []

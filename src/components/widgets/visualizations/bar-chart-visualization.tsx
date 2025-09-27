@@ -1,4 +1,4 @@
-import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
+import { Component, Prop, h, Event, EventEmitter, State, Watch } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
@@ -35,6 +35,13 @@ export class BarChartVisualization {
     ChartThemeUtils.onThemeChange(() => {
       this.themeVersion++;
     });
+  }
+  
+  // Watch for changes to the colorTheme prop
+  @Watch('colorTheme')
+  colorThemeChanged() {
+    // Force re-render when color theme changes
+    this.themeVersion++;
   }
 
   private handleFilterClick(field: string, value: any) {

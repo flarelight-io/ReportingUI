@@ -14,7 +14,8 @@
         "sm": {"type": "array", "items": {"$ref": "#/definitions/LayoutItem"}},
         "xs": {"type": "array", "items": {"$ref": "#/definitions/LayoutItem"}}
       }
-    }
+    },
+    "colorTheme": {"type": "string", "enum": ["brand", "rainbow", "blue", "grayscale", "rainbow-alt"], "default": "brand"}
   },
   "anyOf": [{"required": ["widgets"]}, {"required": ["layouts", "widgets"]}],
   "definitions": {
@@ -112,7 +113,8 @@
         "analysisName": {"type": "string"},
         "hideTitle": {"type": "boolean", "default": false},
         "hideResultBanner": {"type": "boolean", "default": false},
-        "hideDataSourceRow": {"type": "boolean", "default": false}
+        "hideDataSourceRow": {"type": "boolean", "default": false},
+        "colorTheme": {"type": "string", "enum": ["brand", "rainbow", "blue", "grayscale", "rainbow-alt"]}
       },
       "required": ["analysisId", "analysisName"]
     },
@@ -151,7 +153,8 @@
         "colorScale": {"type": "array", "items": {"type": "string"}},
         "colorScaleType": {"enum": ["sequential", "diverging", "categorical"], "default": "sequential"},
         "showValues": {"type": "boolean", "default": false},
-        "valueFormat": {"enum": ["number", "percentage", "currency"], "default": "number"}
+        "valueFormat": {"enum": ["number", "percentage", "currency"], "default": "number"},
+        "colorTheme": {"type": "string", "enum": ["brand", "rainbow", "blue", "grayscale", "rainbow-alt"]}
       },
       "required": ["sourceId", "sourceName"]
     }

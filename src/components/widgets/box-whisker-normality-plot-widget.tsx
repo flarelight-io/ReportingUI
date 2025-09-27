@@ -1,5 +1,6 @@
 import { Component, Prop, h, Host, State, Watch, Element } from '@stencil/core';
 import { ChartDataRequest } from '../../api/types/common';
+import { ColorTheme } from '../../utils/chart-theme';
 
 export interface BoxWhiskerNormalityPlotWidgetConfig {
   analysisId?: string;
@@ -32,6 +33,7 @@ export class BoxWhiskerNormalityPlotWidget {
   @Prop() availableSources: any[] = [];
   @Prop() fetchChartData: Function;
   @Prop() data: any[] = [];
+  @Prop() colorTheme: ColorTheme = "brand";
 
   @State() loading: boolean = true;
   @State() analysisData: any[] = [];
@@ -53,6 +55,13 @@ export class BoxWhiskerNormalityPlotWidget {
       } else {
         // If detail is null, it means we should refetch the data
         this.fetchData(true); // Force refresh
+      }
+    });
+
+    // Setup listener for color theme changes
+    this.el.addEventListener('colorThemeChange', (event: CustomEvent) => {
+      if (event.detail && event.detail.colorTheme) {
+        this.colorTheme = event.detail.colorTheme;
       }
     });
 
@@ -90,6 +99,7 @@ export class BoxWhiskerNormalityPlotWidget {
     
     // Clean up event listeners
     this.el.removeEventListener('dataUpdate', null);
+    this.el.removeEventListener('colorThemeChange', null);
     this.el.removeEventListener('configUpdate', null);
     window.removeEventListener('filters-cleared', null);
     window.removeEventListener('filters-applied', null);
@@ -102,6 +112,12 @@ export class BoxWhiskerNormalityPlotWidget {
       this.loading = false;
       this.error = null;
     }
+  }
+
+  @Watch('colorTheme')
+  colorThemeChanged() {
+    // Force re-render when color theme changes
+    // The data-widget will pick up the new theme
   }
 
   @Watch('config')
@@ -228,6 +244,7 @@ export class BoxWhiskerNormalityPlotWidget {
             isViewer={this.isViewer}
             width={this.width}
             height={this.height}
+            colorTheme={this.colorTheme}
           />
         </div>
       </Host>

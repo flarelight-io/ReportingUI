@@ -120,6 +120,10 @@ export namespace Components {
          */
         "availableSources": any[];
         /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
+        /**
           * @default {}
          */
         "config": BoxWhiskerNormalityPlotWidgetConfig;
@@ -163,6 +167,10 @@ export namespace Components {
         "data": VisualizationData;
     }
     interface CorrelationAnalysisWidget {
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         /**
           * @default {}
          */
@@ -1290,6 +1298,10 @@ declare namespace LocalJSX {
          */
         "availableSources"?: any[];
         /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
+        /**
           * @default {}
          */
         "config"?: BoxWhiskerNormalityPlotWidgetConfig;
@@ -1335,6 +1347,10 @@ declare namespace LocalJSX {
         "onFilterChange"?: (event: ClusteredBarChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
     interface CorrelationAnalysisWidget {
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         /**
           * @default {}
          */
