@@ -267,10 +267,6 @@ export namespace Components {
         "width"?: number;
     }
     interface FlareReportViewer {
-        /**
-          * @default "brand"
-         */
-        "colorTheme": ColorTheme;
         "configuration": any;
         "fetchChartData": Function;
         /**
@@ -1448,10 +1444,6 @@ declare namespace LocalJSX {
         "width"?: number;
     }
     interface FlareReportViewer {
-        /**
-          * @default "brand"
-         */
-        "colorTheme"?: ColorTheme;
         "configuration"?: any;
         "fetchChartData"?: Function;
         /**

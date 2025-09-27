@@ -12,6 +12,7 @@ export class ReportDemo {
   @Element() hostElement: HTMLElement;
   
   @State() demoConfiguration = {
+    colorTheme: "brand",
     widgets: [
       {
         id: 'title',
@@ -957,6 +958,12 @@ export class ReportDemo {
       this.colorThemeSelectRef.value = this.colorTheme;
     }
     
+    // Update the configuration object
+    this.demoConfiguration = {
+      ...this.demoConfiguration,
+      colorTheme: this.colorTheme
+    };
+    
     // Ensure the theme is applied globally
     ChartThemeUtils.setColorTheme(this.colorTheme);
     document.documentElement.setAttribute('data-color-theme', this.colorTheme);
@@ -1099,6 +1106,12 @@ export class ReportDemo {
     const theme = target.value as ColorTheme;
     this.colorTheme = theme;
     
+    // Update the configuration object
+    this.demoConfiguration = {
+      ...this.demoConfiguration,
+      colorTheme: theme
+    };
+    
     // Set the theme using ChartThemeUtils
     ChartThemeUtils.setColorTheme(theme);
     
@@ -1110,8 +1123,8 @@ export class ReportDemo {
     
     // Force re-render of the report viewer
     if (this.reportViewerRef) {
-      // Update the colorTheme prop directly
-      (this.reportViewerRef as any).colorTheme = theme;
+      // Update the configuration prop directly
+      (this.reportViewerRef as any).configuration = this.demoConfiguration;
       
       // Dispatch a custom event to trigger re-render
       const themeChangeEvent = new CustomEvent('colorThemeChange', {
@@ -1301,7 +1314,6 @@ export class ReportDemo {
       (newViewer as any).configuration = currentConfig;
       (newViewer as any).showPlaceholder = true;
       (newViewer as any).fetchChartData = this.fetchChartData;
-      (newViewer as any).colorTheme = this.colorTheme;
       
       // Add to DOM
       reportContainer.appendChild(newViewer);
@@ -2296,7 +2308,7 @@ export class ReportDemo {
         // Trigger data update events on each widget
         dataWidgets.forEach(widget => {
           try {
-            // Update the colorTheme prop on each widget
+            // Update the colorTheme on each widget
             (widget as any).colorTheme = this.colorTheme;
             
             // Dispatch a theme change event
@@ -2417,7 +2429,6 @@ export class ReportDemo {
             configuration={this.demoConfiguration}
             showPlaceholder={true}
             fetchChartData={this.fetchChartData}
-            colorTheme={this.colorTheme}
           ></flare-report-viewer>
         </div>
       </div>

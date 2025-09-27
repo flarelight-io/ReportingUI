@@ -1,20 +1,42 @@
 # flare-report-viewer
 
+A component for rendering reports with configurable widgets and layouts.
 
+## Configuration
+
+The component accepts a `configuration` object that can include:
+
+- `colorTheme`: The color theme for the report. Valid values: `"blue"`, `"brand"`, `"grayscale"`, `"rainbow"`, `"rainbow-alt"`. Defaults to `"brand"`.
+- `sources`: Array of data sources for the widgets
+- `widgets`: Array of widget definitions (legacy format)
+- `layouts`: Object containing layout definitions for different screen sizes (lg, md, sm, xs)
+- `widgets`: Array of widget definitions (new format, used with layouts)
+
+Example configuration:
+```json
+{
+  "colorTheme": "brand",
+  "sources": [...],
+  "layouts": {
+    "lg": [...]
+  },
+  "widgets": [...]
+}
+```
 
 <!-- Auto Generated Below -->
 
 
 ## Properties
 
-| Property          | Attribute          | Description | Type       | Default     |
-| ----------------- | ------------------ | ----------- | ---------- | ----------- |
-| `configuration`   | `configuration`    |             | `any`      | `undefined` |
-| `fetchChartData`  | `fetch-chart-data` |             | `Function` | `undefined` |
-| `isFullscreen`    | `is-fullscreen`    |             | `boolean`  | `false`     |
-| `isViewer`        | `is-viewer`        |             | `boolean`  | `false`     |
-| `reportId`        | `report-id`        |             | `string`   | `undefined` |
-| `showPlaceholder` | `show-placeholder` |             | `boolean`  | `true`      |
+| Property          | Attribute          | Description | Type                                                             | Default     |
+| ----------------- | ------------------ | ----------- | ---------------------------------------------------------------- | ----------- |
+| `configuration`   | `configuration`    |             | `any`                                                            | `undefined` |
+| `fetchChartData`  | `fetch-chart-data` |             | `Function`                                                       | `undefined` |
+| `isFullscreen`    | `is-fullscreen`    |             | `boolean`                                                        | `false`     |
+| `isViewer`        | `is-viewer`        |             | `boolean`                                                        | `false`     |
+| `reportId`        | `report-id`        |             | `string`                                                         | `undefined` |
+| `showPlaceholder` | `show-placeholder` |             | `boolean`                                                        | `true`      |
 
 
 ## Dependencies

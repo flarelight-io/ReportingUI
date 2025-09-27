@@ -21,12 +21,12 @@ export class FlareReportViewer {
   @Prop() isViewer: boolean = false;
   @Prop() isFullscreen: boolean = false;
   @Prop() fetchChartData: Function;
-  @Prop() colorTheme: ColorTheme = "brand";
   
   @State() widgets: WidgetData[] = [];
   @State() dataSources: DataSource[] = [];
   @State() activeFilters: Filter[] = [];
   @State() widgetData: WidgetDataCache = {};
+  @State() colorTheme: ColorTheme = "brand";
   
   private gridContainer?: HTMLElement;
   private dataFetchPromises: { [widgetId: string]: Promise<any> } = {};
@@ -108,8 +108,28 @@ export class FlareReportViewer {
     this.el.addEventListener('colorThemeChange', (event: CustomEvent) => {
       if (event.detail && event.detail.colorTheme) {
         this.colorTheme = event.detail.colorTheme;
-        // Force re-render of all widgets
-        this.renderWidgets();
+        
+        // Update the configuration object to reflect the new color theme
+        if (this.configuration) {
+          let parsedConfig = this.configuration;
+          if (typeof this.configuration === 'string') {
+            try {
+              parsedConfig = JSON.parse(this.configuration);
+            } catch (e) {
+              console.error('Failed to parse configuration string in colorThemeChange:', e);
+              return;
+            }
+          }
+          
+          // Update the color theme in the configuration
+          parsedConfig.colorTheme = event.detail.colorTheme;
+          
+          // Update the configuration prop (this will trigger the @Watch)
+          this.configuration = parsedConfig;
+        } else {
+          // If no configuration exists, just re-render with the new theme
+          this.renderWidgets();
+        }
       }
     });
     
@@ -188,7 +208,15 @@ export class FlareReportViewer {
   }
   
   private parseConfiguration(config: any) {
-    // Parse data sources first
+    // Parse color theme first
+    if (config.colorTheme && typeof config.colorTheme === 'string') {
+      this.colorTheme = config.colorTheme as ColorTheme;
+    } else {
+      // Default to brand theme if not specified
+      this.colorTheme = "brand";
+    }
+    
+    // Parse data sources
     if (config.sources && Array.isArray(config.sources)) {
       this.dataSources = config.sources;
     } else {
