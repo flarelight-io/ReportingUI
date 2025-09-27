@@ -1,6 +1,7 @@
 import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
+import { ChartThemeUtils, ChartAnimations } from '../../../utils/chart-theme';
 
 interface BoxWhiskerDataItem {
   SampleSize: number;
@@ -37,9 +38,17 @@ export class BoxWhiskerChartVisualization {
   @State() tooltipVisible: boolean = false;
   @State() tooltipContent: { title: string, data: { label: string, value: any }[] } = { title: '', data: [] };
   @State() tooltipPosition: { x: number, y: number } = { x: 0, y: 0 };
+  @State() themeVersion: number = 0; // Force re-render when theme changes
   
   // Reference to the SVG element
   private svgRef?: SVGElement;
+
+  componentWillLoad() {
+    // Listen for theme changes
+    ChartThemeUtils.onThemeChange(() => {
+      this.themeVersion++;
+    });
+  }
   
   
   // Process raw data into format needed for box and whisker plot
@@ -86,44 +95,37 @@ export class BoxWhiskerChartVisualization {
     });
   }
   
-  private getColors() {
-    // Default color palette
-    return [
-      'var(--fl-chart-color-1, #4e79a7)', 
-      'var(--fl-chart-color-2, #f28e2c)', 
-      'var(--fl-chart-color-3, #e15759)', 
-      'var(--fl-chart-color-4, #76b7b2)', 
-      'var(--fl-chart-color-5, #59a14f)',
-      'var(--fl-chart-color-6, #edc949)', 
-      'var(--fl-chart-color-7, #af7aa1)', 
-      'var(--fl-chart-color-8, #ff9da7)', 
-      'var(--fl-chart-color-9, #9c755f)', 
-      'var(--fl-chart-color-10, #bab0ab)'
-    ];
+  private getColors(): string[] {
+    const theme = ChartThemeUtils.getTheme();
+    return theme.series;
   }
   
   private handleMouseMove(event: MouseEvent, category: string, item: BoxWhiskerDataItem) {
-    // Show tooltip with statistical information
-    this.tooltipVisible = true;
-    this.tooltipContent = {
-      title: category,
-      data: [
-        { label: 'Sample Size', value: item.SampleSize.toString() },
-        { label: 'Mean', value: item.Mean.toFixed(2) },
-        { label: 'Std Dev', value: item.StdDev.toFixed(2) },
-        { label: 'Min', value: item.Min.toFixed(2) },
-        { label: 'Q1', value: item.Q1.toFixed(2) },
-        { label: 'Median', value: item.Median.toFixed(2) },
-        { label: 'Q3', value: item.Q3.toFixed(2) },
-        { label: 'Max', value: item.Max.toFixed(2) },
-        { label: 'IQR', value: item.IQR.toFixed(2) },
-        { label: 'Outliers', value: item.OutlierCount.toString() }
-      ]
-    };
-    
-    // Get position relative to the SVG element
-    if (this.svgRef) {
-      const svgRect = this.svgRef.getBoundingClientRect();
+    const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
+    if (svgRect) {
+      // Format tooltip text with proper line breaks for long categories
+      const maxCategoryLength = 30;
+      const truncatedCategory = category.length > maxCategoryLength 
+        ? `${category.substring(0, maxCategoryLength)}...` 
+        : category;
+      
+      this.tooltipVisible = true;
+      this.tooltipContent = {
+        title: truncatedCategory,
+        data: [
+          { label: 'Sample Size', value: ChartThemeUtils.formatNumber(item.SampleSize) },
+          { label: 'Mean', value: ChartThemeUtils.formatNumber(item.Mean) },
+          { label: 'Std Dev', value: ChartThemeUtils.formatNumber(item.StdDev) },
+          { label: 'Min', value: ChartThemeUtils.formatNumber(item.Min) },
+          { label: 'Q1', value: ChartThemeUtils.formatNumber(item.Q1) },
+          { label: 'Median', value: ChartThemeUtils.formatNumber(item.Median) },
+          { label: 'Q3', value: ChartThemeUtils.formatNumber(item.Q3) },
+          { label: 'Max', value: ChartThemeUtils.formatNumber(item.Max) },
+          { label: 'IQR', value: ChartThemeUtils.formatNumber(item.IQR) },
+          { label: 'Outliers', value: ChartThemeUtils.formatNumber(item.OutlierCount) }
+        ]
+      };
+      
       this.tooltipPosition = {
         x: event.clientX - svgRect.left,
         y: event.clientY - svgRect.top
@@ -170,6 +172,7 @@ export class BoxWhiskerChartVisualization {
     }
     
     const colors = this.getColors();
+    const theme = ChartThemeUtils.getTheme();
     
     // Find the min and max values for scaling
     // First, get the main data range (whiskers, not outliers)
@@ -346,12 +349,25 @@ export class BoxWhiskerChartVisualization {
             preserveAspectRatio="xMidYMid meet"
             ref={(el) => this.svgRef = el}
             style={{ maxHeight: '100%' }}
+            {...ChartThemeUtils.getSVGAttributes()}
           >
+            {/* Define gradients and filters for modern styling */}
+            <defs>
+              {colors.map((color, index) => (
+                <linearGradient key={`boxGradient-${index}`} id={`boxGradient-${index}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color={color} stop-opacity="1"/>
+                  <stop offset="100%" stop-color={color} stop-opacity="0.85"/>
+                </linearGradient>
+              ))}
+              <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
+              </filter>
+            </defs>
             {this.config.showGrid && (
               <g class="grid-lines">
                 {/* Horizontal grid lines */}
                 {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const y = padding + (ratio * (viewBoxHeight - (padding * 2)));
+                  const y = ChartThemeUtils.snapToPixel(padding + (ratio * (viewBoxHeight - (padding * 2))));
                   const value = maxValue - (ratio * (maxValue - minValue));
                   
                   return (
@@ -361,9 +377,10 @@ export class BoxWhiskerChartVisualization {
                         y1={y} 
                         x2={viewBoxWidth - padding} 
                         y2={y} 
-                        stroke="var(--fl-chart-grid-color, #ccc)" 
-                        stroke-width="0.5"
+                        stroke="var(--fl-chart-grid-color)" 
+                        stroke-width="1"
                         stroke-dasharray={i > 0 ? "1,1" : ""}
+                        opacity={theme.gridlines.opacity}
                       />
                       {this.config.showLabels && (
                         <text 
@@ -372,9 +389,16 @@ export class BoxWhiskerChartVisualization {
                           font-size="3.5" 
                           text-anchor="end" 
                           alignment-baseline="middle"
-                          fill="var(--fl-chart-text-color, #666)"
+                          fill={theme.labelColor}
+                          font-family={theme.fontFamily}
+                          font-weight="500"
+                          class="text-animated"
+                          style={{
+                            animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
+                            animationFillMode: 'both'
+                          }}
                         >
-                          {value.toFixed(1)}
+                          {value.toFixed(3).replace(/\.?0+$/, '')}
                         </text>
                       )}
                     </g>
@@ -385,25 +409,25 @@ export class BoxWhiskerChartVisualization {
             
             {/* X and Y axis */}
             <line 
-              x1={padding} 
-              y1={viewBoxHeight - padding} 
-              x2={viewBoxWidth - padding} 
-              y2={viewBoxHeight - padding} 
-              stroke="var(--fl-chart-axis-color, #333)" 
+              x1={ChartThemeUtils.snapToPixel(padding)} 
+              y1={ChartThemeUtils.snapToPixel(viewBoxHeight - padding)} 
+              x2={ChartThemeUtils.snapToPixel(viewBoxWidth - padding)} 
+              y2={ChartThemeUtils.snapToPixel(viewBoxHeight - padding)} 
+              stroke="var(--fl-chart-axis-color)" 
               stroke-width="1" 
             />
             <line 
-              x1={padding} 
-              y1={padding} 
-              x2={padding} 
-              y2={viewBoxHeight - padding} 
-              stroke="var(--fl-chart-axis-color, #333)" 
+              x1={ChartThemeUtils.snapToPixel(padding)} 
+              y1={ChartThemeUtils.snapToPixel(padding)} 
+              x2={ChartThemeUtils.snapToPixel(padding)} 
+              y2={ChartThemeUtils.snapToPixel(viewBoxHeight - padding)} 
+              stroke="var(--fl-chart-axis-color)" 
               stroke-width="1" 
             />
             
             {/* Draw box and whiskers */}
             <g class="box-whiskers">
-              {boxes.map(box => (
+              {boxes.map((box, boxIndex) => (
                 <g key={box.key} class="box-whisker">
                   {/* Whiskers */}
                   <line 
@@ -411,16 +435,26 @@ export class BoxWhiskerChartVisualization {
                     y1={box.elements.upperWhisker.y1}
                     x2={box.elements.upperWhisker.x2} 
                     y2={box.elements.upperWhisker.y2}
-                    stroke="var(--fl-chart-axis-color, #555)"
+                    stroke={theme.axisColor}
                     stroke-width="0.5"
+                    class="whisker-animated"
+                    style={{
+                      animationDelay: `${ChartAnimations.getStaggerDelay(boxIndex)}ms`,
+                      animationFillMode: 'both'
+                    }}
                   />
                   <line 
                     x1={box.elements.lowerWhisker.x1} 
                     y1={box.elements.lowerWhisker.y1}
                     x2={box.elements.lowerWhisker.x2} 
                     y2={box.elements.lowerWhisker.y2}
-                    stroke="var(--fl-chart-axis-color, #555)"
+                    stroke={theme.axisColor}
                     stroke-width="0.5"
+                    class="whisker-animated"
+                    style={{
+                      animationDelay: `${ChartAnimations.getStaggerDelay(boxIndex)}ms`,
+                      animationFillMode: 'both'
+                    }}
                   />
                   
                   {/* Whisker caps */}
@@ -429,16 +463,26 @@ export class BoxWhiskerChartVisualization {
                     y1={box.elements.upperCap.y1}
                     x2={box.elements.upperCap.x2} 
                     y2={box.elements.upperCap.y2}
-                    stroke="var(--fl-chart-axis-color, #555)"
+                    stroke={theme.axisColor}
                     stroke-width="0.5"
+                    class="whisker-animated"
+                    style={{
+                      animationDelay: `${ChartAnimations.getStaggerDelay(boxIndex)}ms`,
+                      animationFillMode: 'both'
+                    }}
                   />
                   <line 
                     x1={box.elements.lowerCap.x1} 
                     y1={box.elements.lowerCap.y1}
                     x2={box.elements.lowerCap.x2} 
                     y2={box.elements.lowerCap.y2}
-                    stroke="var(--fl-chart-axis-color, #555)"
+                    stroke={theme.axisColor}
                     stroke-width="0.5"
+                    class="whisker-animated"
+                    style={{
+                      animationDelay: `${ChartAnimations.getStaggerDelay(boxIndex)}ms`,
+                      animationFillMode: 'both'
+                    }}
                   />
                   
                   {/* Box */}
@@ -447,10 +491,17 @@ export class BoxWhiskerChartVisualization {
                     y={box.elements.box.y}
                     width={box.elements.box.width}
                     height={box.elements.box.height}
-                    fill={box.color}
-                    fill-opacity="0.7"
+                    fill={`url(#boxGradient-${boxIndex % colors.length})`}
                     stroke={box.color}
                     stroke-width="0.5"
+                    class="box-animated box-glow"
+                    style={{ 
+                      cursor: 'pointer',
+                      transition: ChartAnimations.getHoverTransition(),
+                      animationDelay: `${ChartAnimations.getStaggerDelay(boxIndex)}ms`,
+                      animationFillMode: 'both'
+                    }}
+                    filter="url(#softShadow)"
                   />
                   
                   {/* Median line */}
@@ -459,8 +510,13 @@ export class BoxWhiskerChartVisualization {
                     y1={box.elements.median.y1}
                     x2={box.elements.median.x2} 
                     y2={box.elements.median.y2}
-                    stroke="var(--fl-chart-text-color, #333)"
-                    stroke-width="1"
+                    stroke={theme.regressionColor}
+                    stroke-width="1.5"
+                    class="median-animated"
+                    style={{
+                      animationDelay: `${ChartAnimations.getStaggerDelay(boxIndex) + 50}ms`,
+                      animationFillMode: 'both'
+                    }}
                   />
                   
                   {/* Outliers */}
@@ -470,7 +526,12 @@ export class BoxWhiskerChartVisualization {
                       cx={outlier.cx}
                       cy={outlier.cy}
                       r={outlier.r}
-                      fill="var(--fl-chart-text-color, #333)"
+                      fill={theme.labelColor}
+                      class="outlier-animated"
+                      style={{
+                        animationDelay: `${ChartAnimations.getStaggerDelay(boxIndex) + 100}ms`,
+                        animationFillMode: 'both'
+                      }}
                     />
                   ))}
                   
@@ -481,7 +542,15 @@ export class BoxWhiskerChartVisualization {
                       y={viewBoxHeight - (padding / 3)}
                       font-size="3.5"
                       text-anchor="end"
-                      fill="var(--fl-chart-text-color, #333)"
+                      fill={theme.labelColor}
+                      font-family={theme.fontFamily}
+                      font-weight="500"
+                      class="text-rotated-animated"
+                      style={{
+                        animationDelay: `${ChartAnimations.getStaggerDelay(boxIndex) + 150}ms`,
+                        animationFillMode: 'both',
+                        transformOrigin: `${box.elements.label.x}px ${viewBoxHeight - (padding / 3)}px`
+                      }}
                       transform={`rotate(-45, ${box.elements.label.x}, ${viewBoxHeight - (padding / 3)})`}
                     >
                       {box.category}
@@ -507,12 +576,11 @@ export class BoxWhiskerChartVisualization {
           
           {this.tooltipVisible && (
             <div 
-              class="chart-tooltip" 
+              class={`chart-tooltip ${this.tooltipVisible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltipPosition.x}px`, 
                 top: `${this.tooltipPosition.y}px`,
-                transform: 'translate(-50%, -100%)',
-                marginTop: '-10px'
+                transform: 'translate(-50%, -100%)'
               }}
             >
               <div class="tooltip-title">{this.tooltipContent.title}</div>
@@ -528,7 +596,7 @@ export class BoxWhiskerChartVisualization {
           )}
         </div>
         
-        {this.config.showLegend && (
+        {(this.config.showLegend !== false) && (
           <div class="chart-legend">
             {chartData.map((item, i) => (
               <div key={i} class="legend-item">
@@ -536,7 +604,7 @@ export class BoxWhiskerChartVisualization {
                   class="color-indicator" 
                   style={{ backgroundColor: colors[i % colors.length] }}
                 ></div>
-                <div class="legend-text">{item.SampleSourceName || `Group ${i + 1}`}</div>
+                <span class="legend-text">{item.SampleSourceName || `Group ${i + 1}`}</span>
               </div>
             ))}
           </div>

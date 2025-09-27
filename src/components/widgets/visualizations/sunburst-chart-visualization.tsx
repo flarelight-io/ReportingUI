@@ -1,6 +1,7 @@
 import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
+import { ChartThemeUtils, ChartAnimations } from '../../../utils/chart-theme';
 
 interface SunburstNode {
   id: string | number;
@@ -45,8 +46,16 @@ export class SunburstChartVisualization {
   @Prop() data: VisualizationData;
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
+  @State() themeVersion: number = 0; // Force re-render when theme changes
   
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
+
+  componentWillLoad() {
+    // Listen for theme changes
+    ChartThemeUtils.onThemeChange(() => {
+      this.themeVersion++;
+    });
+  }
 
   private handleFilterClick(fieldName: string, value: any) {
     if (this.config.sourceId && fieldName) {
@@ -61,9 +70,16 @@ export class SunburstChartVisualization {
   private handleMouseMove(event: MouseEvent, name: string, value: number) {
     const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
     if (svgRect) {
+      // Format tooltip text with proper line breaks for long categories
+      const formattedValue = ChartThemeUtils.formatNumber(value);
+      const maxCategoryLength = 30;
+      const truncatedName = name.length > maxCategoryLength 
+        ? `${name.substring(0, maxCategoryLength)}...` 
+        : name;
+      
       this.tooltip = {
         visible: true,
-        text: `${name}: ${value.toLocaleString()}`,
+        text: `${truncatedName}\n${formattedValue}`,
         x: event.clientX - svgRect.left,
         y: event.clientY - svgRect.top
       };
@@ -364,12 +380,8 @@ export class SunburstChartVisualization {
   }
   
   private getColors(): string[] {
-    return [
-      '#4285F4', '#EA4335', '#FBBC05', '#34A853', '#FF6D01', 
-      '#46BDC6', '#7BAAF7', '#F07B72', '#FCD04F', '#71C287',
-      '#FFA550', '#76CFCF', '#ABD0FD', '#F7B1AB', '#FEE29C',
-      '#ADC7C0'
-    ];
+    const theme = ChartThemeUtils.getTheme();
+    return theme.series;
   }
 
   render() {
@@ -392,6 +404,7 @@ export class SunburstChartVisualization {
     }
     
     const nodes = this.processData();
+    const theme = ChartThemeUtils.getTheme();
     
     if (nodes.length === 0) {
       return <div class="empty-data">No data available</div>;
@@ -425,17 +438,24 @@ export class SunburstChartVisualization {
       
       // Use label field if available, fall back to name
       const displayText = node.label || node.name;
-      const tooltipContent = `${displayText}: ${node.value.toLocaleString()}`;
+      const tooltipContent = `${displayText}: ${ChartThemeUtils.formatNumber(node.value)}`;
       
       return (
         <g key={index} class="segment-group">
           <path 
             d={path} 
-            class="segment"
-            style={{ fill: node.color }}
-                onClick={() => this.handleFilterClick(groupByField || '', node.name)}
+            class="segment segment-animated segment-glow"
+            style={{ 
+              fill: `url(#sunburstGradient-${index})`,
+              cursor: 'pointer',
+              transition: ChartAnimations.getHoverTransition(),
+              animationDelay: `${ChartAnimations.getStaggerDelay(index)}ms`,
+              animationFillMode: 'both'
+            }}
+            onClick={() => this.handleFilterClick(groupByField || '', node.name)}
             onMouseMove={(event) => this.handleMouseMove(event, node.name, node.value)}
             onMouseLeave={() => this.handleMouseLeave()}
+            filter="url(#softShadow)"
           >
             <title>{tooltipContent}</title>
           </path>
@@ -446,12 +466,18 @@ export class SunburstChartVisualization {
               y={labelPos.y} 
               text-anchor="middle" 
               dominant-baseline="middle"
-              class="segment-label"
+              class="segment-label text-animated"
               style={{
                 fontSize: `${Math.min(3, Math.max(1, (node.outerRadius - node.innerRadius) / 8))}px`,
-                fill: '#fff',
+                fill: theme.labelColor,
+                fontFamily: theme.fontFamily,
+                fontWeight: '500',
                 pointerEvents: 'none',
-                textShadow: '0px 0px 3px rgba(0,0,0,0.5)'
+                paintOrder: 'stroke fill',
+                stroke: 'rgba(0,0,0,0.1)',
+                strokeWidth: '0.5',
+                animationDelay: `${ChartAnimations.getStaggerDelay(index) + 100}ms`,
+                animationFillMode: 'both'
               }}
             >
               {displayText.toString().substring(0, 6)}{displayText.toString().length > 6 ? '...' : ''}
@@ -482,12 +508,12 @@ export class SunburstChartVisualization {
       ? legendItems.slice(0, maxLegendItems) 
       : legendItems;
     
-    const legend = this.config.showLegend ? (
+    const legend = (this.config.showLegend !== false) ? (
       <div class="chart-legend">
         {displayedLegendItems.map((node, index) => (
           <div key={index} class="legend-item">
-            <div class="legend-color-box" style={{ backgroundColor: node.color }}></div>
-            <div class="legend-text">{node.label || node.name}: {node.value.toLocaleString()}</div>
+            <div class="color-indicator" style={{ backgroundColor: node.color }}></div>
+            <span class="legend-text">{node.label || node.name}: {ChartThemeUtils.formatNumber(node.value)}</span>
           </div>
         ))}
         {legendItems.length > maxLegendItems && (
@@ -499,21 +525,39 @@ export class SunburstChartVisualization {
     return (
       <div class="sunburst-chart-container">
         <div class="chart-area">
-          <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+          <svg 
+            viewBox="0 0 100 100" 
+            preserveAspectRatio="xMidYMid meet"
+            {...ChartThemeUtils.getSVGAttributes()}
+          >
+            {/* Define gradients and filters for modern styling */}
+            <defs>
+              {nodes.map((node, index) => (
+                <linearGradient key={`sunburstGradient-${index}`} id={`sunburstGradient-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color={node.color} stop-opacity="1"/>
+                  <stop offset="100%" stop-color={node.color} stop-opacity="0.85"/>
+                </linearGradient>
+              ))}
+              <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
+              </filter>
+            </defs>
             {arcPaths}
           </svg>
           
-          {/* Tooltip */}
+          {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
-              class="chart-tooltip"
+              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltip.x}px`, 
                 top: `${this.tooltip.y}px`,
                 transform: 'translate(-50%, -100%)'
               }}
             >
-              {this.tooltip.text}
+              <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
+                {this.tooltip.text}
+              </div>
             </div>
           )}
         </div>

@@ -1,6 +1,7 @@
 import { Component, Prop, h, State, Event, EventEmitter } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
+import { ChartThemeUtils, ChartAnimations } from '../../../utils/chart-theme';
 
 interface HeatmapMatrix {
   rowLabels: string[];
@@ -8,6 +9,13 @@ interface HeatmapMatrix {
   data: number[][];
   minValue: number;
   maxValue: number;
+}
+
+interface TooltipState {
+  visible: boolean;
+  text: string;
+  x: number;
+  y: number;
 }
 
 @Component({
@@ -19,11 +27,19 @@ export class HeatmapVisualization {
   @Prop() config: DataWidgetConfig;
   @Prop() data: VisualizationData;
   
-  @State() tooltip = { visible: false, text: '', x: 0, y: 0 };
+  @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
+  @State() themeVersion: number = 0; // Force re-render when theme changes
   
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
   
   private svgRef: SVGElement;
+
+  componentWillLoad() {
+    // Listen for theme changes
+    ChartThemeUtils.onThemeChange(() => {
+      this.themeVersion++;
+    });
+  }
 
   private handleFilterClick(fieldName: string, value: any) {
     if (this.config.sourceId && fieldName) {
@@ -149,20 +165,18 @@ export class HeatmapVisualization {
   }
 
   private getColorForValue(value: number, min: number, max: number): string {
-    // Use a color gradient from blue to red via white
-    // Colors for the gradient
+    const theme = ChartThemeUtils.getTheme();
+    
+    // Create a professional heatmap color scale using theme colors
+    // Use the theme's series colors as base and create a gradient
+    const baseColors = theme.series.slice(0, 6); // Use first 6 theme colors
     const colors = [
-      'var(--fl-heatmap-color-1, #313695)', // Dark blue
-      'var(--fl-heatmap-color-2, #4575b4)', // Blue
-      'var(--fl-heatmap-color-3, #74add1)', // Light blue
-      'var(--fl-heatmap-color-4, #abd9e9)', // Very light blue
-      'var(--fl-heatmap-color-5, #e0f3f8)', // Pale blue
-      'var(--fl-heatmap-color-6, #ffffbf)', // Pale yellow
-      'var(--fl-heatmap-color-7, #fee090)', // Light orange
-      'var(--fl-heatmap-color-8, #fdae61)', // Orange
-      'var(--fl-heatmap-color-9, #f46d43)', // Dark orange
-      'var(--fl-heatmap-color-10, #d73027)', // Red
-      'var(--fl-heatmap-color-11, #a50026)'  // Dark red
+      baseColors[0], // Darkest - primary brand color
+      baseColors[1], // Dark
+      baseColors[2], // Medium-dark
+      baseColors[3], // Medium
+      baseColors[4], // Light
+      baseColors[5] || baseColors[4] // Lightest
     ];
     
     // If min and max are the same, return middle color
@@ -181,28 +195,33 @@ export class HeatmapVisualization {
   
   // Helper to determine text color based on background color
   private getTextColor(value: number, min: number, max: number): string {
+    const theme = ChartThemeUtils.getTheme();
     // If value is in the upper half of the range, use light text
     // Otherwise use dark text for better contrast
     const midPoint = (min + max) / 2;
-    return value > midPoint ? 'var(--fl-text-light, #fff)' : 'var(--fl-text-dark, #000)';
+    return value > midPoint ? theme.labelColor : theme.panel;
   }
   
   private formatValue(value: number): string {
-    // Use toLocaleString to format the number with thousands separators
-    return value.toLocaleString(undefined, { 
-      maximumFractionDigits: 2,
-      minimumFractionDigits: value % 1 === 0 ? 0 : 2
-    });
+    return ChartThemeUtils.formatNumber(value);
   }
   
   private handleMouseMove(e: MouseEvent, rowIdx: number, colIdx: number, value: number, heatmapData: HeatmapMatrix) {
-    const tooltipText = `${heatmapData.rowLabels[rowIdx]} × ${heatmapData.colLabels[colIdx]}: ${this.formatValue(value)}`;
-    
-    if (this.svgRef) {
-      const svgRect = this.svgRef.getBoundingClientRect();
+    const svgRect = (e.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
+    if (svgRect) {
+      // Format tooltip text with proper line breaks for long categories
+      const formattedValue = this.formatValue(value);
+      const maxCategoryLength = 30;
+      const truncatedRowLabel = heatmapData.rowLabels[rowIdx].length > maxCategoryLength 
+        ? `${heatmapData.rowLabels[rowIdx].substring(0, maxCategoryLength)}...` 
+        : heatmapData.rowLabels[rowIdx];
+      const truncatedColLabel = heatmapData.colLabels[colIdx].length > maxCategoryLength 
+        ? `${heatmapData.colLabels[colIdx].substring(0, maxCategoryLength)}...` 
+        : heatmapData.colLabels[colIdx];
+      
       this.tooltip = {
         visible: true,
-        text: tooltipText,
+        text: `${truncatedRowLabel} × ${truncatedColLabel}\n${formattedValue}`,
         x: e.clientX - svgRect.left,
         y: e.clientY - svgRect.top
       };
@@ -223,6 +242,7 @@ export class HeatmapVisualization {
     const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
     
     const heatmapData = this.processData();
+    const theme = ChartThemeUtils.getTheme();
     
     if (heatmapData.rowLabels.length === 0 || heatmapData.colLabels.length === 0) {
       return <div class="empty-data">No data available for heatmap</div>;
@@ -283,7 +303,28 @@ export class HeatmapVisualization {
             viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
             preserveAspectRatio="xMidYMid meet"
             ref={(el) => this.svgRef = el}
+            {...ChartThemeUtils.getSVGAttributes()}
           >
+            {/* Define gradients and filters for modern styling */}
+            <defs>
+              {/* Create gradient definitions for each color in the heatmap scale */}
+              {Array.from({ length: 6 }, (_, i) => {
+                const color = this.getColorForValue(
+                  heatmapData.minValue + (i / 5) * (heatmapData.maxValue - heatmapData.minValue),
+                  heatmapData.minValue,
+                  heatmapData.maxValue
+                );
+                return (
+                  <linearGradient key={`heatmapGradient-${i}`} id={`heatmapGradient-${i}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color={color} stop-opacity="1"/>
+                    <stop offset="100%" stop-color={color} stop-opacity="0.85"/>
+                  </linearGradient>
+                );
+              })}
+              <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
+              </filter>
+            </defs>
             {/* Row labels (y-axis) */}
             {heatmapData.rowLabels.map((label, idx) => (
               <text
@@ -293,7 +334,14 @@ export class HeatmapVisualization {
                 font-size="3"
                 text-anchor="end"
                 dominant-baseline="middle"
-                fill="var(--fl-chart-text-color, #333)"
+                fill={theme.labelColor}
+                font-family={theme.fontFamily}
+                font-weight="500"
+                class="text-animated"
+                style={{
+                  animationDelay: `${ChartAnimations.getStaggerDelay(idx)}ms`,
+                  animationFillMode: 'both'
+                }}
               >
                 {label}
               </text>
@@ -309,101 +357,131 @@ export class HeatmapVisualization {
                 text-anchor="start"
                 dominant-baseline="middle"
                 transform={`rotate(-45, ${rowLabelPadding + (idx * cellWidth) + (cellWidth / 2)}, ${colLabelPadding - 15})`}
-                fill="var(--fl-chart-text-color, #333)"
+                fill={theme.labelColor}
+                font-family={theme.fontFamily}
+                font-weight="500"
+                class="text-rotated-animated"
+                style={{
+                  animationDelay: `${ChartAnimations.getStaggerDelay(idx)}ms`,
+                  animationFillMode: 'both',
+                  transformOrigin: `${rowLabelPadding + (idx * cellWidth) + (cellWidth / 2)}px ${colLabelPadding - 15}px`
+                }}
               >
                 {label}
               </text>
             ))}
             
             {/* Heatmap cells */}
-            {cells.map((cell, idx) => (
-              <g 
-                key={`cell-${idx}`} 
-                onMouseMove={(e) => this.handleMouseMove(
-                  e, 
-                  cell.rowIdx, 
-                  cell.colIdx, 
-                  cell.value, 
-                  heatmapData
-                )}
-                onMouseLeave={() => {
-                  this.tooltip = { ...this.tooltip, visible: false };
-                }}
-                onClick={() => this.handleFilterClick(
-                  groupByField || '',
-                  heatmapData.rowLabels[cell.rowIdx]
-                )}
-              >
-                <rect
-                  x={rowLabelPadding + (cell.colIdx * cellWidth)}
-                  y={colLabelPadding + (cell.rowIdx * cellHeight)}
-                  width={cellWidth}
-                  height={cellHeight}
-                  fill={cell.color}
-                  stroke="var(--fl-border-color, rgba(255, 255, 255, 0.2))"
-                  stroke-width="0.5"
-                />
+            {cells.map((cell, idx) => {
+              // Calculate gradient index based on color intensity
+              const normalizedValue = (cell.value - heatmapData.minValue) / (heatmapData.maxValue - heatmapData.minValue);
+              const gradientIndex = Math.min(5, Math.floor(normalizedValue * 5));
+              
+              return (
+                <g 
+                  key={`cell-${idx}`} 
+                  onMouseMove={(e) => this.handleMouseMove(
+                    e, 
+                    cell.rowIdx, 
+                    cell.colIdx, 
+                    cell.value, 
+                    heatmapData
+                  )}
+                  onMouseLeave={() => {
+                    this.tooltip = { ...this.tooltip, visible: false };
+                  }}
+                  onClick={() => this.handleFilterClick(
+                    groupByField || '',
+                    heatmapData.rowLabels[cell.rowIdx]
+                  )}
+                >
+                  <rect
+                    x={rowLabelPadding + (cell.colIdx * cellWidth)}
+                    y={colLabelPadding + (cell.rowIdx * cellHeight)}
+                    width={cellWidth}
+                    height={cellHeight}
+                    fill={`url(#heatmapGradient-${gradientIndex})`}
+                    stroke={theme.border}
+                    stroke-width="0.5"
+                    class="cell-animated cell-glow"
+                    style={{ 
+                      cursor: 'pointer',
+                      transition: ChartAnimations.getHoverTransition(),
+                      animationDelay: `${ChartAnimations.getStaggerDelay(idx)}ms`,
+                      animationFillMode: 'both'
+                    }}
+                    filter="url(#softShadow)"
+                  />
                 
-                {/* Show values in cells if needed and if there's enough space */}
-                {this.config.showLabels && (
-                  <text
-                    x={rowLabelPadding + (cell.colIdx * cellWidth) + (cellWidth / 2)}
-                    y={colLabelPadding + (cell.rowIdx * cellHeight) + (cellHeight / 2)}
-                    font-size="2.5"
-                    text-anchor="middle"
-                    dominant-baseline="middle"
-                    fill={this.getTextColor(cell.value, heatmapData.minValue, heatmapData.maxValue)}
-                    font-weight="bold"
-                  >
-                    {this.formatValue(cell.value)}
-                  </text>
-                )}
-              </g>
-            ))}
+                  {/* Show values in cells if needed and if there's enough space */}
+                  {this.config.showLabels && (
+                    <text
+                      x={rowLabelPadding + (cell.colIdx * cellWidth) + (cellWidth / 2)}
+                      y={colLabelPadding + (cell.rowIdx * cellHeight) + (cellHeight / 2)}
+                      font-size="2.5"
+                      text-anchor="middle"
+                      dominant-baseline="middle"
+                      fill={this.getTextColor(cell.value, heatmapData.minValue, heatmapData.maxValue)}
+                      font-weight="bold"
+                      font-family={theme.fontFamily}
+                      class="text-animated"
+                      style={{
+                        animationDelay: `${ChartAnimations.getStaggerDelay(idx) + 100}ms`,
+                        animationFillMode: 'both'
+                      }}
+                    >
+                      {this.formatValue(cell.value)}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
           </svg>
           
-          {/* Tooltip */}
+          {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
-              class="heatmap-tooltip"
+              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltip.x}px`, 
-                top: `${this.tooltip.y}px`
+                top: `${this.tooltip.y}px`,
+                transform: 'translate(-50%, -100%)'
               }}
             >
-              {this.tooltip.text}
+              <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
+                {this.tooltip.text}
+              </div>
             </div>
           )}
         </div>
         
         {/* Color legend */}
-        {this.config.showLegend && (
+        {(this.config.showLegend !== false) && (
           <div class="chart-legend">
-            <div class="legend-gradient">
-              {legendStepValues.map((value, idx) => (
-                <div class="legend-step" key={idx}>
-                  <div 
-                    class="color-indicator" 
-                    style={{ 
-                      backgroundColor: this.getColorForValue(
-                        value, 
-                        heatmapData.minValue, 
-                        heatmapData.maxValue
-                      ) 
-                    }}
-                  ></div>
-                  <span class="legend-text">{this.formatValue(value)}</span>
-                </div>
-              ))}
-            </div>
+            {legendStepValues.map((value, idx) => (
+              <div key={idx} class="legend-item">
+                <div 
+                  class="color-indicator" 
+                  style={{ 
+                    backgroundColor: this.getColorForValue(
+                      value, 
+                      heatmapData.minValue, 
+                      heatmapData.maxValue
+                    ) 
+                  }}
+                ></div>
+                <span class="legend-text">{this.formatValue(value)}</span>
+              </div>
+            ))}
           </div>
         )}
         
-        <div class="chart-metadata">
+        <div class="chart-info-text">
           {groupByField && valueField && (
-            <div class="chart-info">
-              Group: {groupByField || 'N/A'} • Value: {valueField || 'N/A'} • Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
-            </div>
+            <span>
+              Group: {groupByField} • Value: {valueField} • 
+              Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
+            </span>
           )}
         </div>
       </div>

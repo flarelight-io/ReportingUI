@@ -3,6 +3,50 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+  font-family: var(--fl-chart-font-family);
+}
+
+// Premium animations for heatmap cells and elements
+@keyframes cellEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cellUpdate {
+  from {
+    transform: scale(0.95);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes textFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes textFadeInRotated {
+  from {
+    opacity: 0;
+    transform: translateY(4px) rotate(-45deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(-45deg);
+  }
 }
 
 .loading-spinner {
@@ -11,8 +55,9 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: var(--fl-text-color-secondary, #6b7280);
-  font-size: 0.875rem;
+  color: var(--fl-chart-text-secondary);
+  font-size: var(--fl-chart-font-size);
+  font-family: var(--fl-chart-font-family);
 }
 
 .error-message {
@@ -22,7 +67,8 @@
   width: 100%;
   height: 100%;
   color: var(--fl-error-color, #ef4444);
-  font-size: 0.875rem;
+  font-size: var(--fl-chart-font-size);
+  font-family: var(--fl-chart-font-family);
   text-align: center;
   padding: 16px;
 }
@@ -33,8 +79,9 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: var(--fl-text-color-secondary, #6b7280);
-  font-size: 0.875rem;
+  color: var(--fl-chart-text-secondary);
+  font-size: var(--fl-chart-font-size);
+  font-family: var(--fl-chart-font-family);
 }
 
 .heatmap-container {
@@ -42,22 +89,26 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
   overflow: hidden;
-  box-sizing: border-box;
-  padding: 8px 4px;
-  background-color: var(--fl-chart-background);
+  justify-content: center;
+  background-color: var(--fl-chart-panel);
+  border-radius: var(--fl-chart-radius);
+  box-shadow: var(--fl-chart-shadow);
+  padding: 16px;
+  transition: box-shadow 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    box-shadow: var(--fl-chart-shadow-hover);
+  }
 }
 
 .visualization-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  flex: 1 1 auto;
-  width: 100%;
-  position: relative;
 }
 
 svg {
@@ -66,72 +117,147 @@ svg {
   display: block;
 }
 
+/* Legend styling - PowerBI grade */
 .chart-legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  padding: 0 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 6px;
   margin-top: 8px;
-  overflow: visible;
-  flex-shrink: 0;
+  padding: 8px 0 0 0;
+  border-top: 1px solid var(--fl-chart-border);
+  font-family: var(--fl-chart-font-family);
+  max-height: 80px;
+  overflow-y: auto;
 }
 
-.legend-gradient {
+.legend-item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.legend-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 4px;
-  margin-right: 4px;
+  cursor: pointer;
+  transition: opacity 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 2px 4px;
+  border-radius: 3px;
+  
+  &:hover {
+    opacity: 0.8;
+    background-color: var(--fl-hover-color);
+  }
+  
+  &.dimmed {
+    opacity: var(--fl-chart-dim-opacity);
+  }
 }
 
 .color-indicator {
-  width: 16px;
-  height: 16px;
+  width: 8px;
+  height: 8px;
   border-radius: 0;
-  margin-bottom: 4px;
+  margin-right: 4px;
   flex-shrink: 0;
-  border: 1px solid var(--fl-border-color, rgba(255, 255, 255, 0.2));
+  transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  .legend-item:hover & {
+    transform: scale(1.1);
+  }
 }
 
 .legend-text {
-  font-size: 0.75rem;
-  color: var(--fl-chart-text-color, #4b5563);
-  white-space: nowrap;
+  font-size: 10px;
+  color: var(--fl-chart-text-color);
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+  line-height: 1.2;
 }
 
-.heatmap-tooltip {
+/* Tooltip styling - PowerBI grade */
+.chart-tooltip {
   position: absolute;
-  background-color: var(--fl-card-background, rgba(255, 255, 255, 0.9));
-  color: var(--fl-text-color-primary, #202124);
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  pointer-events: none;
   z-index: 10;
-  white-space: nowrap;
-  border: 1px solid var(--fl-border-color, #dadce0);
+  background-color: var(--fl-chart-panel);
+  backdrop-filter: blur(8px);
+  color: var(--fl-chart-text-color);
+  padding: 10px 14px;
+  border-radius: var(--fl-chart-radius);
+  border: 1px solid var(--fl-chart-border);
+  box-shadow: var(--fl-chart-shadow-hover);
+  font-size: var(--fl-chart-font-size);
+  font-family: var(--fl-chart-font-family);
   font-weight: 500;
+  pointer-events: none;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 250px;
+  min-width: 120px;
+  line-height: 1.4;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  // Ensure text content is properly contained
+  div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    max-height: 60px;
+  }
 }
 
-.chart-metadata {
-  padding: 4px 8px;
-  font-size: 0.6875rem;
-  color: var(--fl-text-color-secondary, #6b7280);
+/* Chart info text - PowerBI grade */
+.chart-info-text {
+  font-size: 11px;
+  color: var(--fl-chart-text-secondary);
+  margin-top: 8px;
   text-align: center;
-  margin-top: 4px;
-  flex-shrink: 0;
+  padding: 8px 0 0 0;
+  border-top: 1px solid var(--fl-chart-border);
+  font-family: var(--fl-chart-font-family);
 }
 
-.chart-info {
-  font-size: 0.6875rem;
-  color: var(--fl-text-color-secondary, #6b7280);
+// Animation classes
+.cell-animated {
+  animation: cellEnter 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.cell-updated {
+  animation: cellUpdate 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.text-animated {
+  animation: textFadeIn 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.text-rotated-animated {
+  animation: textFadeInRotated 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Hover animations
+.cell-glow {
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.25)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.2));
+  }
+}
+
+// Theme-aware glow effects
+[data-theme="light"] .cell-glow:hover {
+  filter: brightness(1.1) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.2)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.15));
+}
+
+[data-theme="dark"] .cell-glow:hover {
+  filter: brightness(1.15) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.3));
 } 

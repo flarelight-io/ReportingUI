@@ -2,6 +2,79 @@
   display: block;
   width: 100%;
   height: 100%;
+  overflow: hidden;
+  font-family: var(--fl-chart-font-family);
+}
+
+// Premium animations for box and whisker elements
+@keyframes boxEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes whiskerEnter {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+    transform-origin: center;
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+    transform-origin: center;
+  }
+}
+
+@keyframes medianEnter {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+    transform-origin: center;
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+    transform-origin: center;
+  }
+}
+
+@keyframes outlierEnter {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes textFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes textFadeInRotated {
+  from {
+    opacity: 0;
+    transform: translateY(4px) rotate(-45deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(-45deg);
+  }
 }
 
 .loading-spinner {
@@ -10,8 +83,9 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: var(--fl-text-color-secondary, #6b7280);
-  font-size: 0.875rem;
+  color: var(--fl-chart-text-secondary);
+  font-size: var(--fl-chart-font-size);
+  font-family: var(--fl-chart-font-family);
 }
 
 .error-message {
@@ -21,7 +95,8 @@
   width: 100%;
   height: 100%;
   color: var(--fl-error-color, #ef4444);
-  font-size: 0.875rem;
+  font-size: var(--fl-chart-font-size);
+  font-family: var(--fl-chart-font-family);
   text-align: center;
   padding: 16px;
 }
@@ -32,8 +107,9 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: var(--fl-text-color-secondary, #6b7280);
-  font-size: 0.875rem;
+  color: var(--fl-chart-text-secondary);
+  font-size: var(--fl-chart-font-size);
+  font-family: var(--fl-chart-font-family);
 }
 
 .box-whisker-chart-container {
@@ -42,14 +118,22 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background-color: var(--fl-chart-background);
+  justify-content: center;
+  background-color: var(--fl-chart-panel);
+  border-radius: var(--fl-chart-radius);
+  box-shadow: var(--fl-chart-shadow);
+  padding: 16px;
+  transition: box-shadow 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    box-shadow: var(--fl-chart-shadow-hover);
+  }
 }
 
 .visualization-container {
   flex: 1;
   position: relative;
   overflow: hidden;
-  min-height: 0; /* Allow container to shrink/expand */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -62,66 +146,167 @@
   }
 }
 
+/* Legend styling - PowerBI grade */
 .chart-legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 6px;
   margin-top: 8px;
-  padding: 0 8px;
+  padding: 8px 0 0 0;
+  border-top: 1px solid var(--fl-chart-border);
+  font-family: var(--fl-chart-font-family);
   max-height: 80px;
   overflow-y: auto;
-  border-top: 1px solid var(--fl-border-color, rgba(209, 213, 219, 0.3));
-  padding-top: 6px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  margin-right: 12px;
-  margin-bottom: 4px;
+  cursor: pointer;
+  transition: opacity 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 2px 4px;
+  border-radius: 3px;
+  
+  &:hover {
+    opacity: 0.8;
+    background-color: var(--fl-hover-color);
+  }
+  
+  &.dimmed {
+    opacity: var(--fl-chart-dim-opacity);
+  }
 }
 
 .color-indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-  margin-right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 0;
+  margin-right: 4px;
   flex-shrink: 0;
+  transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  .legend-item:hover & {
+    transform: scale(1.1);
+  }
 }
 
 .legend-text {
-  font-size: 0.75rem;
-  color: var(--fl-text-color-secondary, #4b5563);
+  font-size: 10px;
+  color: var(--fl-chart-text-color);
+  font-weight: 500;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+  line-height: 1.2;
 }
 
-.chart-metadata {
-  padding: 4px 8px;
-  font-size: 0.6875rem;
-  color: var(--fl-text-color-secondary, #6b7280);
-  text-align: center;
-  margin-top: 4px;
-}
-
-.chart-info {
-  font-size: 0.6875rem;
-  color: var(--fl-text-color-secondary, #6b7280);
-}
-
-/* Tooltip styling */
+/* Tooltip styling - PowerBI grade */
 .chart-tooltip {
   position: absolute;
   z-index: 10;
-  background-color: var(--fl-card-background, #fff);
-  backdrop-filter: blur(4px);
-  color: var(--fl-text-color-primary, #1f2937);
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid var(--fl-border-color, #d1d5db);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  font-size: 12px;
+  background-color: var(--fl-chart-panel);
+  backdrop-filter: blur(8px);
+  color: var(--fl-chart-text-color);
+  padding: 10px 14px;
+  border-radius: var(--fl-chart-radius);
+  border: 1px solid var(--fl-chart-border);
+  box-shadow: var(--fl-chart-shadow-hover);
+  font-size: var(--fl-chart-font-size);
+  font-family: var(--fl-chart-font-family);
+  font-weight: 500;
   pointer-events: none;
-  white-space: pre-line;
-  max-width: 200px;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 250px;
+  min-width: 120px;
+  line-height: 1.4;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .tooltip-title {
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--fl-chart-text-color);
+    font-size: 12px;
+  }
+  
+  .tooltip-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+  }
+  
+  .tooltip-label {
+    color: var(--fl-chart-text-secondary);
+    font-weight: 500;
+  }
+  
+  .tooltip-value {
+    color: var(--fl-chart-text-color);
+    font-weight: 600;
+    margin-left: 8px;
+  }
+}
+
+// Animation classes
+.box-animated {
+  animation: boxEnter 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.whisker-animated {
+  animation: whiskerEnter 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.median-animated {
+  animation: medianEnter 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.outlier-animated {
+  animation: outlierEnter 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.text-animated {
+  animation: textFadeIn 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.text-rotated-animated {
+  animation: textFadeInRotated 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Hover animations
+.box-glow {
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: scale(1.02);
+    filter: brightness(1.1) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.25)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.2));
+  }
+}
+
+// Theme-aware glow effects
+[data-theme="light"] .box-glow:hover {
+  filter: brightness(1.1) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.2)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.15));
+}
+
+[data-theme="dark"] .box-glow:hover {
+  filter: brightness(1.15) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.3));
 } 
