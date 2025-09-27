@@ -961,6 +961,9 @@ export class ReportDemo {
     ChartThemeUtils.setColorTheme(this.colorTheme);
     document.documentElement.setAttribute('data-color-theme', this.colorTheme);
     
+    // Update brand colors based on the selected theme
+    this.updateBrandColors();
+    
     // Force re-render of all widgets
     setTimeout(() => {
       this.forceChartRefresh();
@@ -999,6 +1002,9 @@ export class ReportDemo {
     // Set initial color theme
     ChartThemeUtils.setColorTheme(this.colorTheme);
     document.documentElement.setAttribute('data-color-theme', this.colorTheme);
+    
+    // Update brand colors on initial load
+    this.updateBrandColors();
     
     // Try multiple ways to find the report viewer component
     this.findReportViewer();
@@ -1076,6 +1082,9 @@ export class ReportDemo {
   private toggleTheme = () => {
     this.darkMode = !this.darkMode;
     document.documentElement.setAttribute('data-theme', this.darkMode ? 'dark' : 'light');
+    
+    // Update brand colors when theme changes
+    this.updateBrandColors();
   };
 
   private setColorThemeSelectRef = (el: HTMLSelectElement) => {
@@ -1096,6 +1105,9 @@ export class ReportDemo {
     // Also set the CSS custom property
     document.documentElement.setAttribute('data-color-theme', theme);
     
+    // Update brand colors based on the selected theme
+    this.updateBrandColors();
+    
     // Force re-render of the report viewer
     if (this.reportViewerRef) {
       // Update the colorTheme prop directly
@@ -1114,6 +1126,23 @@ export class ReportDemo {
       }, 100);
     }
   };
+
+  private updateBrandColors() {
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const colors = theme.series;
+    
+    // Update CSS custom properties for brand colors
+    if (this.hostElement) {
+      this.hostElement.style.setProperty('--brand-primary', colors[0]);
+      this.hostElement.style.setProperty('--brand-primary-light', colors[1]);
+      this.hostElement.style.setProperty('--brand-primary-lighter', colors[2]);
+      this.hostElement.style.setProperty('--brand-primary-lightest', colors[3]);
+      this.hostElement.style.setProperty('--brand-secondary', colors[4] || colors[0]);
+      this.hostElement.style.setProperty('--brand-gradient-start', colors[0]);
+      this.hostElement.style.setProperty('--brand-gradient-middle', colors[1] || colors[0]);
+      this.hostElement.style.setProperty('--brand-gradient-end', colors[2] || colors[1] || colors[0]);
+    }
+  }
 
   private clearFilter = (e: Event) => {
     e.preventDefault();

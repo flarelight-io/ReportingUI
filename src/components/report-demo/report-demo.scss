@@ -5,6 +5,16 @@
   background-color: var(--fl-background-color);
   color: var(--fl-text-color-primary);
   min-height: 100vh;
+  
+  // Brand color CSS custom properties - will be updated dynamically
+  --brand-primary: #4d19a2;
+  --brand-primary-light: #5c1fb8;
+  --brand-primary-lighter: #6b2bc4;
+  --brand-primary-lightest: #7a37d0;
+  --brand-secondary: #c035db;
+  --brand-gradient-start: #4d19a2;
+  --brand-gradient-middle: #5c1fb8;
+  --brand-gradient-end: #6b2bc4;
 }
 
 .demo-container {
@@ -17,12 +27,26 @@
   margin-bottom: 32px;
   text-align: center;
   padding: 24px 0;
+  position: relative;
+  
+  // Add subtle brand color background
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--brand-gradient-start), var(--brand-gradient-middle), var(--brand-gradient-end));
+    border-radius: 2px;
+  }
   
   h1 {
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 12px;
-    background: linear-gradient(90deg, #4f46e5, #3b82f6);
+    background: linear-gradient(90deg, var(--brand-gradient-start), var(--brand-gradient-middle), var(--brand-gradient-end));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -51,7 +75,7 @@
 }
 
 .toggle-button {
-  background-color: var(--fl-primary-color);
+  background-color: var(--brand-primary);
   color: white;
   border: none;
   padding: 8px 16px;
@@ -62,7 +86,7 @@
   transition: background-color 0.2s ease;
   
   &:hover {
-    background-color: rgba(66, 133, 244, 0.8);
+    background-color: var(--brand-primary-light);
   }
 }
 
@@ -88,14 +112,48 @@
     transition: border-color 0.2s ease;
     
     &:hover {
-      border-color: var(--fl-primary-color);
+      border-color: var(--brand-primary);
     }
     
     &:focus {
       outline: none;
-      border-color: var(--fl-primary-color);
-      box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+      border-color: var(--brand-primary);
+      box-shadow: 0 0 0 2px rgba(77, 25, 162, 0.2);
     }
+  }
+}
+
+.filter-info {
+  margin-top: 16px;
+  
+  .active-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--brand-primary);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    
+    button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 0.8rem;
+      text-decoration: underline;
+      
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+  }
+  
+  p {
+    color: var(--fl-text-color-secondary);
+    font-size: 0.9rem;
+    margin: 0;
   }
 }
 
@@ -108,6 +166,9 @@
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   position: relative;
   
+  // Add subtle brand color accent
+  border-left: 4px solid var(--brand-primary);
+  
   &::before {
     content: '';
     position: absolute;
@@ -115,7 +176,7 @@
     left: 0;
     width: 100%;
     height: 6px;
-    background: linear-gradient(90deg, #4f46e5, #3b82f6, #60a5fa);
+    background: linear-gradient(90deg, var(--brand-gradient-start), var(--brand-gradient-middle), var(--brand-gradient-end));
     z-index: 1;
   }
 } 
