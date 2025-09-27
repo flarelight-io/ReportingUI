@@ -1,6 +1,7 @@
 import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
+import { ChartThemeUtils, ChartAnimations } from '../../../utils/chart-theme';
 
 interface LineDataPoint {
   x: string | number;
@@ -167,8 +168,9 @@ export class LineChartVisualization {
       `${i === 0 ? 'M' : 'L'}${point.x},${point.y}`
     ).join(' ');
     
-    // Define colors
+    // Define colors and theme
     const colors = this.getColors();
+    const theme = ChartThemeUtils.getTheme();
     
     return (
       <div class="line-chart-container">
@@ -178,61 +180,92 @@ export class LineChartVisualization {
             height="100%" 
             viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
             preserveAspectRatio="xMidYMid meet"
+            {...ChartThemeUtils.getSVGAttributes()}
           >
-            {/* Draw grid lines if enabled */}
+            {/* Define gradients and filters for modern styling */}
+            <defs>
+              <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color={colors[0]} stop-opacity="0.3"/>
+                <stop offset="100%" stop-color={colors[0]} stop-opacity="0.05"/>
+              </linearGradient>
+              <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
+              </filter>
+            </defs>
+            {/* Draw grid lines if enabled - PowerBI style (Y-axis only) */}
             {this.config.showGrid && (
               <g>
                 {[0, 25, 50, 75, 100].map((pos, i) => (
                   <line 
                     key={`h-${i}`} 
                     x1="5" 
-                    y1={pos} 
+                    y1={ChartThemeUtils.snapToPixel(pos)} 
                     x2={viewBoxWidth - 5} 
-                    y2={pos} 
-                    stroke="var(--fl-chart-grid-color, #ddd)" 
-                    stroke-width="0.5" 
-                    stroke-dasharray="2,2"
+                    y2={ChartThemeUtils.snapToPixel(pos)} 
+                    stroke="var(--fl-chart-grid-color)" 
+                    stroke-width="1" 
+                    opacity={theme.gridlines.opacity}
                   />
                 ))}
-                
-                {Array.from({length: 5}).map((_, i) => {
-                  const xPos = 5 + ((viewBoxWidth - 10) / 4) * i;
-                  return (
-                    <line 
-                      key={`v-${i}`} 
-                      x1={xPos} 
-                      y1="5" 
-                      x2={xPos} 
-                      y2={viewBoxHeight - 5} 
-                      stroke="var(--fl-chart-grid-color, #ddd)" 
-                      stroke-width="0.5" 
-                      stroke-dasharray="2,2"
-                    />
-                  );
-                })}
               </g>
             )}
             
-            {/* Draw line */}
-            <path d={pathString} fill="none" stroke={colors[0]} stroke-width="1.5" />
+            {/* Draw line with modern styling */}
+            <path 
+              d={pathString} 
+              fill="none" 
+              stroke={colors[0]} 
+              stroke-width={theme.lineStrokeWidth}
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              filter="url(#softShadow)"
+              style={{
+                transition: ChartAnimations.getHoverTransition()
+              }}
+            />
             
-            {/* Draw points */}
+            {/* Draw points with modern styling */}
             {points.map((point, i) => (
               <g 
                 key={i} 
                 transform={`translate(${point.x}, ${point.y})`}
-                style={{ cursor: 'pointer' }}
+                style={{ 
+                  cursor: 'pointer',
+                  transition: ChartAnimations.getHoverTransition()
+                }}
                 onClick={() => this.handleFilterClick(groupByField || '', point.category)}
                 onMouseEnter={(event) => this.handleMouseMove(event, point.category, point.value)}
                 onMouseLeave={() => this.handleMouseLeave()}
               >
-                <circle cx="0" cy="0" r="1.5" fill={colors[0]} />
+                <circle 
+                  cx="0" 
+                  cy="0" 
+                  r={theme.pointRadius} 
+                  fill={colors[0]}
+                  stroke="white"
+                  stroke-width="2"
+                  filter="url(#softShadow)"
+                />
               </g>
             ))}
             
-            {/* X and Y axis */}
-            <line x1="5" y1={viewBoxHeight - 5} x2={viewBoxWidth - 5} y2={viewBoxHeight - 5} stroke="var(--fl-chart-axis-color, #666)" stroke-width="1" />
-            <line x1="5" y1="5" x2="5" y2={viewBoxHeight - 5} stroke="var(--fl-chart-axis-color, #666)" stroke-width="1" />
+            {/* X and Y axis with proper styling */}
+            <line 
+              x1="5" 
+              y1={ChartThemeUtils.snapToPixel(viewBoxHeight - 5)} 
+              x2={viewBoxWidth - 5} 
+              y2={ChartThemeUtils.snapToPixel(viewBoxHeight - 5)} 
+              stroke="var(--fl-chart-axis-color)" 
+              stroke-width="1" 
+            />
+            <line 
+              x1={ChartThemeUtils.snapToPixel(5)} 
+              y1="5" 
+              x2={ChartThemeUtils.snapToPixel(5)} 
+              y2={viewBoxHeight - 5} 
+              stroke="var(--fl-chart-axis-color)" 
+              stroke-width="1" 
+            />
             
             {/* Labels (only show if not too many points) */}
             {chartData.length <= 8 && (
@@ -255,7 +288,9 @@ export class LineChartVisualization {
                       y={viewBoxHeight - 2} 
                       font-size="2.5" 
                       text-anchor="middle" 
-                      fill="#666"
+                      fill="var(--fl-chart-text-secondary)"
+                      font-family={theme.fontFamily}
+                      font-weight="500"
                     >
                       {truncatedText}
                     </text>
@@ -275,9 +310,14 @@ export class LineChartVisualization {
                       y={point.y - 3} 
                       font-size="2.5" 
                       text-anchor="middle" 
-                      fill="#444"
+                      fill="var(--fl-chart-text-color)"
+                      font-family={theme.fontFamily}
+                      font-weight="600"
+                      paint-order="stroke fill"
+                      stroke="white"
+                      stroke-width="0.5"
                     >
-                      {point.value}
+                      {ChartThemeUtils.formatNumber(point.value)}
                     </text>
                   );
                 })}
@@ -305,10 +345,10 @@ export class LineChartVisualization {
             })}
           </svg>
           
-          {/* Tooltip */}
+          {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
-              class="chart-tooltip"
+              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltip.x}px`, 
                 top: `${this.tooltip.y}px`,
@@ -341,9 +381,7 @@ export class LineChartVisualization {
   }
   
   private getColors(): string[] {
-    return [
-      '#4299e1', '#48bb78', '#f6ad55', '#f56565', 
-      '#9f7aea', '#38b2ac', '#ed8936', '#667eea'
-    ];
+    const theme = ChartThemeUtils.getTheme();
+    return theme.series;
   }
 } 

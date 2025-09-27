@@ -1,6 +1,7 @@
 import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
+import { ChartThemeUtils, ChartAnimations } from '../../../utils/chart-theme';
 
 interface PieChartDataItem {
   category: string;
@@ -25,8 +26,16 @@ export class PieChartVisualization {
   @Prop() data: VisualizationData;
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
+  @State() themeVersion: number = 0; // Force re-render when theme changes
   
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
+
+  componentWillLoad() {
+    // Listen for theme changes
+    ChartThemeUtils.onThemeChange(() => {
+      this.themeVersion++;
+    });
+  }
 
   private handleFilterClick(fieldName: string, value: any) {
     if (this.config.sourceId && fieldName) {
@@ -41,9 +50,16 @@ export class PieChartVisualization {
   private handleMouseMove(event: MouseEvent, category: string, value: number, percentage: number) {
     const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
     if (svgRect) {
+      // Format tooltip text with proper line breaks for long categories
+      const formattedValue = ChartThemeUtils.formatNumber(value);
+      const maxCategoryLength = 30;
+      const truncatedCategory = category.length > maxCategoryLength 
+        ? `${category.substring(0, maxCategoryLength)}...` 
+        : category;
+      
       this.tooltip = {
         visible: true,
-        text: `${category}: ${value} (${percentage}%)`,
+        text: `${truncatedCategory}\n${formattedValue} (${percentage.toFixed(1)}%)`,
         x: event.clientX - svgRect.left,
         y: event.clientY - svgRect.top
       };
@@ -133,6 +149,7 @@ export class PieChartVisualization {
     const dataWithPercentages = this.calculatePercentages(chartData);
     const total = dataWithPercentages.reduce((sum, item) => sum + item.value, 0);
     const colors = this.getColors();
+    const theme = ChartThemeUtils.getTheme();
     
     // Rendering constants for the chart - reduced radius to leave space for labels
     const centerX = 50;
@@ -147,7 +164,19 @@ export class PieChartVisualization {
       return (
         <div class="pie-chart-container">
           <div class="visualization-container">
-            <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+            <svg 
+              width="100%" 
+              height="100%" 
+              viewBox="0 0 100 100" 
+              preserveAspectRatio="xMidYMid meet"
+              {...ChartThemeUtils.getSVGAttributes()}
+            >
+              {/* Define gradients and filters for modern styling */}
+              <defs>
+                <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
+                </filter>
+              </defs>
               {this.config.visualizationType === 'donut' ? (
                 <g>
                   <defs>
@@ -160,12 +189,19 @@ export class PieChartVisualization {
                     cx={centerX}
                     cy={centerY}
                     r={radius}
-                    fill={colors[0]}
+                    fill={`url(#pieGradient-0)`}
                     mask={`url(#donutHole-${this.config.sourceId || 'pie'})`}
-                    style={{ cursor: 'pointer' }}
+                    class="pie-segment-animated pie-segment-hover"
+                    style={{ 
+                      cursor: 'pointer',
+                      transition: ChartAnimations.getHoverTransition(),
+                      animationDelay: '0ms',
+                      animationFillMode: 'both'
+                    }}
                     onClick={() => this.handleFilterClick(groupByField || '', singleItem.category)}
                     onMouseMove={(event) => this.handleMouseMove(event, singleItem.category, singleItem.value, 100)}
                     onMouseLeave={() => this.handleMouseLeave()}
+                    filter="url(#softShadow)"
                   />
                 </g>
               ) : (
@@ -173,11 +209,18 @@ export class PieChartVisualization {
                   cx={centerX}
                   cy={centerY}
                   r={radius}
-                  fill={colors[0]}
-                  style={{ cursor: 'pointer' }}
+                  fill={`url(#pieGradient-0)`}
+                  class="pie-segment-animated pie-segment-hover"
+                  style={{ 
+                    cursor: 'pointer',
+                    transition: ChartAnimations.getHoverTransition(),
+                    animationDelay: '0ms',
+                    animationFillMode: 'both'
+                  }}
                   onClick={() => this.handleFilterClick(groupByField || '', singleItem.category)}
                   onMouseMove={(event) => this.handleMouseMove(event, singleItem.category, singleItem.value, 100)}
                   onMouseLeave={() => this.handleMouseLeave()}
+                  filter="url(#softShadow)"
                 />
               )}
               
@@ -189,7 +232,11 @@ export class PieChartVisualization {
                   dominant-baseline="middle"
                   fill="white"
                   font-size="6"
-                  font-weight="bold"
+                  font-weight="600"
+                  font-family={theme.fontFamily}
+                  paint-order="stroke fill"
+                  stroke="rgba(0,0,0,0.3)"
+                  stroke-width="0.5"
                 >
                   100%
                 </text>
@@ -230,12 +277,14 @@ export class PieChartVisualization {
                   transform: 'translate(-50%, -100%)'
                 }}
               >
-                {this.tooltip.text}
+                <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
+                  {this.tooltip.text}
+                </div>
               </div>
             )}
           </div>
           
-          {this.config.showLegend && (
+          {(this.config.showLegend !== false) && (
             <div class="chart-legend">
               <div class="legend-item">
                 <div class="color-indicator" style={{ backgroundColor: colors[0] }}></div>
@@ -325,6 +374,7 @@ export class PieChartVisualization {
       return {
         path,
         color: colors[index % colors.length],
+        colorIndex: index % colors.length,
         percentage,
         labelX,
         labelY,
@@ -347,17 +397,43 @@ export class PieChartVisualization {
     return (
       <div class="pie-chart-container">
         <div class="visualization-container">
-          <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+          <svg 
+            width="100%" 
+            height="100%" 
+            viewBox="0 0 100 100" 
+            preserveAspectRatio="xMidYMid meet"
+            {...ChartThemeUtils.getSVGAttributes()}
+          >
+            {/* Define gradients for each color */}
+            <defs>
+              {colors.map((color, index) => (
+                <radialGradient key={`pieGradient-${index}`} id={`pieGradient-${index}`} cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color={color} stop-opacity="1"/>
+                  <stop offset="100%" stop-color={color} stop-opacity="0.8"/>
+                </radialGradient>
+              ))}
+              <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
+              </filter>
+            </defs>
+            
             {/* Draw segments */}
             {segments.map((segment, i) => (
               <path 
                 key={i} 
                 d={segment.path} 
-                fill={segment.color}
-                style={{ cursor: 'pointer' }}
+                fill={`url(#pieGradient-${segment.colorIndex})`}
+                class="pie-segment-animated pie-segment-hover"
+                style={{ 
+                  cursor: 'pointer',
+                  transition: ChartAnimations.getHoverTransition(),
+                  animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
+                  animationFillMode: 'both'
+                }}
                 onClick={() => this.handleFilterClick(groupByField || '', segment.category)}
                 onMouseMove={(event) => this.handleMouseMove(event, segment.category, segment.value, segment.displayPercentage)}
                 onMouseLeave={() => this.handleMouseLeave()}
+                filter="url(#softShadow)"
               />
             ))}
             
@@ -377,6 +453,46 @@ export class PieChartVisualization {
                   {segment.percentage >= 0.08 ? Math.round(segment.percentage * 100) + '%' : ''}
                 </text>
               ))
+            )}
+            
+            {/* Add total in center for donut charts when enabled */}
+            {this.config.visualizationType === 'donut' && (this.config as any).showTotal && (
+              <g>
+                <text 
+                  x={centerX} 
+                  y={centerY - 2} 
+                  text-anchor="middle" 
+                  dominant-baseline="middle"
+                  fill="var(--fl-chart-text-color)"
+                  font-size="6"
+                  font-weight="700"
+                  font-family={theme.fontFamily}
+                  class="text-animated"
+                  style={{
+                    animationDelay: '200ms',
+                    animationFillMode: 'both'
+                  }}
+                >
+                  {ChartThemeUtils.formatNumber(total)}
+                </text>
+                <text 
+                  x={centerX} 
+                  y={centerY + 3} 
+                  text-anchor="middle" 
+                  dominant-baseline="middle"
+                  fill="var(--fl-chart-text-secondary)"
+                  font-size="3"
+                  font-weight="500"
+                  font-family={theme.fontFamily}
+                  class="text-animated"
+                  style={{
+                    animationDelay: '250ms',
+                    animationFillMode: 'both'
+                  }}
+                >
+                  Total
+                </text>
+              </g>
             )}
             
             {/* Add category name labels around the outside of the chart - limited to segments larger than 10 degrees */}
@@ -438,12 +554,14 @@ export class PieChartVisualization {
                 transform: 'translate(-50%, -100%)'
               }}
             >
-              {this.tooltip.text}
+              <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
+                {this.tooltip.text}
+              </div>
             </div>
           )}
         </div>
         
-        {this.config.showLegend && (
+        {(this.config.showLegend !== false) && (
           <div class="chart-legend">
             {segments.map((segment, i) => {
               // Truncate category name in legend if too long
@@ -476,12 +594,8 @@ export class PieChartVisualization {
   }
 
   private getColors(): string[] {
-    return [
-      '#4299e1', '#48bb78', '#f6ad55', '#f56565', 
-      '#9f7aea', '#38b2ac', '#ed8936', '#667eea',
-      '#fc8181', '#68d391', '#cbd5e0', '#feb2b2',
-      '#90cdf4', '#c6f6d5', '#fbd38d', '#e9d8fd'
-    ];
+    const theme = ChartThemeUtils.getTheme();
+    return theme.series;
   }
   
   private calculateFontSize(itemCount: number): number {

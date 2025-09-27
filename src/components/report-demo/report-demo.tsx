@@ -74,7 +74,8 @@ export class ReportDemo {
           visualizationType: 'donut',
           groupByField: 'category',
           valueField: 'value',
-          showLegend: true
+          showLegend: true,
+          showTotal: true
         }
       },
       {

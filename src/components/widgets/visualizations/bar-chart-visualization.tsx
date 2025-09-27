@@ -1,6 +1,7 @@
 import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
+import { ChartThemeUtils, ChartAnimations } from '../../../utils/chart-theme';
 
 interface ChartDataItem {
   category: string;
@@ -24,26 +25,24 @@ export class BarChartVisualization {
   @Prop() data: VisualizationData;
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
+  @State() themeVersion: number = 0; // Force re-render when theme changes
   
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
+
+  componentWillLoad() {
+    // Listen for theme changes
+    ChartThemeUtils.onThemeChange(() => {
+      this.themeVersion++;
+    });
+  }
 
   private handleFilterClick(field: string, value: any) {
     this.filterChange.emit({ sourceId: this.config.sourceId, field, value });
   }
 
   private getColors(): string[] {
-    return [
-      '#4f46e5', // indigo-600
-      '#0ea5e9', // sky-500
-      '#10b981', // emerald-500
-      '#f59e0b', // amber-500
-      '#ef4444', // red-500
-      '#8b5cf6', // violet-500
-      '#ec4899', // pink-500
-      '#06b6d4', // cyan-500
-      '#84cc16', // lime-500
-      '#f97316'  // orange-500
-    ];
+    const theme = ChartThemeUtils.getTheme();
+    return theme.series;
   }
 
   private processData(): ChartDataItem[] {
@@ -95,9 +94,16 @@ export class BarChartVisualization {
   private handleMouseMove(event: MouseEvent, barCategory: string, barValue: number) {
     const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
     if (svgRect) {
+      // Format tooltip text with proper line breaks for long categories
+      const formattedValue = ChartThemeUtils.formatNumber(barValue);
+      const maxCategoryLength = 30;
+      const truncatedCategory = barCategory.length > maxCategoryLength 
+        ? `${barCategory.substring(0, maxCategoryLength)}...` 
+        : barCategory;
+      
       this.tooltip = {
         visible: true,
-        text: `${barCategory}: ${barValue}`,
+        text: `${truncatedCategory}\n${formattedValue}`,
         x: event.clientX - svgRect.left,
         y: event.clientY - svgRect.top
       };
@@ -130,6 +136,7 @@ export class BarChartVisualization {
     // Determine if this is a horizontal bar chart
     const isHorizontal = this.config.visualizationType === 'hbar';
     const colors = this.getColors();
+    const theme = ChartThemeUtils.getTheme();
     
     // Find the maximum value for scaling
     const maxValue = Math.max(...chartData.map(item => item.value)) * 1.1; // Add 10% padding
@@ -142,11 +149,10 @@ export class BarChartVisualization {
     // Calculate positions and dimensions for bars
     const bars = chartData.map((item, index) => {
       const scaledValue = (item.value / maxValue) * 90; // Max bar height/width is 90% of the available space
+      const colorIndex = index % colors.length; // Get the correct color index
       
       if (isHorizontal) {
         // For horizontal bars
-        // Adjust to prevent bars from going outside the bottom boundary
-        // Calculate the y-coordinate ensuring the last bar is above the x-axis
         const totalRows = chartData.length;
         const barHeight = step * 0.8; // Bar height is 80% of available slot
         const verticalSpace = viewBoxHeight - 35; // Significantly increase padding at bottom
@@ -172,11 +178,12 @@ export class BarChartVisualization {
           y,
           width: scaledValue,
           height: barHeight,
-          color: colors[index % colors.length],
+          color: colors[colorIndex],
+          colorIndex: colorIndex,
           label: {
             x: 5 + scaledValue + 2, // Label position matches bar position
             y: y + barHeight / 2,
-            text: `${item.category} (${item.value})`
+            text: `${item.category} (${ChartThemeUtils.formatNumber(item.value)})`
           },
           category: item.category,
           value: item.value
@@ -191,7 +198,8 @@ export class BarChartVisualization {
           y: 95 - scaledValue,
           width,
           height: scaledValue,
-          color: colors[index % colors.length],
+          color: colors[colorIndex],
+          colorIndex: colorIndex,
           label: {
             x: x + width / 2,
             y: 97, 
@@ -237,43 +245,80 @@ export class BarChartVisualization {
             height="100%" 
             viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`} 
             preserveAspectRatio="xMidYMin meet"
+            {...ChartThemeUtils.getSVGAttributes()}
           >
+            {/* Define gradients and filters for modern styling */}
+            <defs>
+              {colors.map((color, index) => (
+                <linearGradient key={`gradient-${index}`} id={`barGradient-${index}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color={color} stop-opacity="1"/>
+                  <stop offset="100%" stop-color={color} stop-opacity="0.85"/>
+                </linearGradient>
+              ))}
+              <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
+              </filter>
+            </defs>
+
             {this.config.showGrid && (
               <g>
-                {/* Draw grid lines, adjusted for viewbox width */}
+                {/* Draw Y-axis grid lines only (PowerBI style) */}
                 {[0, 25, 50, 75, 100].map((pos, i) => (
-                  <g key={i}>
-                    {/* Horizontal grid lines */}
-                    <line x1="5" y1={pos} x2={viewBoxWidth - 5} y2={pos} stroke="var(--fl-chart-grid-color, #ccc)" stroke-width="0.5" />
-                    {/* Vertical grid lines - adjust based on viewbox width */}
-                    {Array.from({length: 5}).map((_, j) => {
-                      const xPos = 5 + (j * (viewBoxWidth - 10) / 4);
-                      return <line key={`v-${j}`} x1={xPos} y1="5" x2={xPos} y2={viewBoxHeight - 5} stroke="var(--fl-chart-grid-color, #ccc)" stroke-width="0.5" />
-                    })}
-                  </g>
+                  <line 
+                    key={i}
+                    x1="5" 
+                    y1={ChartThemeUtils.snapToPixel(pos)} 
+                    x2={viewBoxWidth - 5} 
+                    y2={ChartThemeUtils.snapToPixel(pos)} 
+                    stroke="var(--fl-chart-grid-color)" 
+                    stroke-width="1" 
+                    opacity={theme.gridlines.opacity}
+                  />
                 ))}
               </g>
             )}
             
-            {/* Draw bars */}
+            {/* Draw bars with modern styling */}
             {bars.map((bar, i) => (
-              <rect 
-                key={i} 
-                x={bar.x} 
-                y={bar.y} 
-                width={bar.width} 
-                height={bar.height} 
-                fill={bar.color}
-                style={{ cursor: 'pointer' }}
-                onMouseMove={(e) => this.handleMouseMove(e, bar.category, bar.value)}
-                onMouseLeave={() => this.handleMouseLeave()}
-                onClick={() => this.handleFilterClick(groupByField || '', bar.category)}
-              />
+              <g key={i}>
+                <rect 
+                  x={bar.x} 
+                  y={bar.y} 
+                  width={bar.width} 
+                  height={bar.height} 
+                  fill={`url(#barGradient-${bar.colorIndex})`}
+                  class="bar-animated bar-glow"
+                  style={{ 
+                    cursor: 'pointer',
+                    transition: ChartAnimations.getHoverTransition(),
+                    animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
+                    animationFillMode: 'both'
+                  }}
+                  onMouseMove={(e) => this.handleMouseMove(e, bar.category, bar.value)}
+                  onMouseLeave={() => this.handleMouseLeave()}
+                  onClick={() => this.handleFilterClick(groupByField || '', bar.category)}
+                  filter="url(#softShadow)"
+                />
+              </g>
             ))}
             
-            {/* X and Y axis */}
-            <line x1="5" y1={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} x2={viewBoxWidth - 5} y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} stroke="var(--fl-chart-axis-color, #333)" stroke-width="1" />
-            <line x1="5" y1="5" x2="5" y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} stroke="var(--fl-chart-axis-color, #333)" stroke-width="1" />
+            {/* X and Y axis with proper styling */}
+            <line 
+              x1="5" 
+              y1={ChartThemeUtils.snapToPixel(isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5)} 
+              x2={viewBoxWidth - 5} 
+              y2={ChartThemeUtils.snapToPixel(isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5)} 
+              stroke="var(--fl-chart-axis-color)" 
+              stroke-width="1" 
+            />
+            <line 
+              x1={ChartThemeUtils.snapToPixel(5)} 
+              y1="5" 
+              x2={ChartThemeUtils.snapToPixel(5)} 
+              y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} 
+              stroke="var(--fl-chart-axis-color)" 
+              stroke-width="1" 
+            />
             
             {/* Show values on the bars if enabled */}
             {this.config.showLabels && (
@@ -285,10 +330,19 @@ export class BarChartVisualization {
                     y={bar.label.valueY} 
                     font-size={fontSize} 
                     text-anchor="middle" 
-                    fill="white"
-                    font-weight="bold"
+                    fill="var(--fl-chart-text-color)"
+                    font-weight="600"
+                    font-family={theme.fontFamily}
+                    paint-order="stroke fill"
+                    stroke="rgba(0,0,0,0.1)"
+                    stroke-width="0.5"
+                    class="text-animated"
+                    style={{
+                      animationDelay: `${ChartAnimations.getStaggerDelay(i) + 100}ms`,
+                      animationFillMode: 'both'
+                    }}
                   >
-                    {chartData[i].value}
+                    {ChartThemeUtils.formatNumber(chartData[i].value)}
                   </text>
                 ))}
               </g>
@@ -304,7 +358,9 @@ export class BarChartVisualization {
                     y={bar.label.y} 
                     font-size={fontSize} 
                     dominant-baseline="middle" 
-                    fill="var(--fl-chart-text-color, #555)"
+                    fill="var(--fl-chart-text-color)"
+                    font-family={theme.fontFamily}
+                    font-weight="500"
                   >
                     {bar.label.text.length > 15 ? `${bar.label.text.substring(0, 15)}...` : bar.label.text}
                   </text>
@@ -337,8 +393,15 @@ export class BarChartVisualization {
                       y={105} 
                       font-size={adjustedFontSize}
                       text-anchor="end"
-                      fill="var(--fl-chart-text-color, #333)"
-                      transform={`rotate(-45, ${bar.label.x}, 105)`}
+                      fill="var(--fl-chart-text-color)"
+                      font-family={theme.fontFamily}
+                      font-weight="500"
+                      class="text-rotated-animated"
+                      style={{
+                        animationDelay: `${ChartAnimations.getStaggerDelay(i) + 150}ms`,
+                        animationFillMode: 'both',
+                        transformOrigin: `${bar.label.x}px 105px`
+                      }}
                     >
                       {displayText}
                     </text>
@@ -348,28 +411,30 @@ export class BarChartVisualization {
             )}
           </svg>
           
-          {/* Tooltip */}
+          {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
-              class="chart-tooltip"
+              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltip.x}px`, 
                 top: `${this.tooltip.y}px`,
                 transform: 'translate(-50%, -100%)'
               }}
             >
-              {this.tooltip.text}
+              <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
+                {this.tooltip.text}
+              </div>
             </div>
           )}
         </div>
         
-        {this.config.showLegend && (
+        {(this.config.showLegend !== false) && (
           <div class="chart-legend">
-            {chartData.map((item, i) => (
+            {bars.map((bar, i) => (
               <div key={i} class="legend-item">
-                <div class="color-indicator" style={{ backgroundColor: colors[i % colors.length] }}></div>
+                <div class="color-indicator" style={{ backgroundColor: bar.color }}></div>
                 <span class="legend-text">
-                  {item.category.length > 10 ? `${item.category.substring(0, 10)}...` : item.category}: {item.value}
+                  {bar.category.length > 10 ? `${bar.category.substring(0, 10)}...` : bar.category}: {ChartThemeUtils.formatNumber(bar.value)}
                 </span>
               </div>
             ))}

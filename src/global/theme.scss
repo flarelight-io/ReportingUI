@@ -6,14 +6,43 @@
   --fl-text-color-secondary: #6b7280;
   --fl-border-color: #e2e8f0;
   
-  /* Chart specific colors */
+  /* Chart specific colors - PowerBI grade */
   --fl-chart-background: #ffffff;
-  --fl-chart-text-color: #333333;
-  --fl-chart-axis-color: #999999;
-  --fl-chart-grid-color: #eeeeee;
+  --fl-chart-panel: #ffffff;
+  --fl-chart-text-color: #1f2937;
+  --fl-chart-text-secondary: #6b7280;
+  --fl-chart-axis-color: #9ca3af;
+  --fl-chart-grid-color: #e5e7eb;
+  --fl-chart-border: #e5e7eb;
   --fl-chart-stroke-color: #ffffff;
   --fl-chart-alternate-row: rgba(243, 244, 246, 0.2);
   --fl-hover-color: #f3f4f6;
+  
+  /* Chart brand colors */
+  --fl-chart-primary: #4d19a2;
+  --fl-chart-series-1: #4d19a2;
+  --fl-chart-series-2: #10b981;
+  --fl-chart-series-3: #f59e0b;
+  --fl-chart-series-4: #ef4444;
+  --fl-chart-series-5: #3b82f6;
+  --fl-chart-series-6: #8b5cf6;
+  --fl-chart-series-7: #06b6d4;
+  --fl-chart-series-8: #84cc16;
+  
+  /* Chart effects */
+  --fl-chart-shadow: 0 1px 1.6px rgba(0, 0, 0, 0.18);
+  --fl-chart-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.25);
+  --fl-chart-radius: 6px;
+  --fl-chart-gap: 12px;
+  
+  /* Chart typography */
+  --fl-chart-font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  --fl-chart-font-size: 12px;
+  --fl-chart-title-size: 16px;
+  
+  /* Chart interactions */
+  --fl-chart-dim-opacity: 0.35;
+  --fl-chart-focus-stroke: 0.12;
   
   /* Text colors for dark/light backgrounds */
   --fl-text-light: #ffffff;
@@ -47,20 +76,42 @@
 }
 
 [data-theme="dark"] {
-  --fl-background-color: #1a1a1a;
-  --fl-card-background: #2d2d2d;
-  --fl-text-color-primary: #e0e0e0;
-  --fl-text-color-secondary: #a0a0a0;
-  --fl-border-color: #444444;
+  --fl-background-color: #0b0b10;
+  --fl-card-background: #12131a;
+  --fl-text-color-primary: #e5e7eb;
+  --fl-text-color-secondary: #9aa0aa;
+  --fl-border-color: #1f2430;
   
-  /* Chart specific colors */
-  --fl-chart-background: #2d2d2d;
-  --fl-chart-text-color: #e0e0e0;
-  --fl-chart-axis-color: #777777;
-  --fl-chart-grid-color: #444444;
-  --fl-chart-stroke-color: #2d2d2d;
+  /* Chart specific colors - PowerBI grade dark mode */
+  --fl-chart-background: #0b0b10;
+  --fl-chart-panel: #12131a;
+  --fl-chart-text-color: #e5e7eb;
+  --fl-chart-text-secondary: #9aa0aa;
+  --fl-chart-axis-color: #9aa0aa;
+  --fl-chart-grid-color: #252a36;
+  --fl-chart-border: #1f2430;
+  --fl-chart-stroke-color: #12131a;
   --fl-chart-alternate-row: rgba(60, 60, 60, 0.5);
-  --fl-hover-color: #3e3e3e;
+  --fl-hover-color: #1f2430;
+  
+  /* Chart brand colors - dark mode */
+  --fl-chart-primary: #c035db;
+  --fl-chart-series-1: #c035db;
+  --fl-chart-series-2: #22c55e;
+  --fl-chart-series-3: #fbbf24;
+  --fl-chart-series-4: #f43f5e;
+  --fl-chart-series-5: #60a5fa;
+  --fl-chart-series-6: #a78bfa;
+  --fl-chart-series-7: #22d3ee;
+  --fl-chart-series-8: #a3e635;
+  
+  /* Chart effects - dark mode */
+  --fl-chart-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
+  --fl-chart-shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.3);
+  
+  /* Chart interactions - dark mode */
+  --fl-chart-dim-opacity: 0.4;
+  --fl-chart-focus-stroke: 0.1;
   
   /* Correlation chart colors - adjusted for dark mode */
   --fl-correlation-negative-strong: #5500ff;

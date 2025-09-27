@@ -117,6 +117,7 @@ export interface DonutChartConfig extends BaseDataWidgetConfig {
   labelField?: string;
   aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
   fields?: string[];
+  showTotal?: boolean;
 }
 
 // Horizontal bar chart specific configuration
