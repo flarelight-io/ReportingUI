@@ -1,7 +1,7 @@
 import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
-import { ChartThemeUtils, ChartAnimations } from '../../../utils/chart-theme';
+import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 
 interface BoxWhiskerDataItem {
   SampleSize: number;
@@ -32,6 +32,7 @@ interface BoxWhiskerDataItem {
 export class BoxWhiskerChartVisualization {
   @Prop() config: DataWidgetConfig;
   @Prop() data: VisualizationData;
+  @Prop() colorTheme: ColorTheme = "brand";
   
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
   
@@ -94,7 +95,7 @@ export class BoxWhiskerChartVisualization {
   }
   
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     return theme.series;
   }
   
@@ -170,7 +171,7 @@ export class BoxWhiskerChartVisualization {
     }
     
     const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
     // Find the min and max values for scaling
     // First, get the main data range (whiskers, not outliers)

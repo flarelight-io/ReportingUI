@@ -1,7 +1,7 @@
 import { Component, Prop, h, State, Event, EventEmitter } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
-import { ChartThemeUtils, ChartAnimations } from '../../../utils/chart-theme';
+import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 
 interface HeatmapMatrix {
   rowLabels: string[];
@@ -26,6 +26,7 @@ interface TooltipState {
 export class HeatmapVisualization {
   @Prop() config: DataWidgetConfig;
   @Prop() data: VisualizationData;
+  @Prop() colorTheme: ColorTheme = "brand";
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0; // Force re-render when theme changes
@@ -164,7 +165,7 @@ export class HeatmapVisualization {
   }
 
   private getColorForValue(value: number, min: number, max: number): string {
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
     // Create a professional heatmap color scale using theme colors
     // Use the theme's series colors as base and create a gradient
@@ -194,7 +195,7 @@ export class HeatmapVisualization {
   
   // Helper to determine text color based on background color
   private getTextColor(value: number, min: number, max: number): string {
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     // If value is in the upper half of the range, use light text
     // Otherwise use dark text for better contrast
     const midPoint = (min + max) / 2;
@@ -241,7 +242,7 @@ export class HeatmapVisualization {
     const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
     
     const heatmapData = this.processData();
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
     if (heatmapData.rowLabels.length === 0 || heatmapData.colLabels.length === 0) {
       return <div class="empty-data">No data available for heatmap</div>;

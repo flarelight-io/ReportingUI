@@ -1,6 +1,7 @@
 import { Component, Prop, h, Event, EventEmitter } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
+import { ColorTheme } from '../../../utils/chart-theme';
 
 @Component({
   tag: 'table-visualization',
@@ -10,6 +11,7 @@ import { DataWidgetConfig } from '../data-widget';
 export class TableVisualization {
   @Prop() config: DataWidgetConfig;
   @Prop() data: VisualizationData;
+  @Prop() colorTheme: ColorTheme = "brand";
   
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 

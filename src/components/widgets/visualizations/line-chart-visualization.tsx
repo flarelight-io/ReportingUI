@@ -1,7 +1,7 @@
 import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
-import { ChartThemeUtils, ChartAnimations } from '../../../utils/chart-theme';
+import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 
 interface LineDataPoint {
   x: string | number;
@@ -23,6 +23,7 @@ interface TooltipState {
 export class LineChartVisualization {
   @Prop() config: DataWidgetConfig;
   @Prop() data: VisualizationData;
+  @Prop() colorTheme: ColorTheme = "brand";
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0;
@@ -184,7 +185,7 @@ export class LineChartVisualization {
     
     // Define colors and theme
     const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
     return (
       <div class="line-chart-container">
@@ -422,7 +423,7 @@ export class LineChartVisualization {
   }
   
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     return theme.series;
   }
 } 

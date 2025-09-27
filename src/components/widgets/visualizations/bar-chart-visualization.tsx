@@ -1,7 +1,7 @@
 import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
-import { ChartThemeUtils, ChartAnimations } from '../../../utils/chart-theme';
+import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 
 interface ChartDataItem {
   category: string;
@@ -23,6 +23,7 @@ interface TooltipState {
 export class BarChartVisualization {
   @Prop() config: DataWidgetConfig;
   @Prop() data: VisualizationData;
+  @Prop() colorTheme: ColorTheme = "brand";
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0; // Force re-render when theme changes
@@ -41,7 +42,7 @@ export class BarChartVisualization {
   }
 
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     return theme.series;
   }
 
@@ -136,7 +137,7 @@ export class BarChartVisualization {
     // Determine if this is a horizontal bar chart
     const isHorizontal = this.config.visualizationType === 'hbar';
     const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
     // Find the maximum value for scaling
     const maxValue = Math.max(...chartData.map(item => item.value)) * 1.1; // Add 10% padding

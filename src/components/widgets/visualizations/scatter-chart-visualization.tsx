@@ -1,7 +1,7 @@
 import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
-import { ChartThemeUtils, ChartAnimations } from '../../../utils/chart-theme';
+import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 
 interface ScatterDataPoint {
   x: string | number;
@@ -29,6 +29,7 @@ interface TooltipState {
 export class ScatterChartVisualization {
   @Prop() config: DataWidgetConfig;
   @Prop() data: VisualizationData;
+  @Prop() colorTheme: ColorTheme = "brand";
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0;
@@ -289,7 +290,7 @@ export class ScatterChartVisualization {
     
     // Define colors and theme
     const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
     return (
       <div class="scatter-chart-container">
@@ -565,7 +566,7 @@ export class ScatterChartVisualization {
   }
   
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     return theme.series;
   }
 } 

@@ -1,4 +1,5 @@
-import { Component, h, State, Element } from '@stencil/core';
+import { Component, h, State, Element, Watch } from '@stencil/core';
+import { ColorTheme, ChartThemeUtils } from '../../utils/chart-theme';
 
 const DEBUG_MODE = false; // Set to true to enable verbose logging
 
@@ -947,11 +948,29 @@ export class ReportDemo {
   };
 
   @State() darkMode = false;
+  @State() colorTheme: ColorTheme = "brand";
   @State() activeFilter: { sourceId: string; field: string; value: any } | null = null;
+
+  @Watch('colorTheme')
+  onColorThemeChange() {
+    if (this.colorThemeSelectRef) {
+      this.colorThemeSelectRef.value = this.colorTheme;
+    }
+    
+    // Ensure the theme is applied globally
+    ChartThemeUtils.setColorTheme(this.colorTheme);
+    document.documentElement.setAttribute('data-color-theme', this.colorTheme);
+    
+    // Force re-render of all widgets
+    setTimeout(() => {
+      this.forceChartRefresh();
+    }, 50);
+  }
   
   // Cache data for each source when filtered
   private filteredDataCache: { [sourceId: string]: any[] } = {};
   private reportViewerRef: HTMLElement = null;
+  private colorThemeSelectRef: HTMLSelectElement = null;
   // Queue of filters to apply once the report viewer is available
   private pendingFilters: Array<{ sourceId: string; field: string; value: any } | null> = [];
   private reportViewerReady = false;
@@ -976,6 +995,11 @@ export class ReportDemo {
 
   componentDidLoad() {
     console.log('Component did load');
+    
+    // Set initial color theme
+    ChartThemeUtils.setColorTheme(this.colorTheme);
+    document.documentElement.setAttribute('data-color-theme', this.colorTheme);
+    
     // Try multiple ways to find the report viewer component
     this.findReportViewer();
     
@@ -1052,6 +1076,43 @@ export class ReportDemo {
   private toggleTheme = () => {
     this.darkMode = !this.darkMode;
     document.documentElement.setAttribute('data-theme', this.darkMode ? 'dark' : 'light');
+  };
+
+  private setColorThemeSelectRef = (el: HTMLSelectElement) => {
+    this.colorThemeSelectRef = el;
+    if (el) {
+      el.value = this.colorTheme;
+    }
+  };
+
+  private changeColorTheme = (event: Event) => {
+    const target = event.target as HTMLSelectElement;
+    const theme = target.value as ColorTheme;
+    this.colorTheme = theme;
+    
+    // Set the theme using ChartThemeUtils
+    ChartThemeUtils.setColorTheme(theme);
+    
+    // Also set the CSS custom property
+    document.documentElement.setAttribute('data-color-theme', theme);
+    
+    // Force re-render of the report viewer
+    if (this.reportViewerRef) {
+      // Update the colorTheme prop directly
+      (this.reportViewerRef as any).colorTheme = theme;
+      
+      // Dispatch a custom event to trigger re-render
+      const themeChangeEvent = new CustomEvent('colorThemeChange', {
+        detail: { colorTheme: theme },
+        bubbles: true
+      });
+      this.reportViewerRef.dispatchEvent(themeChangeEvent);
+      
+      // Also try to force a re-render by triggering a data update
+      setTimeout(() => {
+        this.forceChartRefresh();
+      }, 100);
+    }
   };
 
   private clearFilter = (e: Event) => {
@@ -1211,6 +1272,7 @@ export class ReportDemo {
       (newViewer as any).configuration = currentConfig;
       (newViewer as any).showPlaceholder = true;
       (newViewer as any).fetchChartData = this.fetchChartData;
+      (newViewer as any).colorTheme = this.colorTheme;
       
       // Add to DOM
       reportContainer.appendChild(newViewer);
@@ -2205,6 +2267,15 @@ export class ReportDemo {
         // Trigger data update events on each widget
         dataWidgets.forEach(widget => {
           try {
+            // Update the colorTheme prop on each widget
+            (widget as any).colorTheme = this.colorTheme;
+            
+            // Dispatch a theme change event
+            widget.dispatchEvent(new CustomEvent('colorThemeChange', {
+              detail: { colorTheme: this.colorTheme },
+              bubbles: false
+            }));
+            
             // Dispatch a dataUpdate event to trigger a refresh
             widget.dispatchEvent(new CustomEvent('dataUpdate', {
               detail: null, // null will trigger a re-fetch
@@ -2222,6 +2293,15 @@ export class ReportDemo {
               if (vizElements.length > 0) {
                 console.log(`Found ${vizElements.length} visualization elements to refresh in widget`);
                 vizElements.forEach(viz => {
+                  // Update colorTheme on visualization components
+                  (viz as any).colorTheme = this.colorTheme;
+                  
+                  // Dispatch theme change event
+                  viz.dispatchEvent(new CustomEvent('colorThemeChange', {
+                    detail: { colorTheme: this.colorTheme },
+                    bubbles: false
+                  }));
+                  
                   if (typeof (viz as any).refreshData === 'function') {
                     (viz as any).refreshData();
                   }
@@ -2267,10 +2347,27 @@ export class ReportDemo {
         <header class="demo-header">
           <h1>Flarelight Reporting Visualization Demo</h1>
           <p>A comprehensive showcase of all available chart types and visualizations</p>
-          <div class="theme-toggle">
-            <button onClick={this.toggleTheme} class="toggle-button">
-              {this.darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            </button>
+          <div class="theme-controls">
+            <div class="theme-toggle">
+              <button onClick={this.toggleTheme} class="toggle-button">
+                {this.darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              </button>
+            </div>
+            <div class="color-theme-selector">
+              <label htmlFor="colorThemeSelect">Color Theme:</label>
+              <select 
+                ref={this.setColorThemeSelectRef}
+                id="colorThemeSelect" 
+                onChange={this.changeColorTheme}
+                class="theme-select"
+              >
+                <option value="brand">Brand Monochromatic</option>
+                <option value="rainbow">Rainbow</option>
+                <option value="blue">Blue Monochromatic</option>
+                <option value="grayscale">Grayscale</option>
+                <option value="rainbow-alt">Alternative Rainbow</option>
+              </select>
+            </div>
           </div>
           <div class="filter-info">
             {this.activeFilter ? (
@@ -2291,6 +2388,7 @@ export class ReportDemo {
             configuration={this.demoConfiguration}
             showPlaceholder={true}
             fetchChartData={this.fetchChartData}
+            colorTheme={this.colorTheme}
           ></flare-report-viewer>
         </div>
       </div>

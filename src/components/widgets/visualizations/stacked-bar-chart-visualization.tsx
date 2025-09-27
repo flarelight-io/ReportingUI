@@ -1,7 +1,7 @@
 import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
-import { ChartThemeUtils, ChartAnimations } from '../../../utils/chart-theme';
+import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 
 interface StackedChartItem {
   category: string;
@@ -27,6 +27,7 @@ interface TooltipState {
 export class StackedBarChartVisualization {
   @Prop() config: DataWidgetConfig;
   @Prop() data: VisualizationData;
+  @Prop() colorTheme: ColorTheme = "brand";
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0; // Force re-render when theme changes
@@ -45,7 +46,7 @@ export class StackedBarChartVisualization {
   }
 
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     return theme.series;
   }
 
@@ -140,7 +141,7 @@ export class StackedBarChartVisualization {
     const visualizationType = this.config.visualizationType || '';
     const isHorizontal = visualizationType === 'stacked-hbar';
     const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
     // Find the maximum total value for scaling
     const maxValue = Math.max(...chartData.map(item => item.total)) * 1.1; // Add 10% padding

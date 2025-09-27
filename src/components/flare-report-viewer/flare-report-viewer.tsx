@@ -1,6 +1,7 @@
 import { Component, Prop, h, State, Watch, Element, Listen } from '@stencil/core';
 import { DataSource, Filter, ChartDataRequest } from '../../api/types/common';
 import { WidgetData } from '../widgets/base-widget';
+import { ColorTheme } from '../../utils/chart-theme';
 
 interface WidgetDataCache {
   [widgetId: string]: any;
@@ -20,6 +21,7 @@ export class FlareReportViewer {
   @Prop() isViewer: boolean = false;
   @Prop() isFullscreen: boolean = false;
   @Prop() fetchChartData: Function;
+  @Prop() colorTheme: ColorTheme = "brand";
   
   @State() widgets: WidgetData[] = [];
   @State() dataSources: DataSource[] = [];
@@ -101,6 +103,15 @@ export class FlareReportViewer {
     
     // Get the grid container element
     this.gridContainer = this.el.querySelector('.widget-grid');
+    
+    // Listen for color theme changes
+    this.el.addEventListener('colorThemeChange', (event: CustomEvent) => {
+      if (event.detail && event.detail.colorTheme) {
+        this.colorTheme = event.detail.colorTheme;
+        // Force re-render of all widgets
+        this.renderWidgets();
+      }
+    });
     
     // Check for configuration again in case it was set after connected but before didLoad
     if (this.configuration && this.widgets.length === 0) {
@@ -1307,6 +1318,7 @@ export class FlareReportViewer {
         (element as any).readOnly = true;
         (element as any).isInEditor = false;
         (element as any).isViewer = this.isViewer;
+        (element as any).colorTheme = this.colorTheme;
         
         // Use the widget type as visualization type if it's not a generic data widget
         const visualizationType = widget.type === 'data'

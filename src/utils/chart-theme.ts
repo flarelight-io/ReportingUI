@@ -1,15 +1,131 @@
 export type ChartMode = "light" | "dark";
-
-const baseLight = "#4d19a2"; // brand (light mode)
-const baseDark = "#c035db"; // brand (dark mode)
+export type ColorTheme = "brand" | "rainbow" | "blue" | "grayscale" | "rainbow-alt";
 
 function alpha(hex: string, a: number) {
   return `${hex}${Math.round(a * 255).toString(16).padStart(2, "0")}`;
 }
 
-export const chartTheme: Record<ChartMode, any> = {
-  light: {
-    mode: "light",
+// Color theme definitions
+const colorThemes: Record<ColorTheme, { light: string[], dark: string[] }> = {
+  brand: {
+    light: [
+      "#4d19a2", // primary brand color
+      "#5c1fb8", // 95% intensity
+      "#6b2bc4", // 90% intensity
+      "#7a37d0", // 85% intensity
+      "#8943dc", // 80% intensity
+      "#984fe8", // 75% intensity
+      "#a75bf4", // 70% intensity
+      "#b667ff", // 65% intensity
+    ],
+    dark: [
+      "#c035db", // primary brand color (dark mode)
+      "#d84ae0", // 95% intensity
+      "#e05fe6", // 90% intensity
+      "#e874ec", // 85% intensity
+      "#f089f2", // 80% intensity
+      "#f89ef8", // 75% intensity
+      "#ffb3fe", // 70% intensity
+      "#ffc8ff", // 65% intensity
+    ]
+  },
+  rainbow: {
+    light: [
+      "#ef4444", // red
+      "#f97316", // orange
+      "#eab308", // yellow
+      "#22c55e", // green
+      "#06b6d4", // cyan
+      "#3b82f6", // blue
+      "#8b5cf6", // purple
+      "#ec4899", // pink
+    ],
+    dark: [
+      "#f87171", // red (lighter for dark mode)
+      "#fb923c", // orange
+      "#facc15", // yellow
+      "#4ade80", // green
+      "#22d3ee", // cyan
+      "#60a5fa", // blue
+      "#a78bfa", // purple
+      "#f472b6", // pink
+    ]
+  },
+  blue: {
+    light: [
+      "#1e40af", // blue-800
+      "#2563eb", // blue-600
+      "#3b82f6", // blue-500
+      "#60a5fa", // blue-400
+      "#93c5fd", // blue-300
+      "#bfdbfe", // blue-200
+      "#dbeafe", // blue-100
+      "#eff6ff", // blue-50
+    ],
+    dark: [
+      "#1d4ed8", // blue-700
+      "#2563eb", // blue-600
+      "#3b82f6", // blue-500
+      "#60a5fa", // blue-400
+      "#93c5fd", // blue-300
+      "#bfdbfe", // blue-200
+      "#dbeafe", // blue-100
+      "#f0f9ff", // blue-50
+    ]
+  },
+  grayscale: {
+    light: [
+      "#111827", // gray-900
+      "#374151", // gray-700
+      "#4b5563", // gray-600
+      "#6b7280", // gray-500
+      "#9ca3af", // gray-400
+      "#d1d5db", // gray-300
+      "#e5e7eb", // gray-200
+      "#f3f4f6", // gray-100
+    ],
+    dark: [
+      "#f9fafb", // gray-50
+      "#f3f4f6", // gray-100
+      "#e5e7eb", // gray-200
+      "#d1d5db", // gray-300
+      "#9ca3af", // gray-400
+      "#6b7280", // gray-500
+      "#4b5563", // gray-600
+      "#374151", // gray-700
+    ]
+  },
+  "rainbow-alt": {
+    light: [
+      "#8b5cf6", // purple
+      "#3b82f6", // blue
+      "#06b6d4", // cyan
+      "#22c55e", // green
+      "#eab308", // yellow
+      "#f97316", // orange
+      "#ef4444", // red
+      "#ec4899", // pink
+    ],
+    dark: [
+      "#a78bfa", // purple
+      "#60a5fa", // blue
+      "#22d3ee", // cyan
+      "#4ade80", // green
+      "#facc15", // yellow
+      "#fb923c", // orange
+      "#f87171", // red
+      "#f472b6", // pink
+    ]
+  }
+};
+
+// Helper function to create theme with color palette
+function createTheme(mode: ChartMode, colorTheme: ColorTheme = "brand") {
+  const colors = colorThemes[colorTheme][mode];
+  const isLight = mode === "light";
+  
+  return {
+    mode,
     // layout
     grid: 8,
     radius: 6,
@@ -19,77 +135,40 @@ export const chartTheme: Record<ChartMode, any> = {
     fontSize: 12,
     titleSize: 16,
     // surfaces & strokes
-    bg: "#ffffff",
-    panel: "#ffffff",
-    border: "#e5e7eb",       // neutral-200
-    labelColor: "#374151",   // neutral-700
-    axisColor: "#9ca3af",    // neutral-400
-    gridColor: "#e5e7eb",    // neutral-200
-    // brand-first monochromatic series palette (accessible on white)
-    series: [
-      baseLight,            // primary - full brand color #4d19a2
-      "#5c1fb8",            // 95% intensity - very subtle variation
-      "#6b2bc4",            // 90% intensity
-      "#7a37d0",            // 85% intensity
-      "#8943dc",            // 80% intensity
-      "#984fe8",            // 75% intensity
-      "#a75bf4",            // 70% intensity
-      "#b667ff",            // 65% intensity
-    ],
+    bg: isLight ? "#ffffff" : "#0b0b10",
+    panel: isLight ? "#ffffff" : "#12131a",
+    border: isLight ? "#e5e7eb" : "#1f2430",
+    labelColor: isLight ? "#374151" : "#e5e7eb",
+    axisColor: isLight ? "#9ca3af" : "#9aa0aa",
+    gridColor: isLight ? "#e5e7eb" : "#252a36",
+    // dynamic series palette based on color theme
+    series: colors,
     // analytical elements (regression lines, trend indicators, etc.)
-    regressionColor: "#0D9488",  // teal-600 - deep teal for analytical elements
+    regressionColor: isLight ? "#0D9488" : "#22d3ee",
     // effects
-    shadow: { dx: 0, dy: 1, blur: 1.6, opacity: 0.18 },
+    shadow: { dx: 0, dy: 1, blur: isLight ? 1.6 : 2.0, opacity: isLight ? 0.18 : 0.22 },
     // gridline policy
-    gridlines: { x: false, y: true, opacity: 0.8 },
+    gridlines: { x: false, y: true, opacity: isLight ? 0.8 : 0.55 },
     // brand gradients (optional)
-    barGradient: [alpha(baseLight, 1), alpha("#000000", 0.04)],
+    barGradient: [alpha(colors[0], 1), alpha("#000000", isLight ? 0.04 : 0.10)],
     lineStrokeWidth: 2,
     pointRadius: 3,
     // states
-    dimOpacity: 0.35,
-    focusStrokeDarken: 0.12,
-  },
-  dark: {
-    mode: "dark",
-    grid: 8,
-    radius: 6,
-    gap: 12,
-    fontFamily: `Inter, "Segoe UI", system-ui, sans-serif`,
-    fontSize: 12,
-    titleSize: 16,
-    bg: "#0b0b10",
-    panel: "#12131a",
-    border: "#1f2430",
-    labelColor: "#e5e7eb",
-    axisColor: "#9aa0aa",
-    gridColor: "#252a36",
-    // brand-first monochromatic palette tuned for dark backgrounds
-    series: [
-      baseDark,            // primary (dark mode) - full brand color
-      "#d84ae0",           // 95% intensity - very subtle variation
-      "#e05fe6",           // 90% intensity
-      "#e874ec",           // 85% intensity
-      "#f089f2",           // 80% intensity
-      "#f89ef8",           // 75% intensity
-      "#ffb3fe",           // 70% intensity
-      "#ffc8ff",           // 65% intensity
-    ],
-    // analytical elements (regression lines, trend indicators, etc.)
-    regressionColor: "#22d3ee",  // cyan-400 - vibrant cyan for analytical elements in dark mode
-    shadow: { dx: 0, dy: 1, blur: 2.0, opacity: 0.22 },
-    gridlines: { x: false, y: true, opacity: 0.55 },
-    barGradient: [alpha(baseDark, 1), alpha("#000000", 0.10)],
-    lineStrokeWidth: 2,
-    pointRadius: 3,
-    dimOpacity: 0.4,
-    focusStrokeDarken: 0.1,
-  }
+    dimOpacity: isLight ? 0.35 : 0.4,
+    focusStrokeDarken: isLight ? 0.12 : 0.1,
+  };
+}
+
+export const chartTheme: Record<ChartMode, any> = {
+  light: createTheme("light", "brand"),
+  dark: createTheme("dark", "brand")
 };
 
 // Utility functions for chart styling
 export class ChartThemeUtils {
   private static _currentMode: ChartMode | null = null;
+  private static _currentColorTheme: ColorTheme = "brand";
+  private static _themeChangeCallbacks: (() => void)[] = [];
 
   static getCurrentMode(): ChartMode {
     // Check if dark mode is enabled via data attribute or CSS class
@@ -131,20 +210,39 @@ export class ChartThemeUtils {
 
   static setTheme(mode: ChartMode): void {
     this._currentMode = mode;
+    this.notifyThemeChange();
+  }
+
+  static setColorTheme(colorTheme: ColorTheme): void {
+    this._currentColorTheme = colorTheme;
+    this.updateCSSColorTheme(colorTheme);
+    this.notifyThemeChange();
+  }
+
+  private static updateCSSColorTheme(colorTheme: ColorTheme): void {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-color-theme', colorTheme);
+    }
+  }
+
+  static getCurrentColorTheme(): ColorTheme {
+    return this._currentColorTheme;
   }
 
   static refreshTheme(): void {
     this._currentMode = null;
+    this.notifyThemeChange();
   }
 
   static onThemeChange(callback: () => void): void {
+    this._themeChangeCallbacks.push(callback);
+    
     if (typeof document !== 'undefined') {
       // Listen for changes to the data-theme attribute
       const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
           if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
             this.refreshTheme();
-            callback();
           }
         });
       });
@@ -154,6 +252,10 @@ export class ChartThemeUtils {
         attributeFilter: ['data-theme', 'class']
       });
     }
+  }
+
+  private static notifyThemeChange(): void {
+    this._themeChangeCallbacks.forEach(callback => callback());
   }
 
   // Helper method to manually toggle theme for testing
@@ -166,13 +268,14 @@ export class ChartThemeUtils {
     }
   }
 
-  static getTheme(): any {
+  static getTheme(colorTheme?: ColorTheme): any {
     const mode = this._currentMode || this.getCurrentMode();
-    return chartTheme[mode];
+    const theme = colorTheme || this._currentColorTheme;
+    return createTheme(mode, theme);
   }
 
-  static getSeriesColor(index: number): string {
-    const theme = this.getTheme();
+  static getSeriesColor(index: number, colorTheme?: ColorTheme): string {
+    const theme = this.getTheme(colorTheme);
     return theme.series[index % theme.series.length];
   }
 

@@ -18,16 +18,16 @@
   --fl-chart-alternate-row: rgba(243, 244, 246, 0.2);
   --fl-hover-color: #f3f4f6;
   
-  /* Chart brand colors */
+  /* Chart brand colors - Default brand theme */
   --fl-chart-primary: #4d19a2;
   --fl-chart-series-1: #4d19a2;
-  --fl-chart-series-2: #10b981;
-  --fl-chart-series-3: #f59e0b;
-  --fl-chart-series-4: #ef4444;
-  --fl-chart-series-5: #3b82f6;
-  --fl-chart-series-6: #8b5cf6;
-  --fl-chart-series-7: #06b6d4;
-  --fl-chart-series-8: #84cc16;
+  --fl-chart-series-2: #5c1fb8;
+  --fl-chart-series-3: #6b2bc4;
+  --fl-chart-series-4: #7a37d0;
+  --fl-chart-series-5: #8943dc;
+  --fl-chart-series-6: #984fe8;
+  --fl-chart-series-7: #a75bf4;
+  --fl-chart-series-8: #b667ff;
   
   /* Chart effects */
   --fl-chart-shadow: 0 1px 1.6px rgba(0, 0, 0, 0.18);
@@ -132,4 +132,123 @@
   --fl-heatmap-color-9: #ffab91; /* Light orange */
   --fl-heatmap-color-10: #ff5722; /* Orange */
   --fl-heatmap-color-11: #bf360c; /* Dark orange */
+}
+
+/* Color Theme CSS Custom Properties */
+/* These can be dynamically updated via JavaScript to change color themes */
+
+/* Brand Theme (Default) - Light Mode */
+[data-color-theme="brand"] {
+  --fl-chart-series-1: #4d19a2;
+  --fl-chart-series-2: #5c1fb8;
+  --fl-chart-series-3: #6b2bc4;
+  --fl-chart-series-4: #7a37d0;
+  --fl-chart-series-5: #8943dc;
+  --fl-chart-series-6: #984fe8;
+  --fl-chart-series-7: #a75bf4;
+  --fl-chart-series-8: #b667ff;
+}
+
+/* Rainbow Theme - Light Mode */
+[data-color-theme="rainbow"] {
+  --fl-chart-series-1: #ef4444;
+  --fl-chart-series-2: #f97316;
+  --fl-chart-series-3: #eab308;
+  --fl-chart-series-4: #22c55e;
+  --fl-chart-series-5: #06b6d4;
+  --fl-chart-series-6: #3b82f6;
+  --fl-chart-series-7: #8b5cf6;
+  --fl-chart-series-8: #ec4899;
+}
+
+/* Blue Theme - Light Mode */
+[data-color-theme="blue"] {
+  --fl-chart-series-1: #1e40af;
+  --fl-chart-series-2: #2563eb;
+  --fl-chart-series-3: #3b82f6;
+  --fl-chart-series-4: #60a5fa;
+  --fl-chart-series-5: #93c5fd;
+  --fl-chart-series-6: #bfdbfe;
+  --fl-chart-series-7: #dbeafe;
+  --fl-chart-series-8: #eff6ff;
+}
+
+/* Grayscale Theme - Light Mode */
+[data-color-theme="grayscale"] {
+  --fl-chart-series-1: #111827;
+  --fl-chart-series-2: #374151;
+  --fl-chart-series-3: #4b5563;
+  --fl-chart-series-4: #6b7280;
+  --fl-chart-series-5: #9ca3af;
+  --fl-chart-series-6: #d1d5db;
+  --fl-chart-series-7: #e5e7eb;
+  --fl-chart-series-8: #f3f4f6;
+}
+
+/* Alternative Rainbow Theme - Light Mode */
+[data-color-theme="rainbow-alt"] {
+  --fl-chart-series-1: #8b5cf6;
+  --fl-chart-series-2: #3b82f6;
+  --fl-chart-series-3: #06b6d4;
+  --fl-chart-series-4: #22c55e;
+  --fl-chart-series-5: #eab308;
+  --fl-chart-series-6: #f97316;
+  --fl-chart-series-7: #ef4444;
+  --fl-chart-series-8: #ec4899;
+}
+
+/* Dark Mode Color Themes */
+[data-theme="dark"][data-color-theme="brand"] {
+  --fl-chart-series-1: #c035db;
+  --fl-chart-series-2: #d84ae0;
+  --fl-chart-series-3: #e05fe6;
+  --fl-chart-series-4: #e874ec;
+  --fl-chart-series-5: #f089f2;
+  --fl-chart-series-6: #f89ef8;
+  --fl-chart-series-7: #ffb3fe;
+  --fl-chart-series-8: #ffc8ff;
+}
+
+[data-theme="dark"][data-color-theme="rainbow"] {
+  --fl-chart-series-1: #f87171;
+  --fl-chart-series-2: #fb923c;
+  --fl-chart-series-3: #facc15;
+  --fl-chart-series-4: #4ade80;
+  --fl-chart-series-5: #22d3ee;
+  --fl-chart-series-6: #60a5fa;
+  --fl-chart-series-7: #a78bfa;
+  --fl-chart-series-8: #f472b6;
+}
+
+[data-theme="dark"][data-color-theme="blue"] {
+  --fl-chart-series-1: #1d4ed8;
+  --fl-chart-series-2: #2563eb;
+  --fl-chart-series-3: #3b82f6;
+  --fl-chart-series-4: #60a5fa;
+  --fl-chart-series-5: #93c5fd;
+  --fl-chart-series-6: #bfdbfe;
+  --fl-chart-series-7: #dbeafe;
+  --fl-chart-series-8: #f0f9ff;
+}
+
+[data-theme="dark"][data-color-theme="grayscale"] {
+  --fl-chart-series-1: #f9fafb;
+  --fl-chart-series-2: #f3f4f6;
+  --fl-chart-series-3: #e5e7eb;
+  --fl-chart-series-4: #d1d5db;
+  --fl-chart-series-5: #9ca3af;
+  --fl-chart-series-6: #6b7280;
+  --fl-chart-series-7: #4b5563;
+  --fl-chart-series-8: #374151;
+}
+
+[data-theme="dark"][data-color-theme="rainbow-alt"] {
+  --fl-chart-series-1: #a78bfa;
+  --fl-chart-series-2: #60a5fa;
+  --fl-chart-series-3: #22d3ee;
+  --fl-chart-series-4: #4ade80;
+  --fl-chart-series-5: #facc15;
+  --fl-chart-series-6: #fb923c;
+  --fl-chart-series-7: #f87171;
+  --fl-chart-series-8: #f472b6;
 } 

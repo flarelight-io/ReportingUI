@@ -1,6 +1,7 @@
 import { Component, Prop, h, Host, State, Watch, Element, Listen } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './visualizations/base-visualization';
 import { Filter } from '../../api/types/common';
+import { ColorTheme } from '../../utils/chart-theme';
 
 // Add debug flag at the top
 const DEBUG_MODE = false; // Set to true to enable verbose logging
@@ -14,6 +15,7 @@ interface BaseDataWidgetConfig {
   showLabels?: boolean;
   showGrid?: boolean;
   showLegend?: boolean;
+  colorTheme?: ColorTheme; // Widget-level color theme override
 }
 
 // Box-whisker chart specific configuration
@@ -254,6 +256,7 @@ export class DataWidget {
   @Prop() activeFilters: Filter[] = [];
   @Prop() fetchChartData: Function;
   @Prop() data: any[] = [];
+  @Prop() colorTheme: ColorTheme = "brand";
   
   @State() loading: boolean = false;
   @State() internalData: any[] = [];
@@ -296,6 +299,13 @@ export class DataWidget {
         // If detail is null, it means we should refetch the data
         if (DEBUG_MODE) console.log('Null data update event - refetching data');
         this.fetchDataFromSource(true); // Force refresh
+      }
+    });
+    
+    // Setup listener for color theme changes
+    this.el.addEventListener('colorThemeChange', (event: CustomEvent) => {
+      if (event.detail && event.detail.colorTheme) {
+        this.colorTheme = event.detail.colorTheme;
       }
     });
     
@@ -513,12 +523,16 @@ export class DataWidget {
     
     const visualizationType = this.config.visualizationType || 'table';
     
+    // Determine effective color theme: widget-level override takes precedence over report-level default
+    const effectiveColorTheme = this.config.colorTheme || this.colorTheme;
+    
     switch (visualizationType) {
       case 'table':
         return (
           <table-visualization 
             config={this.config} 
             data={visualizationData}
+            colorTheme={effectiveColorTheme}
           />
         );
         
@@ -528,6 +542,7 @@ export class DataWidget {
           <bar-chart-visualization 
             config={this.config} 
             data={visualizationData}
+            colorTheme={effectiveColorTheme}
           />
         );
       
@@ -537,6 +552,7 @@ export class DataWidget {
           <stacked-bar-chart-visualization 
             config={this.config} 
             data={visualizationData}
+            colorTheme={effectiveColorTheme}
           />
         );
       
@@ -546,6 +562,7 @@ export class DataWidget {
           <clustered-bar-chart-visualization 
             config={this.config} 
             data={visualizationData}
+            colorTheme={effectiveColorTheme}
           />
         );
       
@@ -555,6 +572,7 @@ export class DataWidget {
           <lollipop-chart-visualization 
             config={this.config} 
             data={visualizationData}
+            colorTheme={effectiveColorTheme}
           />
         );
         
@@ -563,6 +581,7 @@ export class DataWidget {
           <line-chart-visualization 
             config={this.config} 
             data={visualizationData}
+            colorTheme={effectiveColorTheme}
           />
         );
       
@@ -572,6 +591,7 @@ export class DataWidget {
           <pie-chart-visualization 
             config={this.config} 
             data={visualizationData}
+            colorTheme={effectiveColorTheme}
           />
         );
       
@@ -580,6 +600,7 @@ export class DataWidget {
           <kpi-visualization 
             config={this.config} 
             data={visualizationData}
+            colorTheme={effectiveColorTheme}
           />
         );
       
@@ -588,6 +609,7 @@ export class DataWidget {
           <scatter-chart-visualization 
             config={this.config} 
             data={visualizationData}
+            colorTheme={effectiveColorTheme}
           />
         );
         
@@ -596,6 +618,7 @@ export class DataWidget {
           <histogram-chart-visualization 
             config={this.config} 
             data={visualizationData}
+            colorTheme={effectiveColorTheme}
           />
         );
         
@@ -604,6 +627,7 @@ export class DataWidget {
           <heatmap-visualization 
             config={this.config} 
             data={visualizationData}
+            colorTheme={effectiveColorTheme}
           />
         );
       
@@ -612,6 +636,7 @@ export class DataWidget {
           <sunburst-chart-visualization 
             config={this.config} 
             data={visualizationData}
+            colorTheme={effectiveColorTheme}
           />
         );
       
@@ -620,6 +645,7 @@ export class DataWidget {
           <bubble-chart-visualization 
             config={this.config} 
             data={visualizationData}
+            colorTheme={effectiveColorTheme}
           />
         );
       
@@ -628,6 +654,7 @@ export class DataWidget {
           <box-whisker-chart-visualization 
             config={this.config} 
             data={visualizationData}
+            colorTheme={effectiveColorTheme}
           />
         );
       

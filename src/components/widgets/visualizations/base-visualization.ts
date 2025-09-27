@@ -1,4 +1,5 @@
 import { DataWidgetConfig } from '../data-widget';
+import { ColorTheme } from '../../../utils/chart-theme';
 
 export interface VisualizationData {
   rawData: any[];
@@ -16,4 +17,5 @@ export interface FilterChangeEventDetail {
 export interface BaseVisualizationProps {
   config: DataWidgetConfig;
   data: VisualizationData;
+  colorTheme?: ColorTheme;
 } 

@@ -8,6 +8,7 @@ import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { AndersonDarlingNormalityTestWidgetConfig } from "./components/widgets/anderson-darling-normality-test-widget";
 import { DataWidgetConfig } from "./components/widgets/data-widget";
 import { FilterChangeEventDetail, VisualizationData } from "./components/widgets/visualizations/base-visualization";
+import { ColorTheme } from "./utils/chart-theme";
 import { BoxWhiskerNormalityPlotWidgetConfig } from "./components/widgets/box-whisker-normality-plot-widget";
 import { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlation-analysis-widget";
 import { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data-widget";
@@ -30,6 +31,7 @@ import { WelchTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/w
 export { AndersonDarlingNormalityTestWidgetConfig } from "./components/widgets/anderson-darling-normality-test-widget";
 export { DataWidgetConfig } from "./components/widgets/data-widget";
 export { FilterChangeEventDetail, VisualizationData } from "./components/widgets/visualizations/base-visualization";
+export { ColorTheme } from "./utils/chart-theme";
 export { BoxWhiskerNormalityPlotWidgetConfig } from "./components/widgets/box-whisker-normality-plot-widget";
 export { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlation-analysis-widget";
 export { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data-widget";
@@ -79,6 +81,10 @@ export namespace Components {
         "width"?: number;
     }
     interface BarChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
@@ -101,6 +107,10 @@ export namespace Components {
         "width"?: number;
     }
     interface BoxWhiskerChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
@@ -137,10 +147,18 @@ export namespace Components {
         "width"?: number;
     }
     interface BubbleChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
     interface ClusteredBarChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
@@ -181,6 +199,10 @@ export namespace Components {
           * @default []
          */
         "availableSources": any[];
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         /**
           * @default {     visualizationType: 'table'   }
          */
@@ -237,6 +259,10 @@ export namespace Components {
         "width"?: number;
     }
     interface FlareReportViewer {
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         "configuration": any;
         "fetchChartData": Function;
         /**
@@ -254,10 +280,18 @@ export namespace Components {
         "showPlaceholder": boolean;
     }
     interface HeatmapVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
     interface HistogramChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
@@ -318,6 +352,10 @@ export namespace Components {
         "width"?: number;
     }
     interface KpiVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
@@ -350,10 +388,18 @@ export namespace Components {
         "width"?: number;
     }
     interface LineChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
     interface LollipopChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
@@ -526,12 +572,20 @@ export namespace Components {
         "width"?: number;
     }
     interface PieChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
     interface ReportDemo {
     }
     interface ScatterChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
@@ -586,14 +640,26 @@ export namespace Components {
         "width"?: number;
     }
     interface StackedBarChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
     interface SunburstChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
     interface TableVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
@@ -1183,6 +1249,10 @@ declare namespace LocalJSX {
         "width"?: number;
     }
     interface BarChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: BarChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
@@ -1206,6 +1276,10 @@ declare namespace LocalJSX {
         "width"?: number;
     }
     interface BoxWhiskerChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: BoxWhiskerChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
@@ -1243,11 +1317,19 @@ declare namespace LocalJSX {
         "width"?: number;
     }
     interface BubbleChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: BubbleChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
     interface ClusteredBarChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: ClusteredBarChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
@@ -1290,6 +1372,10 @@ declare namespace LocalJSX {
           * @default []
          */
         "availableSources"?: any[];
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         /**
           * @default {     visualizationType: 'table'   }
          */
@@ -1346,6 +1432,10 @@ declare namespace LocalJSX {
         "width"?: number;
     }
     interface FlareReportViewer {
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         "configuration"?: any;
         "fetchChartData"?: Function;
         /**
@@ -1363,11 +1453,19 @@ declare namespace LocalJSX {
         "showPlaceholder"?: boolean;
     }
     interface HeatmapVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: HeatmapVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
     interface HistogramChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: HistogramChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
@@ -1429,6 +1527,10 @@ declare namespace LocalJSX {
         "width"?: number;
     }
     interface KpiVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: KpiVisualizationCustomEvent<FilterChangeEventDetail>) => void;
@@ -1462,11 +1564,19 @@ declare namespace LocalJSX {
         "width"?: number;
     }
     interface LineChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: LineChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
     interface LollipopChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: LollipopChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
@@ -1640,6 +1750,10 @@ declare namespace LocalJSX {
         "width"?: number;
     }
     interface PieChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: PieChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
@@ -1647,6 +1761,10 @@ declare namespace LocalJSX {
     interface ReportDemo {
     }
     interface ScatterChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: ScatterChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
@@ -1702,16 +1820,28 @@ declare namespace LocalJSX {
         "width"?: number;
     }
     interface StackedBarChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: StackedBarChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
     interface SunburstChartVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: SunburstChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
     interface TableVisualization {
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: TableVisualizationCustomEvent<FilterChangeEventDetail>) => void;
