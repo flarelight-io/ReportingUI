@@ -169,6 +169,47 @@ export class PieChartVisualization {
     if (dataWithPercentages.length === 1) {
       const singleItem = dataWithPercentages[0];
       
+      // Create a path with a small gap to ensure proper rendering
+      const gapAngle = 0.1; // Small gap in degrees to prevent same start/end point
+      const startAngle = 0;
+      const endAngle = 360 - gapAngle; // Leave small gap
+      
+      // Calculate SVG arc path
+      const startRadians = (startAngle - 90) * Math.PI / 180;
+      const endRadians = (endAngle - 90) * Math.PI / 180;
+      
+      const startX = centerX + radius * Math.cos(startRadians);
+      const startY = centerY + radius * Math.sin(startRadians);
+      const endX = centerX + radius * Math.cos(endRadians);
+      const endY = centerY + radius * Math.sin(endRadians);
+      
+      // For inner radius (donut)
+      const innerStartX = centerX + innerRadius * Math.cos(startRadians);
+      const innerStartY = centerY + innerRadius * Math.sin(startRadians);
+      const innerEndX = centerX + innerRadius * Math.cos(endRadians);
+      const innerEndY = centerY + innerRadius * Math.sin(endRadians);
+      
+      // Construct the SVG path for the segment
+      let path;
+      if (this.config.visualizationType === 'donut') {
+        // Path for donut segment - outer arc, line to inner arc, inner arc, close
+        path = `
+          M ${startX} ${startY}
+          A ${radius} ${radius} 0 1 1 ${endX} ${endY}
+          L ${innerEndX} ${innerEndY}
+          A ${innerRadius} ${innerRadius} 0 1 0 ${innerStartX} ${innerStartY}
+          Z
+        `;
+      } else {
+        // Path for pie segment - line from center, outer arc, close to center
+        path = `
+          M ${centerX} ${centerY}
+          L ${startX} ${startY}
+          A ${radius} ${radius} 0 1 1 ${endX} ${endY}
+          Z
+        `;
+      }
+      
       return (
         <div class="pie-chart-container">
           <div class="visualization-container">
@@ -181,56 +222,30 @@ export class PieChartVisualization {
             >
               {/* Define gradients and filters for modern styling */}
               <defs>
+                <radialGradient id="pieGradient-0" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color={colors[0]} stop-opacity="1"/>
+                  <stop offset="100%" stop-color={colors[0]} stop-opacity="0.8"/>
+                </radialGradient>
                 <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
                   <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
                 </filter>
               </defs>
-              {this.config.visualizationType === 'donut' ? (
-                <g>
-                  <defs>
-                    <mask id={`donutHole-${this.config.sourceId || 'pie'}`}>
-                      <rect x="0" y="0" width="100" height="100" fill="white" />
-                      <circle cx={centerX} cy={centerY} r={innerRadius} fill="black" />
-                    </mask>
-                  </defs>
-                  <circle
-                    cx={centerX}
-                    cy={centerY}
-                    r={radius}
-                    fill={`url(#pieGradient-0)`}
-                    mask={`url(#donutHole-${this.config.sourceId || 'pie'})`}
-                    class="pie-segment-animated pie-segment-hover"
-                    style={{ 
-                      cursor: 'pointer',
-                      transition: ChartAnimations.getHoverTransition(),
-                      animationDelay: '0ms',
-                      animationFillMode: 'both'
-                    }}
-                    onClick={() => this.handleFilterClick(groupByField || '', singleItem.category)}
-                    onMouseMove={(event) => this.handleMouseMove(event, singleItem.category, singleItem.value, 100)}
-                    onMouseLeave={() => this.handleMouseLeave()}
-                    filter="url(#softShadow)"
-                  />
-                </g>
-              ) : (
-                <circle
-                  cx={centerX}
-                  cy={centerY}
-                  r={radius}
-                  fill={`url(#pieGradient-0)`}
-                  class="pie-segment-animated pie-segment-hover"
-                  style={{ 
-                    cursor: 'pointer',
-                    transition: ChartAnimations.getHoverTransition(),
-                    animationDelay: '0ms',
-                    animationFillMode: 'both'
-                  }}
-                  onClick={() => this.handleFilterClick(groupByField || '', singleItem.category)}
-                  onMouseMove={(event) => this.handleMouseMove(event, singleItem.category, singleItem.value, 100)}
-                  onMouseLeave={() => this.handleMouseLeave()}
-                  filter="url(#softShadow)"
-                />
-              )}
+              
+              <path
+                d={path}
+                fill={`url(#pieGradient-0)`}
+                class="pie-segment-animated pie-segment-hover"
+                style={{ 
+                  cursor: 'pointer',
+                  transition: ChartAnimations.getHoverTransition(),
+                  animationDelay: '0ms',
+                  animationFillMode: 'both'
+                }}
+                onClick={() => this.handleFilterClick(groupByField || '', singleItem.category)}
+                onMouseMove={(event) => this.handleMouseMove(event, singleItem.category, singleItem.value, 100)}
+                onMouseLeave={() => this.handleMouseLeave()}
+                filter="url(#softShadow)"
+              />
               
               {this.config.showLabels && (
                 <text 
