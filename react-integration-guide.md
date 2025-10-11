@@ -81,7 +81,7 @@ Create a file called `custom-elements.d.ts` in your `src` directory:
 declare namespace JSX {
   interface IntrinsicElements {
     // Main container
-    'flare-report-viewer': any;
+    'report-viewer': any;
     
     // Widget components
     'base-widget': any;
@@ -228,12 +228,12 @@ function ReportPage() {
       </header>
       
       <div className="report-container">
-        <flare-report-viewer
+        <report-viewer
           reportId="performance-dashboard"
           configuration={reportConfig}
           fetchChartData={fetchChartData}
           showPlaceholder={true}
-        ></flare-report-viewer>
+        ></report-viewer>
       </div>
     </div>
   );
@@ -269,7 +269,7 @@ header {
 
 /* The Flarelight Reporting components use Shadow DOM, so you can't style them directly */
 /* You can use CSS variables to customize them if the library supports it */
-flare-report-viewer {
+report-viewer {
   width: 100%;
   height: 100%;
   display: block;
@@ -366,12 +366,12 @@ function ReportPage() {
       
       <div className="report-container">
         {reportConfig && (
-          <flare-report-viewer
+          <report-viewer
             reportId="performance-dashboard"
             configuration={reportConfig}
             fetchChartData={fetchChartData}
             showPlaceholder={true}
-          ></flare-report-viewer>
+          ></report-viewer>
         )}
       </div>
     </div>

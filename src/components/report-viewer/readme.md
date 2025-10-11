@@ -1,4 +1,4 @@
-# flare-report-viewer
+# report-viewer
 
 A component for rendering reports with configurable widgets and layouts.
 
@@ -11,6 +11,13 @@ The component accepts a `configuration` object that can include:
 - `widgets`: Array of widget definitions (legacy format)
 - `layouts`: Object containing layout definitions for different screen sizes (lg, md, sm, xs)
 - `widgets`: Array of widget definitions (new format, used with layouts)
+
+## Height Modes
+
+The component supports two height modes:
+
+- `heightMode="auto"` (default): The report grows vertically to accommodate all content. Suitable for web pages where scrolling is acceptable.
+- `heightMode="fixed"`: The report scales to fit within the available height. Suitable for presentations, embedded views, or when you need the entire report to fit in a specific container.
 
 Example configuration:
 ```json
@@ -33,6 +40,7 @@ Example configuration:
 | ----------------- | ------------------ | ----------- | ---------- | ----------- |
 | `configuration`   | `configuration`    |             | `any`      | `undefined` |
 | `fetchChartData`  | `fetch-chart-data` |             | `Function` | `undefined` |
+| `heightMode`      | `height-mode`      | Controls how the report handles height: 'auto' grows vertically, 'fixed' scales to fit available height | `'auto' \| 'fixed'` | `'auto'` |
 | `isFullscreen`    | `is-fullscreen`    |             | `boolean`  | `false`     |
 | `isViewer`        | `is-viewer`        |             | `boolean`  | `false`     |
 | `reportId`        | `report-id`        |             | `string`   | `undefined` |
@@ -70,25 +78,25 @@ Example configuration:
 ### Graph
 ```mermaid
 graph TD;
-  flare-report-viewer --> text-widget
-  flare-report-viewer --> source-info-widget
-  flare-report-viewer --> descriptive-analysis-widget
-  flare-report-viewer --> correlation-analysis-widget
-  flare-report-viewer --> one-sample-hypothesis-test-widget
-  flare-report-viewer --> one-sample-wilcoxon-signed-rank-widget
-  flare-report-viewer --> paired-two-sample-wilcoxon-signed-rank-widget
-  flare-report-viewer --> independent-two-sample-hypothesis-test-widget
-  flare-report-viewer --> paired-two-sample-hypothesis-test-widget
-  flare-report-viewer --> welch-two-sample-hypothesis-test-widget
-  flare-report-viewer --> one-way-anova-widget
-  flare-report-viewer --> welch-anova-widget
-  flare-report-viewer --> mann-whitney-u-test-widget
-  flare-report-viewer --> kruskal-wallis-test-widget
-  flare-report-viewer --> shapiro-wilk-test-widget
-  flare-report-viewer --> kolmogorov-smirnov-normality-test-widget
-  flare-report-viewer --> anderson-darling-normality-test-widget
-  flare-report-viewer --> box-whisker-normality-plot-widget
-  flare-report-viewer --> data-widget
+  report-viewer --> text-widget
+  report-viewer --> source-info-widget
+  report-viewer --> descriptive-analysis-widget
+  report-viewer --> correlation-analysis-widget
+  report-viewer --> one-sample-hypothesis-test-widget
+  report-viewer --> one-sample-wilcoxon-signed-rank-widget
+  report-viewer --> paired-two-sample-wilcoxon-signed-rank-widget
+  report-viewer --> independent-two-sample-hypothesis-test-widget
+  report-viewer --> paired-two-sample-hypothesis-test-widget
+  report-viewer --> welch-two-sample-hypothesis-test-widget
+  report-viewer --> one-way-anova-widget
+  report-viewer --> welch-anova-widget
+  report-viewer --> mann-whitney-u-test-widget
+  report-viewer --> kruskal-wallis-test-widget
+  report-viewer --> shapiro-wilk-test-widget
+  report-viewer --> kolmogorov-smirnov-normality-test-widget
+  report-viewer --> anderson-darling-normality-test-widget
+  report-viewer --> box-whisker-normality-plot-widget
+  report-viewer --> data-widget
   text-widget --> base-widget
   source-info-widget --> base-widget
   descriptive-analysis-widget --> base-widget
@@ -125,8 +133,8 @@ graph TD;
   kolmogorov-smirnov-normality-test-widget --> base-widget
   anderson-darling-normality-test-widget --> base-widget
   box-whisker-normality-plot-widget --> data-widget
-  report-demo --> flare-report-viewer
-  style flare-report-viewer fill:#f9f,stroke:#333,stroke-width:4px
+  report-demo --> report-viewer
+  style report-viewer fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
 ----------------------------------------------

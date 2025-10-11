@@ -53,11 +53,11 @@ This bundle is **specifically optimized for PuppeteerSharp** and includes a fix 
     <title>Report</title>
 </head>
 <body>
-    <flare-report-viewer id="viewer"
+    <report-viewer id="viewer"
                          report-id="viewer"
                          is-viewer="true"
                          configuration='{"layouts": {...}, "sources": [...], "widgets": [...]}'>
-    </flare-report-viewer>
+    </report-viewer>
 
     <script src="flarelight-reporting-esbuild.js"></script>
     <script>
@@ -66,7 +66,7 @@ This bundle is **specifically optimized for PuppeteerSharp** and includes a fix 
             return await window.getChartData(config); // bridged from PuppeteerSharp
         };
 
-        customElements.whenDefined('flare-report-viewer').then(() => {
+        customElements.whenDefined('report-viewer').then(() => {
             const viewer = document.getElementById('viewer');
             viewer.fetchChartData = window.fetchChartData;
         });
@@ -90,7 +90,7 @@ await page.ExposeFunctionAsync("getChartData", new Func<object, Task<object>>(as
 }));
 
 // Wait for components to render
-await page.WaitForSelectorAsync("flare-report-viewer");
+await page.WaitForSelectorAsync("report-viewer");
 await page.WaitForTimeoutAsync(2000); // Allow time for data loading
 
 // Generate PDF
@@ -167,7 +167,7 @@ All visualization components expect data in this format:
 - `line-chart-visualization` - Line charts
 - `pie-chart-visualization` - Pie charts
 - `table-visualization` - Data tables
-- `flare-report-viewer` - Complete report viewer
+- `report-viewer` - Complete report viewer
 - `text-widget` - Text widgets
 - `data-widget` - Data widgets
 - `source-info-widget` - Source information widgets

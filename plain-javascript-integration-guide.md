@@ -130,11 +130,11 @@ defineCustomElements();
   
   <div class="report-container">
     <!-- This is where the report will be rendered -->
-    <flare-report-viewer
+    <report-viewer
       id="my-report"
       report-id="performance-dashboard"
       show-placeholder="true">
-    </flare-report-viewer>
+    </report-viewer>
   </div>
 
   <script type="module">
@@ -365,11 +365,11 @@ Here's a complete example that you can use as a starting point:
   </div>
   
   <div class="report-container">
-    <flare-report-viewer
+    <report-viewer
       id="my-report"
       report-id="sales-dashboard"
       show-placeholder="true">
-    </flare-report-viewer>
+    </report-viewer>
   </div>
 
   <script type="module">

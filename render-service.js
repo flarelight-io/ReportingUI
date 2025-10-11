@@ -126,11 +126,11 @@ function generateReportHtml(reportConfig) {
 <body>
     <div class="report-container">
         ${reportId ? `
-        <flare-report-viewer 
+        <report-viewer 
             report-id="${reportId}"
             is-viewer="true"
             ${configuration ? `configuration='${JSON.stringify(configuration)}'` : ''}>
-        </flare-report-viewer>
+        </report-viewer>
         ` : ''}
         
         ${widgetsHtml ? `

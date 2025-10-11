@@ -74,6 +74,29 @@
   align-items: center;
 }
 
+.height-mode-toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  
+  .height-mode-btn {
+    background-color: var(--brand-secondary);
+    
+    &:hover {
+      background-color: #a02bb8;
+    }
+  }
+  
+  .height-mode-info {
+    font-size: 0.75rem;
+    color: var(--fl-text-color-secondary);
+    text-align: center;
+    max-width: 200px;
+    line-height: 1.2;
+  }
+}
+
 .toggle-button {
   background-color: var(--brand-primary);
   color: white;
@@ -169,6 +192,18 @@
   // Add subtle brand color accent
   border-left: 4px solid var(--brand-primary);
   
+  // Height mode specific styling
+  &[height-mode="fixed"] {
+    height: 1200px;
+    min-height: 600px;
+    max-height: 1200px;
+  }
+  
+  &[height-mode="auto"] {
+    height: auto;
+    min-height: 800px;
+  }
+  
   &::before {
     content: '';
     position: absolute;
@@ -178,5 +213,27 @@
     height: 6px;
     background: linear-gradient(90deg, var(--brand-gradient-start), var(--brand-gradient-middle), var(--brand-gradient-end));
     z-index: 1;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .theme-controls {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .height-mode-toggle {
+    .height-mode-info {
+      max-width: 300px;
+    }
+  }
+  
+  .report-container {
+    &[height-mode="fixed"] {
+      height: 500px;
+      min-height: 500px;
+      max-height: 500px;
+    }
   }
 } 

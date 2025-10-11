@@ -96,11 +96,11 @@ function Dashboard() {
     <div className="dashboard">
       <h1>Sales Dashboard</h1>
       <div className="report-container">
-        <flare-report-viewer
+        <report-viewer
           reportId="sales-dashboard"
           configuration={reportConfig}
           fetchChartData={fetchChartData}
-        ></flare-report-viewer>
+        ></report-viewer>
       </div>
     </div>
   );
@@ -113,7 +113,7 @@ export default Dashboard;
 
 The library includes the following components:
 
-- `<flare-report-viewer>` - Main report container
+- `<report-viewer>` - Main report container
 - `<base-widget>` - Base widget component
 - `<text-widget>` - Text display widget
 - `<source-info-widget>` - Data source information widget

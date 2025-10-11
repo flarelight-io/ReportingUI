@@ -46,7 +46,7 @@ function initializeComponents() {
     // Handle any existing custom elements that were created before registration
     if (typeof document !== 'undefined') {
       // Force upgrade of existing custom elements
-      const customElements = document.querySelectorAll('flare-report-viewer, kpi-visualization, bar-chart-visualization, pie-chart-visualization, line-chart-visualization');
+      const customElements = document.querySelectorAll('report-viewer, kpi-visualization, bar-chart-visualization, pie-chart-visualization, line-chart-visualization');
       customElements.forEach(element => {
         // Trigger a re-render by temporarily removing and re-adding
         if (element.parentNode && element.tagName.includes('-')) {
@@ -120,7 +120,7 @@ window.FlarelightReporting = {
   async renderReport(container, config) {
     await this.whenReady();
     
-    const reportViewer = await this.createElement('flare-report-viewer', {
+    const reportViewer = await this.createElement('report-viewer', {
       'report-id': config.reportId || 'default',
       'is-viewer': 'true',
       'configuration': config.configuration || {}
@@ -361,7 +361,7 @@ window.addEventListener('flarelight-components-ready', async () => {<br>
         
         <div class="report-viewer-demo">
             <h3>📊 Report Viewer Demo</h3>
-            <p>This demonstrates the <code>flare-report-viewer</code> component with a sample configuration:</p>
+            <p>This demonstrates the <code>report-viewer</code> component with a sample configuration:</p>
             <div id="report-viewer-container"></div>
         </div>
         

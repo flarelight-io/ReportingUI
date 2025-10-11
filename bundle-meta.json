@@ -1,7 +1,7 @@
 {
   "inputs": {
-    "dist/esm/kpi-visualization-DwPQpXil.js": {
-      "bytes": 520242,
+    "dist/esm/kpi-visualization-BoVNHFTt.js": {
+      "bytes": 521486,
       "imports": [
         {
           "path": "dist/esm/index-BuUlUqp-.js",
@@ -20,14 +20,14 @@
       "bytes": 221424,
       "imports": [
         {
-          "path": "dist/esm/kpi-visualization-DwPQpXil.js",
+          "path": "dist/esm/kpi-visualization-BoVNHFTt.js",
           "kind": "import-statement",
-          "original": "./kpi-visualization-DwPQpXil.js"
+          "original": "./kpi-visualization-BoVNHFTt.js"
         },
         {
-          "path": "dist/esm/kpi-visualization-DwPQpXil.js",
+          "path": "dist/esm/kpi-visualization-BoVNHFTt.js",
           "kind": "import-statement",
-          "original": "./kpi-visualization-DwPQpXil.js"
+          "original": "./kpi-visualization-BoVNHFTt.js"
         },
         {
           "path": "dist/esm/index-BuUlUqp-.js",
@@ -118,8 +118,8 @@
       "exports": [],
       "entryPoint": "temp-bundle-entry.js",
       "inputs": {
-        "dist/esm/kpi-visualization-DwPQpXil.js": {
-          "bytesInOutput": 482932
+        "dist/esm/kpi-visualization-BoVNHFTt.js": {
+          "bytesInOutput": 483658
         },
         "dist/esm/anderson-darling-normality-test-widget_36.entry.js": {
           "bytesInOutput": 206065
@@ -140,7 +140,7 @@
           "bytesInOutput": 4548
         }
       },
-      "bytes": 793374
+      "bytes": 794100
     }
   }
 }

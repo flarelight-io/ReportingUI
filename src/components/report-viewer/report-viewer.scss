@@ -3,15 +3,41 @@
   width: 100%;
   height: 100%;
   min-height: 600px;
+  
+  // Height mode specific styles
+  &[height-mode="fixed"] {
+    height: 100%;
+    min-height: unset;
+    overflow: hidden;
+  }
+  
+  &[height-mode="auto"] {
+    height: auto;
+    min-height: 600px;
+  }
 }
 
-.flare-report-container {
+.report-container {
   width: 100%;
   height: 100%;
   padding: 10px;
   box-sizing: border-box;
   overflow: auto;
   background-color: var(--fl-background-color, #f8f9fa);
+  
+  // Height mode specific container styles
+  &.height-mode-fixed {
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  &.height-mode-auto {
+    overflow: auto;
+    height: auto;
+    min-height: calc(100% - 20px); // Account for padding
+  }
   
   .widget-grid {
     display: grid;
@@ -26,6 +52,17 @@
     // Default row height until JavaScript sets the exact value
     grid-auto-rows: 80px;
     
+    // Height mode specific grid styles
+    .height-mode-fixed & {
+      height: 100% !important;
+      max-height: 100% !important;
+      overflow: hidden;
+    }
+    
+    .height-mode-auto & {
+      height: auto;
+    }
+    
     .widget-item {
       background: var(--fl-card-background, #fff);
       border-radius: 6px;
@@ -39,6 +76,41 @@
       
       &:hover {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      // In fixed height mode, ensure all content scales properly
+      .height-mode-fixed & {
+        // Ensure SVG elements scale to fit
+        svg {
+          max-width: 100%;
+          max-height: 100%;
+          width: auto;
+          height: auto;
+        }
+        
+        // Ensure all visualization containers scale properly
+        .visualization-container,
+        .chart-container,
+        .table-container {
+          max-height: 100%;
+          overflow: hidden;
+        }
+        
+        // Scale down font sizes and padding in fixed mode
+        font-size: 0.8em;
+        
+        // Scale down padding and margins
+        .widget-header {
+          padding: 4px 8px;
+          
+          .widget-title {
+            font-size: 12px;
+          }
+        }
+        
+        .widget-body {
+          padding: 8px;
+        }
       }
     }
     
@@ -90,7 +162,7 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .flare-report-container {
+  .report-container {
     .widget-grid {
       gap: 10px;
       
@@ -105,7 +177,7 @@
 }
 
 @media (max-width: 480px) {
-  .flare-report-container {
+  .report-container {
     padding: 5px;
     
     .widget-grid {

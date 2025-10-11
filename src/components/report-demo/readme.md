@@ -9,31 +9,31 @@
 
 ### Depends on
 
-- [flare-report-viewer](../flare-report-viewer)
+- [report-viewer](../report-viewer)
 
 ### Graph
 ```mermaid
 graph TD;
-  report-demo --> flare-report-viewer
-  flare-report-viewer --> text-widget
-  flare-report-viewer --> source-info-widget
-  flare-report-viewer --> descriptive-analysis-widget
-  flare-report-viewer --> correlation-analysis-widget
-  flare-report-viewer --> one-sample-hypothesis-test-widget
-  flare-report-viewer --> one-sample-wilcoxon-signed-rank-widget
-  flare-report-viewer --> paired-two-sample-wilcoxon-signed-rank-widget
-  flare-report-viewer --> independent-two-sample-hypothesis-test-widget
-  flare-report-viewer --> paired-two-sample-hypothesis-test-widget
-  flare-report-viewer --> welch-two-sample-hypothesis-test-widget
-  flare-report-viewer --> one-way-anova-widget
-  flare-report-viewer --> welch-anova-widget
-  flare-report-viewer --> mann-whitney-u-test-widget
-  flare-report-viewer --> kruskal-wallis-test-widget
-  flare-report-viewer --> shapiro-wilk-test-widget
-  flare-report-viewer --> kolmogorov-smirnov-normality-test-widget
-  flare-report-viewer --> anderson-darling-normality-test-widget
-  flare-report-viewer --> box-whisker-normality-plot-widget
-  flare-report-viewer --> data-widget
+  report-demo --> report-viewer
+  report-viewer --> text-widget
+  report-viewer --> source-info-widget
+  report-viewer --> descriptive-analysis-widget
+  report-viewer --> correlation-analysis-widget
+  report-viewer --> one-sample-hypothesis-test-widget
+  report-viewer --> one-sample-wilcoxon-signed-rank-widget
+  report-viewer --> paired-two-sample-wilcoxon-signed-rank-widget
+  report-viewer --> independent-two-sample-hypothesis-test-widget
+  report-viewer --> paired-two-sample-hypothesis-test-widget
+  report-viewer --> welch-two-sample-hypothesis-test-widget
+  report-viewer --> one-way-anova-widget
+  report-viewer --> welch-anova-widget
+  report-viewer --> mann-whitney-u-test-widget
+  report-viewer --> kruskal-wallis-test-widget
+  report-viewer --> shapiro-wilk-test-widget
+  report-viewer --> kolmogorov-smirnov-normality-test-widget
+  report-viewer --> anderson-darling-normality-test-widget
+  report-viewer --> box-whisker-normality-plot-widget
+  report-viewer --> data-widget
   text-widget --> base-widget
   source-info-widget --> base-widget
   descriptive-analysis-widget --> base-widget

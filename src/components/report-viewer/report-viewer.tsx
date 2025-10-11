@@ -8,11 +8,11 @@ interface WidgetDataCache {
 }
 
 @Component({
-  tag: 'flare-report-viewer',
-  styleUrl: 'flare-report-viewer.scss',
+  tag: 'report-viewer',
+  styleUrl: 'report-viewer.scss',
   shadow: false
 })
-export class FlareReportViewer {
+export class ReportViewer {
   @Element() el!: HTMLElement;
   
   @Prop() reportId: string;
@@ -21,6 +21,7 @@ export class FlareReportViewer {
   @Prop() isViewer: boolean = false;
   @Prop() isFullscreen: boolean = false;
   @Prop() fetchChartData: Function;
+  @Prop() heightMode: 'auto' | 'fixed' = 'auto';
   
   @State() widgets: WidgetData[] = [];
   @State() dataSources: DataSource[] = [];
@@ -79,6 +80,14 @@ export class FlareReportViewer {
           this.setEqualGridDimensions();
         }
       });
+    }
+  }
+  
+  @Watch('heightMode')
+  onHeightModeChange() {
+    // Recalculate grid dimensions when height mode changes
+    if (this.isMounted && this.gridContainer) {
+      this.setEqualGridDimensions();
     }
   }
   
@@ -1417,6 +1426,9 @@ export class FlareReportViewer {
     element.style.height = '100%';
     element.style.display = 'block';
     
+    // Set height mode context for the widget
+    element.setAttribute('height-mode', this.heightMode);
+    
     return element;
   }
   
@@ -1555,9 +1567,39 @@ export class FlareReportViewer {
     const totalGapWidth = gapSize * (numColumns - 1);
     const columnWidth = (gridWidth - totalGapWidth) / numColumns;
     
-    // Set the row height to match column width
-    const rowHeight = `${columnWidth}px`;
-    this.gridContainer.style.gridAutoRows = rowHeight;
+    if (this.heightMode === 'fixed') {
+      // In fixed mode, constrain the grid to the container height
+      const containerHeight = this.el.offsetHeight; // Get the actual container height
+      
+      if (containerHeight > 0) {
+        // Set the grid to the container height - this will make it rectangular
+        this.gridContainer.style.height = `${containerHeight}px`;
+        
+        // Find the maximum row position to determine how many rows we need
+        const maxRow = Math.max(...this.widgets.map(widget => (widget.y || 0) + (widget.h || 4)));
+        const numRows = maxRow;
+        
+        if (numRows > 0) {
+          // Calculate row height to distribute evenly across the container height
+          const totalGapHeight = gapSize * (numRows - 1);
+          const availableHeight = containerHeight - totalGapHeight;
+          const rowHeight = availableHeight / numRows;
+          
+          this.gridContainer.style.gridAutoRows = `${rowHeight}px`;
+        } else {
+          // Fallback to small height if no widgets
+          this.gridContainer.style.gridAutoRows = '20px';
+        }
+      } else {
+        // Fallback to small height if height is not available yet
+        this.gridContainer.style.gridAutoRows = '20px';
+      }
+    } else {
+      // In auto mode, set the row height to match column width (original behavior)
+      const rowHeight = `${columnWidth}px`;
+      this.gridContainer.style.gridAutoRows = rowHeight;
+      this.gridContainer.style.height = 'auto';
+    }
   }
   
   private startConfigurationPolling() {
@@ -1593,7 +1635,7 @@ export class FlareReportViewer {
   
   render() {
     return (
-      <div class="flare-report-container">
+      <div class={`report-container height-mode-${this.heightMode}`}>
         <div class="widget-grid"></div>
       </div>
     );

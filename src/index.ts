@@ -35,10 +35,10 @@ export * from './components/widgets/box-whisker-normality-plot-widget';
 // We will add other widget exports as they are converted
 
 // Export main report viewer component
-export * from './components/flare-report-viewer/flare-report-viewer';
+export * from './components/report-viewer/report-viewer';
 
 // Main components
-export { FlareReportViewer } from './components/flare-report-viewer/flare-report-viewer';
+export { ReportViewer } from './components/report-viewer/report-viewer';
 export { ReportDemo } from './components/report-demo/report-demo';
 
 // Widget components

@@ -266,23 +266,6 @@ export namespace Components {
         "widgetTitle": string;
         "width"?: number;
     }
-    interface FlareReportViewer {
-        "configuration": any;
-        "fetchChartData": Function;
-        /**
-          * @default false
-         */
-        "isFullscreen": boolean;
-        /**
-          * @default false
-         */
-        "isViewer": boolean;
-        "reportId": string;
-        /**
-          * @default true
-         */
-        "showPlaceholder": boolean;
-    }
     interface HeatmapVisualization {
         /**
           * @default "brand"
@@ -584,6 +567,27 @@ export namespace Components {
         "data": VisualizationData;
     }
     interface ReportDemo {
+    }
+    interface ReportViewer {
+        "configuration": any;
+        "fetchChartData": Function;
+        /**
+          * @default 'auto'
+         */
+        "heightMode": 'auto' | 'fixed';
+        /**
+          * @default false
+         */
+        "isFullscreen": boolean;
+        /**
+          * @default false
+         */
+        "isViewer": boolean;
+        "reportId": string;
+        /**
+          * @default true
+         */
+        "showPlaceholder": boolean;
     }
     interface ScatterChartVisualization {
         /**
@@ -918,12 +922,6 @@ declare global {
         prototype: HTMLDescriptiveAnalysisWidgetElement;
         new (): HTMLDescriptiveAnalysisWidgetElement;
     };
-    interface HTMLFlareReportViewerElement extends Components.FlareReportViewer, HTMLStencilElement {
-    }
-    var HTMLFlareReportViewerElement: {
-        prototype: HTMLFlareReportViewerElement;
-        new (): HTMLFlareReportViewerElement;
-    };
     interface HTMLHeatmapVisualizationElementEventMap {
         "filterChange": FilterChangeEventDetail;
     }
@@ -1086,6 +1084,12 @@ declare global {
         prototype: HTMLReportDemoElement;
         new (): HTMLReportDemoElement;
     };
+    interface HTMLReportViewerElement extends Components.ReportViewer, HTMLStencilElement {
+    }
+    var HTMLReportViewerElement: {
+        prototype: HTMLReportViewerElement;
+        new (): HTMLReportViewerElement;
+    };
     interface HTMLScatterChartVisualizationElementEventMap {
         "filterChange": FilterChangeEventDetail;
     }
@@ -1195,7 +1199,6 @@ declare global {
         "correlation-analysis-widget": HTMLCorrelationAnalysisWidgetElement;
         "data-widget": HTMLDataWidgetElement;
         "descriptive-analysis-widget": HTMLDescriptiveAnalysisWidgetElement;
-        "flare-report-viewer": HTMLFlareReportViewerElement;
         "heatmap-visualization": HTMLHeatmapVisualizationElement;
         "histogram-chart-visualization": HTMLHistogramChartVisualizationElement;
         "independent-two-sample-hypothesis-test-widget": HTMLIndependentTwoSampleHypothesisTestWidgetElement;
@@ -1212,6 +1215,7 @@ declare global {
         "paired-two-sample-wilcoxon-signed-rank-widget": HTMLPairedTwoSampleWilcoxonSignedRankWidgetElement;
         "pie-chart-visualization": HTMLPieChartVisualizationElement;
         "report-demo": HTMLReportDemoElement;
+        "report-viewer": HTMLReportViewerElement;
         "scatter-chart-visualization": HTMLScatterChartVisualizationElement;
         "shapiro-wilk-test-widget": HTMLShapiroWilkTestWidgetElement;
         "source-info-widget": HTMLSourceInfoWidgetElement;
@@ -1442,23 +1446,6 @@ declare namespace LocalJSX {
         "widgetId"?: string;
         "widgetTitle"?: string;
         "width"?: number;
-    }
-    interface FlareReportViewer {
-        "configuration"?: any;
-        "fetchChartData"?: Function;
-        /**
-          * @default false
-         */
-        "isFullscreen"?: boolean;
-        /**
-          * @default false
-         */
-        "isViewer"?: boolean;
-        "reportId"?: string;
-        /**
-          * @default true
-         */
-        "showPlaceholder"?: boolean;
     }
     interface HeatmapVisualization {
         /**
@@ -1768,6 +1755,27 @@ declare namespace LocalJSX {
     }
     interface ReportDemo {
     }
+    interface ReportViewer {
+        "configuration"?: any;
+        "fetchChartData"?: Function;
+        /**
+          * @default 'auto'
+         */
+        "heightMode"?: 'auto' | 'fixed';
+        /**
+          * @default false
+         */
+        "isFullscreen"?: boolean;
+        /**
+          * @default false
+         */
+        "isViewer"?: boolean;
+        "reportId"?: string;
+        /**
+          * @default true
+         */
+        "showPlaceholder"?: boolean;
+    }
     interface ScatterChartVisualization {
         /**
           * @default "brand"
@@ -1939,7 +1947,6 @@ declare namespace LocalJSX {
         "correlation-analysis-widget": CorrelationAnalysisWidget;
         "data-widget": DataWidget;
         "descriptive-analysis-widget": DescriptiveAnalysisWidget;
-        "flare-report-viewer": FlareReportViewer;
         "heatmap-visualization": HeatmapVisualization;
         "histogram-chart-visualization": HistogramChartVisualization;
         "independent-two-sample-hypothesis-test-widget": IndependentTwoSampleHypothesisTestWidget;
@@ -1956,6 +1963,7 @@ declare namespace LocalJSX {
         "paired-two-sample-wilcoxon-signed-rank-widget": PairedTwoSampleWilcoxonSignedRankWidget;
         "pie-chart-visualization": PieChartVisualization;
         "report-demo": ReportDemo;
+        "report-viewer": ReportViewer;
         "scatter-chart-visualization": ScatterChartVisualization;
         "shapiro-wilk-test-widget": ShapiroWilkTestWidget;
         "source-info-widget": SourceInfoWidget;
@@ -1981,7 +1989,6 @@ declare module "@stencil/core" {
             "correlation-analysis-widget": LocalJSX.CorrelationAnalysisWidget & JSXBase.HTMLAttributes<HTMLCorrelationAnalysisWidgetElement>;
             "data-widget": LocalJSX.DataWidget & JSXBase.HTMLAttributes<HTMLDataWidgetElement>;
             "descriptive-analysis-widget": LocalJSX.DescriptiveAnalysisWidget & JSXBase.HTMLAttributes<HTMLDescriptiveAnalysisWidgetElement>;
-            "flare-report-viewer": LocalJSX.FlareReportViewer & JSXBase.HTMLAttributes<HTMLFlareReportViewerElement>;
             "heatmap-visualization": LocalJSX.HeatmapVisualization & JSXBase.HTMLAttributes<HTMLHeatmapVisualizationElement>;
             "histogram-chart-visualization": LocalJSX.HistogramChartVisualization & JSXBase.HTMLAttributes<HTMLHistogramChartVisualizationElement>;
             "independent-two-sample-hypothesis-test-widget": LocalJSX.IndependentTwoSampleHypothesisTestWidget & JSXBase.HTMLAttributes<HTMLIndependentTwoSampleHypothesisTestWidgetElement>;
@@ -1998,6 +2005,7 @@ declare module "@stencil/core" {
             "paired-two-sample-wilcoxon-signed-rank-widget": LocalJSX.PairedTwoSampleWilcoxonSignedRankWidget & JSXBase.HTMLAttributes<HTMLPairedTwoSampleWilcoxonSignedRankWidgetElement>;
             "pie-chart-visualization": LocalJSX.PieChartVisualization & JSXBase.HTMLAttributes<HTMLPieChartVisualizationElement>;
             "report-demo": LocalJSX.ReportDemo & JSXBase.HTMLAttributes<HTMLReportDemoElement>;
+            "report-viewer": LocalJSX.ReportViewer & JSXBase.HTMLAttributes<HTMLReportViewerElement>;
             "scatter-chart-visualization": LocalJSX.ScatterChartVisualization & JSXBase.HTMLAttributes<HTMLScatterChartVisualizationElement>;
             "shapiro-wilk-test-widget": LocalJSX.ShapiroWilkTestWidget & JSXBase.HTMLAttributes<HTMLShapiroWilkTestWidgetElement>;
             "source-info-widget": LocalJSX.SourceInfoWidget & JSXBase.HTMLAttributes<HTMLSourceInfoWidgetElement>;

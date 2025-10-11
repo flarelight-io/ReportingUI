@@ -11,6 +11,8 @@ const DEBUG_MODE = false; // Set to true to enable verbose logging
 export class ReportDemo {
   @Element() hostElement: HTMLElement;
   
+  @State() heightMode: 'auto' | 'fixed' = 'auto';
+  
   @State() demoConfiguration = {
     colorTheme: "brand",
     widgets: [
@@ -1053,16 +1055,16 @@ export class ReportDemo {
     // Try various query selectors to find the report viewer
     try {
       // Try direct child selector
-      this.reportViewerRef = this.hostElement.querySelector('flare-report-viewer');
+      this.reportViewerRef = this.hostElement.querySelector('report-viewer');
       
       // Try document-wide selector as fallback
       if (!this.reportViewerRef) {
-        this.reportViewerRef = document.querySelector('flare-report-viewer');
+        this.reportViewerRef = document.querySelector('report-viewer');
       }
       
       // Try alternate selector with direct path
       if (!this.reportViewerRef) {
-        this.reportViewerRef = document.querySelector('.report-container > flare-report-viewer');
+        this.reportViewerRef = document.querySelector('.report-container > report-viewer');
       }
       
       // If we found it, mark as ready
@@ -1092,6 +1094,10 @@ export class ReportDemo {
     
     // Update brand colors when theme changes
     this.updateBrandColors();
+  }
+
+  private toggleHeightMode = () => {
+    this.heightMode = this.heightMode === 'auto' ? 'fixed' : 'auto';
   };
 
   private setColorThemeSelectRef = (el: HTMLSelectElement) => {
@@ -1307,7 +1313,7 @@ export class ReportDemo {
       reportContainer.innerHTML = '';
       
       // Create new report viewer
-      const newViewer = document.createElement('flare-report-viewer');
+      const newViewer = document.createElement('report-viewer');
       newViewer.setAttribute('report-id', 'visualization-showcase');
       
       // Set properties
@@ -2394,6 +2400,11 @@ export class ReportDemo {
                 {this.darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               </button>
             </div>
+            <div class="height-mode-toggle">
+              <button onClick={this.toggleHeightMode} class="toggle-button height-mode-btn">
+                {this.heightMode === 'auto' ? 'Switch to Fixed Height' : 'Switch to Auto Height'}
+              </button>
+            </div>
             <div class="color-theme-selector">
               <label htmlFor="colorThemeSelect">Color Theme:</label>
               <select 
@@ -2422,14 +2433,15 @@ export class ReportDemo {
           </div>
         </header>
         
-        <div class="report-container" id="flarelight-report-container">
-          <flare-report-viewer
+        <div class="report-container" id="flarelight-report-container" height-mode={this.heightMode}>
+          <report-viewer
             ref={this.setReportViewerRef}
             reportId="visualization-showcase"
             configuration={this.demoConfiguration}
             showPlaceholder={true}
             fetchChartData={this.fetchChartData}
-          ></flare-report-viewer>
+            height-mode={this.heightMode}
+          ></report-viewer>
         </div>
       </div>
     );

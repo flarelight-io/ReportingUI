@@ -76,10 +76,10 @@ async function generateReportHtml() {
       </style>
     </head>
     <body>
-      <flare-report-viewer 
+      <report-viewer 
         report-id="sample-report"
         is-viewer="true">
-      </flare-report-viewer>
+      </report-viewer>
       
       <kpi-visualization></kpi-visualization>
       
@@ -217,7 +217,7 @@ async function renderReportWithPuppeteer(reportConfig, options = {}) {
     await page.setContent(html);
     
     // Wait for components to load and render
-    await page.waitForSelector('flare-report-viewer', { timeout: 30000 });
+    await page.waitForSelector('report-viewer', { timeout: 30000 });
     
     // Wait for any async operations to complete
     await page.waitForTimeout(2000);
@@ -241,11 +241,11 @@ async function renderReportWithPuppeteer(reportConfig, options = {}) {
 
 function generateReportHtml(config) {
   return `
-    <flare-report-viewer 
+    <report-viewer 
       report-id="${config.reportId}"
       is-viewer="true"
       configuration='${JSON.stringify(config.configuration)}'>
-    </flare-report-viewer>
+    </report-viewer>
   `;
 }
 
@@ -284,11 +284,11 @@ public class StaticHtmlReportGenerator
     </style>
 </head>
 <body>
-    <flare-report-viewer 
+    <report-viewer 
         report-id=""{config.ReportId}""
         is-viewer=""true""
         configuration='{JsonConvert.SerializeObject(config.Configuration)}'>
-    </flare-report-viewer>
+    </report-viewer>
 </body>
 </html>";
     }
@@ -318,7 +318,7 @@ public class PdfGenerationService
         await page.SetContentAsync(html);
         
         // Wait for components to render
-        await page.WaitForSelectorAsync("flare-report-viewer");
+        await page.WaitForSelectorAsync("report-viewer");
         await page.WaitForTimeoutAsync(2000);
         
         var pdfBytes = await page.PdfAsync(new PdfOptions
@@ -392,11 +392,11 @@ public class ReportsController : ControllerBase
     <title>Report {request.ReportId}</title>
 </head>
 <body>
-    <flare-report-viewer 
+    <report-viewer 
         report-id=""{request.ReportId}""
         is-viewer=""true""
         configuration='{JsonConvert.SerializeObject(request.Configuration)}'>
-    </flare-report-viewer>
+    </report-viewer>
 </body>
 </html>";
     }

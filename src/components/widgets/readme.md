@@ -26,7 +26,7 @@
 
 ### Used by
 
- - [flare-report-viewer](../flare-report-viewer)
+ - [report-viewer](../report-viewer)
 
 ### Depends on
 
@@ -36,7 +36,7 @@
 ```mermaid
 graph TD;
   welch-two-sample-hypothesis-test-widget --> base-widget
-  flare-report-viewer --> welch-two-sample-hypothesis-test-widget
+  report-viewer --> welch-two-sample-hypothesis-test-widget
   style welch-two-sample-hypothesis-test-widget fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

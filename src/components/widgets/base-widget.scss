@@ -13,6 +13,12 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   background-color: var(--fl-card-background, white);
   overflow: hidden;
+  
+  // In fixed height mode, ensure the card scales properly
+  :host-context(.height-mode-fixed) & {
+    min-height: 0;
+    max-height: 100%;
+  }
 }
 
 .widget-header {
@@ -22,6 +28,12 @@
   padding: 8px 16px;
   background-color: var(--fl-background-color, #f4f4f5);
   border-bottom: 1px solid var(--fl-border-color, #e4e4e7);
+  
+  // In fixed height mode, make header smaller
+  :host-context(.height-mode-fixed) & {
+    padding: 4px 8px;
+    min-height: 0;
+  }
 }
 
 .title-container {
@@ -35,6 +47,11 @@
   font-weight: 500;
   margin: 0;
   color: var(--fl-text-color-primary);
+  
+  // In fixed height mode, make title smaller
+  :host-context(.height-mode-fixed) & {
+    font-size: 12px;
+  }
 }
 
 .hidden-badge {
@@ -80,12 +97,48 @@
   flex: 1;
   overflow: auto;
   color: var(--fl-text-color-primary);
+  
+  // In fixed height mode, allow scaling instead of scrolling
+  :host-context(.height-mode-fixed) & {
+    overflow: hidden;
+    font-size: 0.8em;
+    padding: 4px;
+    min-height: 0;
+    
+    // Scale down visualization components
+    bar-chart-visualization,
+    line-chart-visualization,
+    pie-chart-visualization,
+    table-visualization,
+    heatmap-visualization {
+      font-size: 0.8em;
+      
+      svg {
+        font-size: 0.8em;
+      }
+      
+      .chart-legend {
+        font-size: 0.7em;
+        max-height: 40px;
+      }
+    }
+  }
 }
 
 .widget-body.with-title {
   padding: 16px;
+  
+  // In fixed height mode, reduce padding
+  :host-context(.height-mode-fixed) & {
+    padding: 4px;
+  }
 }
 
 .widget-body.no-title {
   padding: 0;
+  
+  // In fixed height mode, add minimal padding
+  :host-context(.height-mode-fixed) & {
+    padding: 4px;
+  }
 } 
