@@ -476,7 +476,7 @@ export class ReportViewer {
     switch (widget.type) {
       case 'text':
         // Create text widget
-        element = document.createElement('text-widget');
+        element = document.createElement('text-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -504,7 +504,7 @@ export class ReportViewer {
         
       case 'sourceInfo':
         // Create source info widget
-        element = document.createElement('source-info-widget');
+        element = document.createElement('source-info-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -533,7 +533,7 @@ export class ReportViewer {
         
       case 'descriptiveAnalysis':
         // Create descriptive analysis widget
-        element = document.createElement('descriptive-analysis-widget');
+        element = document.createElement('descriptive-analysis-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -583,7 +583,7 @@ export class ReportViewer {
         
       case 'correlationAnalysis':
         // Create correlation analysis widget  
-        element = document.createElement('correlation-analysis-widget');
+        element = document.createElement('correlation-analysis-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -633,7 +633,7 @@ export class ReportViewer {
         
       case 'oneSampleHypothesisTest':
         // Create one-sample hypothesis test widget  
-        element = document.createElement('one-sample-hypothesis-test-widget');
+        element = document.createElement('one-sample-hypothesis-test-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -683,7 +683,7 @@ export class ReportViewer {
         
       case 'oneSampleWilcoxonSignedRank':
         // Create one-sample Wilcoxon signed rank test widget  
-        element = document.createElement('one-sample-wilcoxon-signed-rank-widget');
+        element = document.createElement('one-sample-wilcoxon-signed-rank-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -733,7 +733,7 @@ export class ReportViewer {
         
       case 'pairedTwoSampleWilcoxonSignedRank':
         // Create paired two-sample Wilcoxon signed rank test widget  
-        element = document.createElement('paired-two-sample-wilcoxon-signed-rank-widget');
+        element = document.createElement('paired-two-sample-wilcoxon-signed-rank-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -783,7 +783,7 @@ export class ReportViewer {
         
       case 'independentTwoSampleHypothesisTest':
         // Create independent two-sample hypothesis test widget  
-        element = document.createElement('independent-two-sample-hypothesis-test-widget');
+        element = document.createElement('independent-two-sample-hypothesis-test-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -833,7 +833,7 @@ export class ReportViewer {
         
       case 'pairedTwoSampleHypothesisTest':
         // Create paired two-sample hypothesis test widget  
-        element = document.createElement('paired-two-sample-hypothesis-test-widget');
+        element = document.createElement('paired-two-sample-hypothesis-test-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -883,7 +883,7 @@ export class ReportViewer {
         
       case 'welchTwoSampleHypothesisTest':
         // Create Welch's two-sample hypothesis test widget  
-        element = document.createElement('welch-two-sample-hypothesis-test-widget');
+        element = document.createElement('welch-two-sample-hypothesis-test-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -933,7 +933,7 @@ export class ReportViewer {
         
       case 'OneWayANOVA':
         // Create one-way ANOVA widget  
-        element = document.createElement('one-way-anova-widget');
+        element = document.createElement('one-way-anova-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -983,7 +983,7 @@ export class ReportViewer {
         
       case 'WelchANOVA':
         // Create Welch ANOVA widget  
-        element = document.createElement('welch-anova-widget');
+        element = document.createElement('welch-anova-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -1033,7 +1033,7 @@ export class ReportViewer {
         
       case 'mannWhitneyUTest':
         // Create Mann-Whitney U test widget  
-        element = document.createElement('mann-whitney-u-test-widget');
+        element = document.createElement('mann-whitney-u-test-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -1083,7 +1083,7 @@ export class ReportViewer {
         
       case 'kruskalWallisTest':
         // Create Kruskal-Wallis test widget  
-        element = document.createElement('kruskal-wallis-test-widget');
+        element = document.createElement('kruskal-wallis-test-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -1133,7 +1133,7 @@ export class ReportViewer {
         
       case 'shapiroWilkTest':
         // Create Shapiro-Wilk test widget  
-        element = document.createElement('shapiro-wilk-test-widget');
+        element = document.createElement('shapiro-wilk-test-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -1183,7 +1183,7 @@ export class ReportViewer {
         
       case 'kolmogorovSmirnovNormalityTest':
         // Create Kolmogorov-Smirnov normality test widget  
-        element = document.createElement('kolmogorov-smirnov-normality-test-widget');
+        element = document.createElement('kolmogorov-smirnov-normality-test-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -1233,7 +1233,7 @@ export class ReportViewer {
         
       case 'andersonDarlingNormalityTest':
         // Create Anderson-Darling normality test widget  
-        element = document.createElement('anderson-darling-normality-test-widget');
+        element = document.createElement('anderson-darling-normality-test-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -1283,7 +1283,7 @@ export class ReportViewer {
         
       case 'boxWhiskerNormalityPlot':
         // Create box-whisker normality plot widget  
-        element = document.createElement('box-whisker-normality-plot-widget');
+        element = document.createElement('box-whisker-normality-plot-widget') as unknown as HTMLElement;
         
         // Set properties directly
         (element as any).widgetId = widget.id;
@@ -1345,7 +1345,7 @@ export class ReportViewer {
       case 'bubble':
       case 'histogram':
         // Create data widget with specific visualization type
-        element = document.createElement('data-widget');
+        element = document.createElement('data-widget') as unknown as HTMLElement;
         element.setAttribute('widgetId', widget.id);
         
         // Set properties directly

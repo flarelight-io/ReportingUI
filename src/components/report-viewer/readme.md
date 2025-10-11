@@ -36,15 +36,15 @@ Example configuration:
 
 ## Properties
 
-| Property          | Attribute          | Description | Type       | Default     |
-| ----------------- | ------------------ | ----------- | ---------- | ----------- |
-| `configuration`   | `configuration`    |             | `any`      | `undefined` |
-| `fetchChartData`  | `fetch-chart-data` |             | `Function` | `undefined` |
-| `heightMode`      | `height-mode`      | Controls how the report handles height: 'auto' grows vertically, 'fixed' scales to fit available height | `'auto' \| 'fixed'` | `'auto'` |
-| `isFullscreen`    | `is-fullscreen`    |             | `boolean`  | `false`     |
-| `isViewer`        | `is-viewer`        |             | `boolean`  | `false`     |
-| `reportId`        | `report-id`        |             | `string`   | `undefined` |
-| `showPlaceholder` | `show-placeholder` |             | `boolean`  | `true`      |
+| Property          | Attribute          | Description | Type                | Default     |
+| ----------------- | ------------------ | ----------- | ------------------- | ----------- |
+| `configuration`   | `configuration`    |             | `any`               | `undefined` |
+| `fetchChartData`  | --                 |             | `Function`          | `undefined` |
+| `heightMode`      | `height-mode`      |             | `"auto" \| "fixed"` | `'auto'`    |
+| `isFullscreen`    | `is-fullscreen`    |             | `boolean`           | `false`     |
+| `isViewer`        | `is-viewer`        |             | `boolean`           | `false`     |
+| `reportId`        | `report-id`        |             | `string`            | `undefined` |
+| `showPlaceholder` | `show-placeholder` |             | `boolean`           | `true`      |
 
 
 ## Dependencies

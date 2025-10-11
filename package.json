@@ -44,7 +44,7 @@
     "html-to-image": "^1.11.11"
   },
   "devDependencies": {
-    "@stencil/core": "^4.27.1",
+    "@stencil/core": "^4.38.1",
     "@stencil/sass": "^3.2.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.5",

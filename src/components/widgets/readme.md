@@ -7,19 +7,19 @@
 
 ## Properties
 
-| Property         | Attribute          | Description | Type                                       | Default     |
-| ---------------- | ------------------ | ----------- | ------------------------------------------ | ----------- |
-| `config`         | `config`           |             | `WelchTwoSampleHypothesisTestWidgetConfig` | `{}`        |
-| `data`           | `data`             |             | `any[]`                                    | `[]`        |
-| `fetchChartData` | `fetch-chart-data` |             | `Function`                                 | `undefined` |
-| `height`         | `height`           |             | `number`                                   | `undefined` |
-| `isInEditor`     | `is-in-editor`     |             | `boolean`                                  | `false`     |
-| `isViewer`       | `is-viewer`        |             | `boolean`                                  | `false`     |
-| `readOnly`       | `read-only`        |             | `boolean`                                  | `false`     |
-| `reportId`       | `report-id`        |             | `string`                                   | `undefined` |
-| `widgetId`       | `widget-id`        |             | `string`                                   | `undefined` |
-| `widgetTitle`    | `widget-title`     |             | `string`                                   | `undefined` |
-| `width`          | `width`            |             | `number`                                   | `undefined` |
+| Property         | Attribute      | Description | Type                                       | Default     |
+| ---------------- | -------------- | ----------- | ------------------------------------------ | ----------- |
+| `config`         | --             |             | `WelchTwoSampleHypothesisTestWidgetConfig` | `{}`        |
+| `data`           | --             |             | `any[]`                                    | `[]`        |
+| `fetchChartData` | --             |             | `Function`                                 | `undefined` |
+| `height`         | `height`       |             | `number`                                   | `undefined` |
+| `isInEditor`     | `is-in-editor` |             | `boolean`                                  | `false`     |
+| `isViewer`       | `is-viewer`    |             | `boolean`                                  | `false`     |
+| `readOnly`       | `read-only`    |             | `boolean`                                  | `false`     |
+| `reportId`       | `report-id`    |             | `string`                                   | `undefined` |
+| `widgetId`       | `widget-id`    |             | `string`                                   | `undefined` |
+| `widgetTitle`    | `widget-title` |             | `string`                                   | `undefined` |
+| `width`          | `width`        |             | `number`                                   | `undefined` |
 
 
 ## Dependencies

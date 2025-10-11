@@ -991,7 +991,7 @@ export class ReportDemo {
   private filterProcessingInProgress = false;
   
   // Use a direct reference to the element via ref callback
-  private setReportViewerRef = (el: HTMLElement) => {
+  private setReportViewerRef = (el: any) => {
     console.log('Report viewer ref callback:', el);
     if (el) {
       this.reportViewerRef = el;
@@ -1055,16 +1055,16 @@ export class ReportDemo {
     // Try various query selectors to find the report viewer
     try {
       // Try direct child selector
-      this.reportViewerRef = this.hostElement.querySelector('report-viewer');
+      this.reportViewerRef = this.hostElement.querySelector('report-viewer') as unknown as HTMLElement;
       
       // Try document-wide selector as fallback
       if (!this.reportViewerRef) {
-        this.reportViewerRef = document.querySelector('report-viewer');
+        this.reportViewerRef = document.querySelector('report-viewer') as unknown as HTMLElement;
       }
       
       // Try alternate selector with direct path
       if (!this.reportViewerRef) {
-        this.reportViewerRef = document.querySelector('.report-container > report-viewer');
+        this.reportViewerRef = document.querySelector('.reportviewer-container > report-viewer') as unknown as HTMLElement;
       }
       
       // If we found it, mark as ready
@@ -1291,16 +1291,16 @@ export class ReportDemo {
     
     // If not found, try alternate selectors
     if (!reportContainer) {
-      reportContainer = this.hostElement.querySelector('.report-container');
+      reportContainer = this.hostElement.querySelector('.reportviewer-container');
     }
     
     if (!reportContainer) {
-      reportContainer = document.querySelector('.report-container');
+      reportContainer = document.querySelector('.reportviewer-container');
     }
     
     // Use shadow DOM correctly if needed
     if (!reportContainer && this.hostElement.shadowRoot) {
-      reportContainer = this.hostElement.shadowRoot.querySelector('.report-container');
+      reportContainer = this.hostElement.shadowRoot.querySelector('.reportviewer-container');
     }
     
     if (reportContainer) {
@@ -1313,7 +1313,7 @@ export class ReportDemo {
       reportContainer.innerHTML = '';
       
       // Create new report viewer
-      const newViewer = document.createElement('report-viewer');
+      const newViewer = document.createElement('report-viewer') as unknown as HTMLElement;
       newViewer.setAttribute('report-id', 'visualization-showcase');
       
       // Set properties
@@ -2433,7 +2433,7 @@ export class ReportDemo {
           </div>
         </header>
         
-        <div class="report-container" id="flarelight-report-container" height-mode={this.heightMode}>
+        <div class="reportviewer-container" id="flarelight-report-container" height-mode={this.heightMode}>
           <report-viewer
             ref={this.setReportViewerRef}
             reportId="visualization-showcase"
