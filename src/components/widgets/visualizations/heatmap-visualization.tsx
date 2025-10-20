@@ -97,22 +97,12 @@ export class HeatmapVisualization {
       };
     }
     
-    // Case 2: Data in "row, column, value" format
-    // Each record has rowField, colField, valueField
-    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
+    // Case 2: Data in "xField, yField, valueField" format
+    const xField = 'xField' in this.config ? this.config.xField : undefined;
+    const yField = 'yField' in this.config ? this.config.yField : undefined;
     const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
-    const fields = 'fields' in this.config ? this.config.fields : undefined;
     
-    if (groupByField && valueField) {
-      // This requires a second field to define columns
-      if (!fields || fields.length < 1) {
-        return { rowLabels: [], colLabels: [], data: [], minValue: 0, maxValue: 0 };
-      }
-      
-      const rowField = groupByField;
-      const colField = fields[0]; // Use the first field as column field
-      const valueFieldName = valueField;
-      
+    if (xField && yField && valueField) {
       // Get unique row and column values
       const rowLabelsSet = new Set<string>();
       const colLabelsSet = new Set<string>();
@@ -123,9 +113,9 @@ export class HeatmapVisualization {
       
       // Build the sets of unique values and cell map
       rawData.forEach(item => {
-        const rowLabel = String(item[rowField] === null ? 'Unknown' : item[rowField]);
-        const colLabel = String(item[colField] === null ? 'Unknown' : item[colField]);
-        const value = Number(item[valueFieldName] || 0);
+        const rowLabel = String(item[yField] === null ? 'Unknown' : item[yField]);
+        const colLabel = String(item[xField] === null ? 'Unknown' : item[xField]);
+        const value = Number(item[valueField] || 0);
         
         rowLabelsSet.add(rowLabel);
         colLabelsSet.add(colLabel);

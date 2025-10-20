@@ -491,6 +491,27 @@ export class DataWidget {
             aggregation: aggregation === 'none' ? undefined : aggregation
           }));
         }
+      } else if (visualizationType === 'heatmap') {
+        // For heatmap visualization, handle xField, yField, and valueField
+        const xField = 'xField' in this.config ? this.config.xField : undefined;
+        const yField = 'yField' in this.config ? this.config.yField : undefined;
+        const heatmapValueField = 'valueField' in this.config ? this.config.valueField : undefined;
+        
+        // Set value field for the heatmap values
+        if (heatmapValueField) {
+          request.valueFields = [{
+            fieldName: heatmapValueField,
+            aggregation: aggregation === 'none' ? undefined : aggregation
+          }];
+        }
+        
+        // Set label fields for x and y axes
+        if (xField && yField) {
+          request.labelFields = [
+            { fieldName: xField },
+            { fieldName: yField }
+          ];
+        }
       } else {
         // For standard charts, use single value field
         if (valueField) {

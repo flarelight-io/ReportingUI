@@ -335,10 +335,11 @@ export class ReportDemo {
         config: {
           sourceId: 'sample-heatmap',
           visualizationType: 'heatmap',
-          showLabels: true,
-          groupByField: 'y',
+          xField: 'x',
+          yField: 'y',
           valueField: 'value',
-          fields: ['x']
+          showValues: true,
+          showLabels: true
         }
       },
       
