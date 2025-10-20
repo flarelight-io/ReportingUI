@@ -243,23 +243,42 @@ export class HeatmapVisualization {
     const colCount = heatmapData.colLabels.length;
     
     // Calculate cell size based on available space
-    // We need to leave space for labels on both axes
+    const cellWidth = 30;
+    const cellHeight = 30;
+    
+    // Calculate label padding based on text length but with reasonable limits
     const maxTextLength = Math.max(
       ...heatmapData.rowLabels.map(label => label.length),
       ...heatmapData.colLabels.map(label => label.length)
     );
     
-    // Base padding for row and column labels - reduce colLabelPadding to remove excess whitespace
-    const rowLabelPadding = Math.min(maxTextLength * 5, 80);
-    const colLabelPadding = 60; // Increased to provide space for rotated labels
+    // Use consistent padding for labels - enough space but not excessive
+    const rowLabelPadding = Math.min(maxTextLength * 4, 60);
+    const colLabelPadding = 50; // Space for rotated column labels
     
-    // Calculate cell size constraints
-    const cellWidth = 30;
-    const cellHeight = 30;
+    // Calculate heatmap grid dimensions
+    const heatmapWidth = cellWidth * colCount;
+    const heatmapHeight = cellHeight * rowCount;
     
-    // Calculate total dimensions
-    const viewBoxWidth = rowLabelPadding + (cellWidth * colCount);
-    const viewBoxHeight = colLabelPadding + (cellHeight * rowCount);
+    // Calculate total SVG dimensions
+    const viewBoxWidth = rowLabelPadding + heatmapWidth;
+    const viewBoxHeight = colLabelPadding + heatmapHeight;
+    
+    // Calculate centering offsets to position heatmap in center of available space
+    const totalWidth = viewBoxWidth;
+    const totalHeight = viewBoxHeight;
+    
+    // Add extra padding to center the entire visualization
+    const centerPaddingX = Math.max(0, (totalWidth * 0.1)); // 10% padding on sides
+    const centerPaddingY = Math.max(0, (totalHeight * 0.1)); // 10% padding top/bottom
+    
+    // Adjust viewBox to include centering padding
+    const finalViewBoxWidth = totalWidth + (centerPaddingX * 2);
+    const finalViewBoxHeight = totalHeight + (centerPaddingY * 2);
+    
+    // Calculate offset to center the heatmap
+    const heatmapOffsetX = centerPaddingX;
+    const heatmapOffsetY = centerPaddingY;
     
     // We'll create a list of all cells for rendering
     const cells = [];
@@ -290,7 +309,7 @@ export class HeatmapVisualization {
           <svg 
             width="100%" 
             height="100%" 
-            viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+            viewBox={`0 0 ${finalViewBoxWidth} ${finalViewBoxHeight}`}
             preserveAspectRatio="xMidYMid meet"
             {...ChartThemeUtils.getSVGAttributes()}
           >
@@ -318,8 +337,8 @@ export class HeatmapVisualization {
             {heatmapData.rowLabels.map((label, idx) => (
               <text
                 key={`row-${idx}`}
-                x={rowLabelPadding - 5}
-                y={colLabelPadding + (idx * cellHeight) + (cellHeight / 2)}
+                x={heatmapOffsetX + rowLabelPadding - 5}
+                y={heatmapOffsetY + colLabelPadding + (idx * cellHeight) + (cellHeight / 2)}
                 font-size="3"
                 text-anchor="end"
                 dominant-baseline="middle"
@@ -340,12 +359,12 @@ export class HeatmapVisualization {
             {heatmapData.colLabels.map((label, idx) => (
               <text
                 key={`col-${idx}`}
-                x={rowLabelPadding + (idx * cellWidth) + (cellWidth / 2)}
-                y={colLabelPadding - 15}
+                x={heatmapOffsetX + rowLabelPadding + (idx * cellWidth) + (cellWidth / 2)}
+                y={heatmapOffsetY + colLabelPadding - 15}
                 font-size="3"
                 text-anchor="start"
                 dominant-baseline="middle"
-                transform={`rotate(-45, ${rowLabelPadding + (idx * cellWidth) + (cellWidth / 2)}, ${colLabelPadding - 15})`}
+                transform={`rotate(-45, ${heatmapOffsetX + rowLabelPadding + (idx * cellWidth) + (cellWidth / 2)}, ${heatmapOffsetY + colLabelPadding - 15})`}
                 fill={theme.labelColor}
                 font-family={theme.fontFamily}
                 font-weight="500"
@@ -353,7 +372,7 @@ export class HeatmapVisualization {
                 style={{
                   animationDelay: `${ChartAnimations.getStaggerDelay(idx)}ms`,
                   animationFillMode: 'both',
-                  transformOrigin: `${rowLabelPadding + (idx * cellWidth) + (cellWidth / 2)}px ${colLabelPadding - 15}px`
+                  transformOrigin: `${heatmapOffsetX + rowLabelPadding + (idx * cellWidth) + (cellWidth / 2)}px ${heatmapOffsetY + colLabelPadding - 15}px`
                 }}
               >
                 {label}
@@ -385,8 +404,8 @@ export class HeatmapVisualization {
                   )}
                 >
                   <rect
-                    x={rowLabelPadding + (cell.colIdx * cellWidth)}
-                    y={colLabelPadding + (cell.rowIdx * cellHeight)}
+                    x={heatmapOffsetX + rowLabelPadding + (cell.colIdx * cellWidth)}
+                    y={heatmapOffsetY + colLabelPadding + (cell.rowIdx * cellHeight)}
                     width={cellWidth}
                     height={cellHeight}
                     fill={`url(#heatmapGradient-${gradientIndex})`}
@@ -405,8 +424,8 @@ export class HeatmapVisualization {
                   {/* Show values in cells if needed and if there's enough space */}
                   {this.config.showLabels && (
                     <text
-                      x={rowLabelPadding + (cell.colIdx * cellWidth) + (cellWidth / 2)}
-                      y={colLabelPadding + (cell.rowIdx * cellHeight) + (cellHeight / 2)}
+                      x={heatmapOffsetX + rowLabelPadding + (cell.colIdx * cellWidth) + (cellWidth / 2)}
+                      y={heatmapOffsetY + colLabelPadding + (cell.rowIdx * cellHeight) + (cellHeight / 2)}
                       font-size="2.5"
                       text-anchor="middle"
                       dominant-baseline="middle"
