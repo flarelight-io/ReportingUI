@@ -1,7 +1,7 @@
 {
   "inputs": {
-    "dist/esm/kpi-visualization-CFmodqUp.js": {
-      "bytes": 528659,
+    "dist/esm/filter-visualization-CVEhAsjC.js": {
+      "bytes": 554910,
       "imports": [
         {
           "path": "dist/esm/index-CzXqbqd9.js",
@@ -16,18 +16,18 @@
       ],
       "format": "esm"
     },
-    "dist/esm/anderson-darling-normality-test-widget_36.entry.js": {
-      "bytes": 221918,
+    "dist/esm/anderson-darling-normality-test-widget_37.entry.js": {
+      "bytes": 221972,
       "imports": [
         {
-          "path": "dist/esm/kpi-visualization-CFmodqUp.js",
+          "path": "dist/esm/filter-visualization-CVEhAsjC.js",
           "kind": "import-statement",
-          "original": "./kpi-visualization-CFmodqUp.js"
+          "original": "./filter-visualization-CVEhAsjC.js"
         },
         {
-          "path": "dist/esm/kpi-visualization-CFmodqUp.js",
+          "path": "dist/esm/filter-visualization-CVEhAsjC.js",
           "kind": "import-statement",
-          "original": "./kpi-visualization-CFmodqUp.js"
+          "original": "./filter-visualization-CVEhAsjC.js"
         },
         {
           "path": "dist/esm/index-CzXqbqd9.js",
@@ -59,7 +59,7 @@
       "format": "esm"
     },
     "dist/esm/loader.js": {
-      "bytes": 11981,
+      "bytes": 12379,
       "imports": [
         {
           "path": "dist/esm/index-CzXqbqd9.js",
@@ -108,17 +108,17 @@
       "exports": [],
       "entryPoint": "temp-bundle-entry.js",
       "inputs": {
-        "dist/esm/kpi-visualization-CFmodqUp.js": {
-          "bytesInOutput": 489924
+        "dist/esm/filter-visualization-CVEhAsjC.js": {
+          "bytesInOutput": 514710
         },
-        "dist/esm/anderson-darling-normality-test-widget_36.entry.js": {
-          "bytesInOutput": 206507
+        "dist/esm/anderson-darling-normality-test-widget_37.entry.js": {
+          "bytesInOutput": 206566
         },
         "dist/esm/index-CzXqbqd9.js": {
           "bytesInOutput": 96489
         },
         "dist/esm/loader.js": {
-          "bytesInOutput": 10586
+          "bytesInOutput": 10942
         },
         "loader/index.js": {
           "bytesInOutput": 414
@@ -127,7 +127,7 @@
           "bytesInOutput": 4536
         }
       },
-      "bytes": 810681
+      "bytes": 835885
     }
   }
 }
