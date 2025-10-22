@@ -266,6 +266,18 @@ export namespace Components {
         "widgetTitle": string;
         "width"?: number;
     }
+    interface FilterVisualization {
+        /**
+          * @default []
+         */
+        "activeFilters": Filter[];
+        /**
+          * @default "brand"
+         */
+        "colorTheme": ColorTheme;
+        "config": DataWidgetConfig;
+        "data": VisualizationData;
+    }
     interface HeatmapVisualization {
         /**
           * @default "brand"
@@ -766,6 +778,10 @@ export interface CorrelationAnalysisWidgetCustomEvent<T> extends CustomEvent<T> 
     detail: T;
     target: HTMLCorrelationAnalysisWidgetElement;
 }
+export interface FilterVisualizationCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLFilterVisualizationElement;
+}
 export interface HeatmapVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLHeatmapVisualizationElement;
@@ -921,6 +937,23 @@ declare global {
     var HTMLDescriptiveAnalysisWidgetElement: {
         prototype: HTMLDescriptiveAnalysisWidgetElement;
         new (): HTMLDescriptiveAnalysisWidgetElement;
+    };
+    interface HTMLFilterVisualizationElementEventMap {
+        "filterChange": FilterChangeEventDetail;
+    }
+    interface HTMLFilterVisualizationElement extends Components.FilterVisualization, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLFilterVisualizationElementEventMap>(type: K, listener: (this: HTMLFilterVisualizationElement, ev: FilterVisualizationCustomEvent<HTMLFilterVisualizationElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLFilterVisualizationElementEventMap>(type: K, listener: (this: HTMLFilterVisualizationElement, ev: FilterVisualizationCustomEvent<HTMLFilterVisualizationElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLFilterVisualizationElement: {
+        prototype: HTMLFilterVisualizationElement;
+        new (): HTMLFilterVisualizationElement;
     };
     interface HTMLHeatmapVisualizationElementEventMap {
         "filterChange": FilterChangeEventDetail;
@@ -1199,6 +1232,7 @@ declare global {
         "correlation-analysis-widget": HTMLCorrelationAnalysisWidgetElement;
         "data-widget": HTMLDataWidgetElement;
         "descriptive-analysis-widget": HTMLDescriptiveAnalysisWidgetElement;
+        "filter-visualization": HTMLFilterVisualizationElement;
         "heatmap-visualization": HTMLHeatmapVisualizationElement;
         "histogram-chart-visualization": HTMLHistogramChartVisualizationElement;
         "independent-two-sample-hypothesis-test-widget": HTMLIndependentTwoSampleHypothesisTestWidgetElement;
@@ -1446,6 +1480,19 @@ declare namespace LocalJSX {
         "widgetId"?: string;
         "widgetTitle"?: string;
         "width"?: number;
+    }
+    interface FilterVisualization {
+        /**
+          * @default []
+         */
+        "activeFilters"?: Filter[];
+        /**
+          * @default "brand"
+         */
+        "colorTheme"?: ColorTheme;
+        "config"?: DataWidgetConfig;
+        "data"?: VisualizationData;
+        "onFilterChange"?: (event: FilterVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
     interface HeatmapVisualization {
         /**
@@ -1947,6 +1994,7 @@ declare namespace LocalJSX {
         "correlation-analysis-widget": CorrelationAnalysisWidget;
         "data-widget": DataWidget;
         "descriptive-analysis-widget": DescriptiveAnalysisWidget;
+        "filter-visualization": FilterVisualization;
         "heatmap-visualization": HeatmapVisualization;
         "histogram-chart-visualization": HistogramChartVisualization;
         "independent-two-sample-hypothesis-test-widget": IndependentTwoSampleHypothesisTestWidget;
@@ -1989,6 +2037,7 @@ declare module "@stencil/core" {
             "correlation-analysis-widget": LocalJSX.CorrelationAnalysisWidget & JSXBase.HTMLAttributes<HTMLCorrelationAnalysisWidgetElement>;
             "data-widget": LocalJSX.DataWidget & JSXBase.HTMLAttributes<HTMLDataWidgetElement>;
             "descriptive-analysis-widget": LocalJSX.DescriptiveAnalysisWidget & JSXBase.HTMLAttributes<HTMLDescriptiveAnalysisWidgetElement>;
+            "filter-visualization": LocalJSX.FilterVisualization & JSXBase.HTMLAttributes<HTMLFilterVisualizationElement>;
             "heatmap-visualization": LocalJSX.HeatmapVisualization & JSXBase.HTMLAttributes<HTMLHeatmapVisualizationElement>;
             "histogram-chart-visualization": LocalJSX.HistogramChartVisualization & JSXBase.HTMLAttributes<HTMLHistogramChartVisualizationElement>;
             "independent-two-sample-hypothesis-test-widget": LocalJSX.IndependentTwoSampleHypothesisTestWidget & JSXBase.HTMLAttributes<HTMLIndependentTwoSampleHypothesisTestWidgetElement>;

@@ -169,13 +169,79 @@ export class ReportDemo {
         }
       },
       
+      // Filter Visualization
+      {
+        id: 'filter-widget',
+        type: 'data',
+        title: 'Filter Widget',
+        x: 0,
+        y: 8,
+        w: 3,
+        h: 2,
+        config: {
+          sourceId: 'sample-categorical',
+          visualizationType: 'filter',
+          column: 'category',
+          multiSelect: false,
+          placeholder: 'Select category...'
+        }
+      },
+      {
+        id: 'multi-filter-widget',
+        type: 'data',
+        title: 'Multi-Select Filter',
+        x: 3,
+        y: 8,
+        w: 3,
+        h: 2,
+        config: {
+          sourceId: 'sample-categorical',
+          visualizationType: 'filter',
+          column: 'category',
+          multiSelect: true,
+          placeholder: 'Select categories...'
+        }
+      },
+      {
+        id: 'button-filter-widget',
+        type: 'data',
+        title: 'Button Filter (Single)',
+        x: 6,
+        y: 8,
+        w: 3,
+        h: 2,
+        config: {
+          sourceId: 'sample-small-categorical',
+          visualizationType: 'filter',
+          column: 'status',
+          multiSelect: false,
+          placeholder: 'Select status...'
+        }
+      },
+      {
+        id: 'button-multi-filter-widget',
+        type: 'data',
+        title: 'Button Filter (Multi)',
+        x: 9,
+        y: 8,
+        w: 3,
+        h: 2,
+        config: {
+          sourceId: 'sample-small-categorical',
+          visualizationType: 'filter',
+          column: 'status',
+          multiSelect: true,
+          placeholder: 'Select statuses...'
+        }
+      },
+      
       // Section Title: Multi-Series Charts
       {
         id: 'multi-series-charts',
         type: 'text',
         title: '',
         x: 0,
-        y: 8,
+        y: 10,
         w: 12,
         h: 1,
         config: {
@@ -192,7 +258,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Stacked Bar Chart',
         x: 0,
-        y: 9,
+        y: 11,
         w: 3,
         h: 3,
         config: {
@@ -209,7 +275,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Horizontal Stacked Bar',
         x: 3,
-        y: 9,
+        y: 11,
         w: 3,
         h: 3,
         config: {
@@ -226,7 +292,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Clustered Bar Chart',
         x: 6,
-        y: 9,
+        y: 11,
         w: 3,
         h: 3,
         config: {
@@ -243,7 +309,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Horizontal Clustered Bar',
         x: 9,
-        y: 9,
+        y: 11,
         w: 3,
         h: 3,
         config: {
@@ -279,7 +345,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Lollipop Chart',
         x: 0,
-        y: 13,
+        y: 11,
         w: 3,
         h: 3,
         config: {
@@ -296,7 +362,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Horizontal Lollipop Chart',
         x: 3,
-        y: 13,
+        y: 11,
         w: 3,
         h: 3,
         config: {
@@ -313,7 +379,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Histogram',
         x: 6,
-        y: 13,
+        y: 11,
         w: 3,
         h: 3,
         config: {
@@ -329,7 +395,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Heatmap',
         x: 9,
-        y: 13,
+        y: 11,
         w: 3,
         h: 3,
         config: {
@@ -349,7 +415,7 @@ export class ReportDemo {
         type: 'text',
         title: '',
         x: 0,
-        y: 16,
+        y: 12,
         w: 12,
         h: 1,
         config: {
@@ -365,7 +431,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Box and Whisker Plot',
         x: 0,
-        y: 17,
+        y: 11,
         w: 6,
         h: 3,
         config: {
@@ -385,7 +451,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Sunburst Chart',
         x: 6,
-        y: 17,
+        y: 11,
         w: 6,
         h: 3,
         config: {
@@ -405,7 +471,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Bubble Chart',
         x: 0,
-        y: 20,
+        y: 12,
         w: 4,
         h: 3,
         config: {
@@ -425,7 +491,7 @@ export class ReportDemo {
         type: 'descriptiveAnalysis',
         title: 'Descriptive Statistics',
         x: 4,
-        y: 20,
+        y: 12,
         w: 4,
         h: 3,
         config: {
@@ -438,7 +504,7 @@ export class ReportDemo {
         type: 'correlationAnalysis',
         title: 'Correlation Analysis',
         x: 8,
-        y: 20,
+        y: 12,
         w: 4,
         h: 3,
         config: {
@@ -452,7 +518,7 @@ export class ReportDemo {
         type: 'oneSampleHypothesisTest',
         title: 'IQ Analysis',
         x: 0,
-        y: 23,
+        y: 11,
         w: 6,
         h: 5,
         config: {
@@ -465,7 +531,7 @@ export class ReportDemo {
         type: 'independentTwoSampleHypothesisTest',
         title: 'Group Comparison Analysis',
         x: 6,
-        y: 23,
+        y: 11,
         w: 6,
         h: 5,
         config: {
@@ -478,7 +544,7 @@ export class ReportDemo {
         type: 'pairedTwoSampleHypothesisTest',
         title: 'Paired Sample Analysis',
         x: 0,
-        y: 28,
+        y: 12,
         w: 6,
         h: 5,
         config: {
@@ -491,7 +557,7 @@ export class ReportDemo {
         type: 'oneSampleWilcoxonSignedRank',
         title: 'Wilcoxon Signed Rank Test',
         x: 0,
-        y: 28,
+        y: 12,
         w: 6,
         h: 6,
         config: {
@@ -504,7 +570,7 @@ export class ReportDemo {
         type: 'pairedTwoSampleWilcoxonSignedRank',
         title: 'Paired Two Sample Wilcoxon Signed Rank Test',
         x: 0,
-        y: 40,
+        y: 22,
         w: 6,
         h: 7,
         config: {
@@ -517,7 +583,7 @@ export class ReportDemo {
         type: 'welchTwoSampleHypothesisTest',
         title: 'Welch\'s Two Sample Analysis',
         x: 6,
-        y: 28,
+        y: 12,
         w: 6,
         h: 6,
         config: {
@@ -530,7 +596,7 @@ export class ReportDemo {
         type: 'OneWayANOVA',
         title: 'One-Way ANOVA Analysis',
         x: 0,
-        y: 34,
+        y: 16,
         w: 6,
         h: 6,
         config: {
@@ -543,7 +609,7 @@ export class ReportDemo {
         type: 'WelchANOVA',
         title: 'Welch\'s ANOVA Analysis',
         x: 6,
-        y: 34,
+        y: 16,
         w: 6,
         h: 5,
         config: {
@@ -556,7 +622,7 @@ export class ReportDemo {
         type: 'mannWhitneyUTest',
         title: 'Mann-Whitney U Test Analysis',
         x: 6,
-        y: 40,
+        y: 22,
         w: 6,
         h: 7,
         config: {
@@ -569,7 +635,7 @@ export class ReportDemo {
         type: 'kruskalWallisTest',
         title: 'Kruskal-Wallis Test Analysis',
         x: 0,
-        y: 47,
+        y: 29,
         w: 6,
         h: 6,
         config: {
@@ -582,7 +648,7 @@ export class ReportDemo {
         type: 'shapiroWilkTest',
         title: 'Shapiro-Wilk Test Analysis',
         x: 6,
-        y: 47,
+        y: 29,
         w: 6,
         h: 6,
         config: {
@@ -595,7 +661,7 @@ export class ReportDemo {
         type: 'kolmogorovSmirnovNormalityTest',
         title: 'Kolmogorov-Smirnov Normality Test Analysis',
         x: 0,
-        y: 53,
+        y: 35,
         w: 6,
         h: 6,
         config: {
@@ -608,7 +674,7 @@ export class ReportDemo {
         type: 'andersonDarlingNormalityTest',
         title: 'Anderson-Darling Normality Test Analysis',
         x: 6,
-        y: 53,
+        y: 35,
         w: 6,
         h: 6,
         config: {
@@ -621,7 +687,7 @@ export class ReportDemo {
         type: 'boxWhiskerNormalityPlot',
         title: 'Box-Whisker Normality Plot',
         x: 0,
-        y: 59,
+        y: 41,
         w: 6,
         h: 6,
         config: {
@@ -640,7 +706,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Basic KPI',
         x: 6,
-        y: 59,
+        y: 41,
         w: 2,
         h: 2,
         config: {
@@ -656,7 +722,7 @@ export class ReportDemo {
         type: 'data',
         title: 'KPI with Trend',
         x: 8,
-        y: 59,
+        y: 41,
         w: 2,
         h: 2,
         config: {
@@ -674,7 +740,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Percentage KPI',
         x: 10,
-        y: 59,
+        y: 41,
         w: 2,
         h: 2,
         config: {
@@ -690,7 +756,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Custom Format KPI',
         x: 6,
-        y: 61,
+        y: 43,
         w: 3,
         h: 2,
         config: {
@@ -707,7 +773,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Currency KPI',
         x: 9,
-        y: 61,
+        y: 43,
         w: 3,
         h: 2,
         config: {
@@ -727,6 +793,15 @@ export class ReportDemo {
         fields: [
           { name: 'category', displayName: 'Category', type: 'string' },
           { name: 'value', displayName: 'Value', type: 'number' }
+        ]
+      },
+      {
+        id: 'sample-small-categorical',
+        name: 'Small Categorical Data',
+        type: 'mock',
+        fields: [
+          { name: 'status', displayName: 'Status', type: 'string' },
+          { name: 'count', displayName: 'Count', type: 'number' }
         ]
       },
       {
@@ -1338,6 +1413,12 @@ export class ReportDemo {
   private fetchChartData = async (request: any) => {    
     if (DEBUG_MODE) console.log('Fetch chart data request:', request);
     
+    // Special handling for filter visualizations - always return unfiltered data
+    if (request.widgetType === 'filter') {
+      if (DEBUG_MODE) console.log('Filter visualization detected, returning unfiltered base data');
+      return this.getBaseData(request.sourceId);
+    }
+    
     // Check if this is a filtered request
     const isFilteredRequest = request.filters && request.filters.length > 0;
     
@@ -1568,6 +1649,14 @@ export class ReportDemo {
           { category: 'Media & Entertainment Content Platforms', value: 82 },
           { category: 'Automotive & Smart Vehicle Technologies', value: 178 },
           { category: 'Agriculture & Smart Farming Solutions', value: 94 }
+        ];
+        
+      case 'sample-small-categorical':
+        return [
+          { status: 'Active', count: 45 },
+          { status: 'Inactive', count: 23 },
+          { status: 'Pending', count: 12 },
+          { status: 'Completed', count: 67 }
         ];
         
       case 'sample-time-series':

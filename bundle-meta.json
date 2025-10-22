@@ -1,12 +1,12 @@
 {
   "inputs": {
-    "dist/esm/kpi-visualization-BoVNHFTt.js": {
-      "bytes": 521486,
+    "dist/esm/kpi-visualization-CFmodqUp.js": {
+      "bytes": 528659,
       "imports": [
         {
-          "path": "dist/esm/index-BuUlUqp-.js",
+          "path": "dist/esm/index-CzXqbqd9.js",
           "kind": "import-statement",
-          "original": "./index-BuUlUqp-.js"
+          "original": "./index-CzXqbqd9.js"
         },
         {
           "path": "<runtime>",
@@ -17,22 +17,22 @@
       "format": "esm"
     },
     "dist/esm/anderson-darling-normality-test-widget_36.entry.js": {
-      "bytes": 221424,
+      "bytes": 221918,
       "imports": [
         {
-          "path": "dist/esm/kpi-visualization-BoVNHFTt.js",
+          "path": "dist/esm/kpi-visualization-CFmodqUp.js",
           "kind": "import-statement",
-          "original": "./kpi-visualization-BoVNHFTt.js"
+          "original": "./kpi-visualization-CFmodqUp.js"
         },
         {
-          "path": "dist/esm/kpi-visualization-BoVNHFTt.js",
+          "path": "dist/esm/kpi-visualization-CFmodqUp.js",
           "kind": "import-statement",
-          "original": "./kpi-visualization-BoVNHFTt.js"
+          "original": "./kpi-visualization-CFmodqUp.js"
         },
         {
-          "path": "dist/esm/index-BuUlUqp-.js",
+          "path": "dist/esm/index-CzXqbqd9.js",
           "kind": "import-statement",
-          "original": "./index-BuUlUqp-.js"
+          "original": "./index-CzXqbqd9.js"
         },
         {
           "path": "<runtime>",
@@ -42,8 +42,8 @@
       ],
       "format": "esm"
     },
-    "dist/esm/index-BuUlUqp-.js": {
-      "bytes": 74931,
+    "dist/esm/index-CzXqbqd9.js": {
+      "bytes": 84581,
       "imports": [
         {
           "path": "<runtime>",
@@ -58,28 +58,18 @@
       ],
       "format": "esm"
     },
-    "dist/esm/app-globals-DQuL1Twl.js": {
-      "bytes": 162,
-      "imports": [],
-      "format": "esm"
-    },
     "dist/esm/loader.js": {
-      "bytes": 12362,
+      "bytes": 11981,
       "imports": [
         {
-          "path": "dist/esm/index-BuUlUqp-.js",
+          "path": "dist/esm/index-CzXqbqd9.js",
           "kind": "import-statement",
-          "original": "./index-BuUlUqp-.js"
+          "original": "./index-CzXqbqd9.js"
         },
         {
-          "path": "dist/esm/index-BuUlUqp-.js",
+          "path": "dist/esm/index-CzXqbqd9.js",
           "kind": "import-statement",
-          "original": "./index-BuUlUqp-.js"
-        },
-        {
-          "path": "dist/esm/app-globals-DQuL1Twl.js",
-          "kind": "import-statement",
-          "original": "./app-globals-DQuL1Twl.js"
+          "original": "./index-CzXqbqd9.js"
         }
       ],
       "format": "esm"
@@ -96,7 +86,7 @@
       "format": "esm"
     },
     "temp-bundle-entry.js": {
-      "bytes": 5141,
+      "bytes": 5129,
       "imports": [
         {
           "path": "loader/index.js",
@@ -118,29 +108,26 @@
       "exports": [],
       "entryPoint": "temp-bundle-entry.js",
       "inputs": {
-        "dist/esm/kpi-visualization-BoVNHFTt.js": {
-          "bytesInOutput": 483658
+        "dist/esm/kpi-visualization-CFmodqUp.js": {
+          "bytesInOutput": 489924
         },
         "dist/esm/anderson-darling-normality-test-widget_36.entry.js": {
-          "bytesInOutput": 206065
+          "bytesInOutput": 206507
         },
-        "dist/esm/index-BuUlUqp-.js": {
-          "bytesInOutput": 86239
+        "dist/esm/index-CzXqbqd9.js": {
+          "bytesInOutput": 96489
         },
         "dist/esm/loader.js": {
-          "bytesInOutput": 10852
-        },
-        "dist/esm/app-globals-DQuL1Twl.js": {
-          "bytesInOutput": 35
+          "bytesInOutput": 10586
         },
         "loader/index.js": {
           "bytesInOutput": 414
         },
         "temp-bundle-entry.js": {
-          "bytesInOutput": 4548
+          "bytesInOutput": 4536
         }
       },
-      "bytes": 794100
+      "bytes": 810681
     }
   }
 }

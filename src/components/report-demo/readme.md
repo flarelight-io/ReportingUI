@@ -52,6 +52,7 @@ graph TD;
   data-widget --> sunburst-chart-visualization
   data-widget --> bubble-chart-visualization
   data-widget --> box-whisker-chart-visualization
+  data-widget --> filter-visualization
   data-widget --> base-widget
   correlation-analysis-widget --> base-widget
   one-sample-hypothesis-test-widget --> base-widget

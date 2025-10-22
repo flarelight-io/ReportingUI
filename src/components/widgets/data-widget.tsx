@@ -10,7 +10,7 @@ const DEBUG_MODE = false; // Set to true to enable verbose logging
 interface BaseDataWidgetConfig {
   sourceId?: string;
   sourceName?: string;
-  visualizationType?: 'table' | 'bar' | 'line' | 'pie' | 'donut' | 'hbar' | 'scatter' | 'sunburst' | 'heatmap' | 'bubble' | 'kpi' | 'histogram' | 'stacked-bar' | 'stacked-hbar' | 'clustered-bar' | 'clustered-hbar' | 'lollipop' | 'lollipop-h' | 'box-whisker'; // This is the discriminator - must be present
+  visualizationType?: 'table' | 'bar' | 'line' | 'pie' | 'donut' | 'hbar' | 'scatter' | 'sunburst' | 'heatmap' | 'bubble' | 'kpi' | 'histogram' | 'stacked-bar' | 'stacked-hbar' | 'clustered-bar' | 'clustered-hbar' | 'lollipop' | 'lollipop-h' | 'box-whisker' | 'filter'; // This is the discriminator - must be present
   hideTitle?: boolean;
   showLabels?: boolean;
   showGrid?: boolean;
@@ -211,6 +211,14 @@ export interface LollipopHChartConfig extends BaseDataWidgetConfig {
   fields?: string[];
 }
 
+// Filter visualization specific configuration
+export interface FilterVisualizationConfig extends BaseDataWidgetConfig {
+  visualizationType: 'filter';
+  column: string;
+  multiSelect?: boolean;
+  placeholder?: string;
+}
+
 // Union type for all data widget configurations
 export type DataWidgetConfig = 
   | TableConfig
@@ -231,7 +239,8 @@ export type DataWidgetConfig =
   | ClusteredHBarChartConfig
   | LollipopChartConfig
   | LollipopHChartConfig
-  | BoxWhiskerChartConfig;
+  | BoxWhiskerChartConfig
+  | FilterVisualizationConfig;
 
 @Component({
   tag: 'data-widget',
@@ -436,14 +445,17 @@ export class DataWidget {
     this.loading = true;
     
     try {
-      // Get filters for this source
-      const sourceFilters = this.activeFilters.filter(f => f.sourceId === sourceId);
+      // For filter visualizations, don't apply filters so all values are available for selection
+      const sourceFilters = visualizationType === 'filter' ? [] : this.activeFilters.filter(f => f.sourceId === sourceId);
       if (DEBUG_MODE) console.log('Fetching data with filters:', sourceFilters);
       
       // Create a cache key for this specific request
-      const filterKey = sourceFilters.length > 0 ? 
-        JSON.stringify(sourceFilters.map(f => `${f.field}:${f.value}`).sort()) : 
-        'nofilters';
+      // For filter visualizations, always use a unique cache key to ensure fresh data
+      const filterKey = visualizationType === 'filter' ? 
+        `filter-${this.widgetId}-${now}` : 
+        (sourceFilters.length > 0 ? 
+          JSON.stringify(sourceFilters.map(f => `${f.field}:${f.value}`).sort()) : 
+          'nofilters');
       
       // Create chart data request with timestamp to bust cache
       const request: any = {
@@ -512,6 +524,10 @@ export class DataWidget {
             { fieldName: yField }
           ];
         }
+      } else if (visualizationType === 'filter') {
+        // For filter visualizations, we don't need specific value fields
+        // We just need the raw data to extract unique values from the specified column
+        request.valueFields = [];
       } else {
         // For standard charts, use single value field
         if (valueField) {
@@ -689,6 +705,16 @@ export class DataWidget {
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
+          />
+        );
+      
+      case 'filter':
+        return (
+          <filter-visualization 
+            config={this.config} 
+            data={visualizationData}
+            colorTheme={effectiveColorTheme}
+            activeFilters={this.activeFilters}
           />
         );
       

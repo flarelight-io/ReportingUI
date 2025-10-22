@@ -65,3 +65,4 @@ export { BarChartVisualization } from './components/widgets/visualizations/bar-c
 export { PieChartVisualization } from './components/widgets/visualizations/pie-chart-visualization';
 export { LineChartVisualization } from './components/widgets/visualizations/line-chart-visualization';
 export { KpiVisualization } from './components/widgets/visualizations/kpi-visualization';
+export { FilterVisualization } from './components/widgets/visualizations/filter-visualization';
