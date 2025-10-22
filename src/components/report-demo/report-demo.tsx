@@ -328,7 +328,7 @@ export class ReportDemo {
         type: 'text',
         title: '',
         x: 0,
-        y: 12,
+        y: 14,
         w: 12,
         h: 1,
         config: {
@@ -345,7 +345,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Lollipop Chart',
         x: 0,
-        y: 11,
+        y: 15,
         w: 3,
         h: 3,
         config: {
@@ -362,7 +362,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Horizontal Lollipop Chart',
         x: 3,
-        y: 11,
+        y: 15,
         w: 3,
         h: 3,
         config: {
@@ -379,7 +379,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Histogram',
         x: 6,
-        y: 11,
+        y: 15,
         w: 3,
         h: 3,
         config: {
@@ -395,7 +395,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Heatmap',
         x: 9,
-        y: 11,
+        y: 15,
         w: 3,
         h: 3,
         config: {
@@ -415,7 +415,7 @@ export class ReportDemo {
         type: 'text',
         title: '',
         x: 0,
-        y: 12,
+        y: 18,
         w: 12,
         h: 1,
         config: {
@@ -431,7 +431,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Box and Whisker Plot',
         x: 0,
-        y: 11,
+        y: 19,
         w: 6,
         h: 3,
         config: {
@@ -451,7 +451,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Sunburst Chart',
         x: 6,
-        y: 11,
+        y: 19,
         w: 6,
         h: 3,
         config: {
@@ -471,7 +471,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Bubble Chart',
         x: 0,
-        y: 12,
+        y: 22,
         w: 4,
         h: 3,
         config: {
@@ -491,7 +491,7 @@ export class ReportDemo {
         type: 'descriptiveAnalysis',
         title: 'Descriptive Statistics',
         x: 4,
-        y: 12,
+        y: 22,
         w: 4,
         h: 3,
         config: {
@@ -504,7 +504,7 @@ export class ReportDemo {
         type: 'correlationAnalysis',
         title: 'Correlation Analysis',
         x: 8,
-        y: 12,
+        y: 22,
         w: 4,
         h: 3,
         config: {
@@ -518,7 +518,7 @@ export class ReportDemo {
         type: 'oneSampleHypothesisTest',
         title: 'IQ Analysis',
         x: 0,
-        y: 11,
+        y: 25,
         w: 6,
         h: 5,
         config: {
@@ -531,7 +531,7 @@ export class ReportDemo {
         type: 'independentTwoSampleHypothesisTest',
         title: 'Group Comparison Analysis',
         x: 6,
-        y: 11,
+        y: 25,
         w: 6,
         h: 5,
         config: {
@@ -544,9 +544,9 @@ export class ReportDemo {
         type: 'pairedTwoSampleHypothesisTest',
         title: 'Paired Sample Analysis',
         x: 0,
-        y: 12,
+        y: 30,
         w: 6,
-        h: 5,
+        h: 6,
         config: {
           analysisId: 'sample-paired-two-sample-hypothesis-test',
           analysisName: 'Paired Sample Analysis'
@@ -556,8 +556,8 @@ export class ReportDemo {
         id: 'one-sample-wilcoxon-signed-rank',
         type: 'oneSampleWilcoxonSignedRank',
         title: 'Wilcoxon Signed Rank Test',
-        x: 0,
-        y: 12,
+        x: 6,
+        y: 30,
         w: 6,
         h: 6,
         config: {
@@ -570,7 +570,7 @@ export class ReportDemo {
         type: 'pairedTwoSampleWilcoxonSignedRank',
         title: 'Paired Two Sample Wilcoxon Signed Rank Test',
         x: 0,
-        y: 22,
+        y: 36,
         w: 6,
         h: 7,
         config: {
@@ -583,9 +583,9 @@ export class ReportDemo {
         type: 'welchTwoSampleHypothesisTest',
         title: 'Welch\'s Two Sample Analysis',
         x: 6,
-        y: 12,
+        y: 36,
         w: 6,
-        h: 6,
+        h: 7,
         config: {
           analysisId: 'sample-welch-two-sample-hypothesis-test',
           analysisName: 'Welch\'s Two Sample Analysis'
@@ -596,7 +596,7 @@ export class ReportDemo {
         type: 'OneWayANOVA',
         title: 'One-Way ANOVA Analysis',
         x: 0,
-        y: 16,
+        y: 43,
         w: 6,
         h: 6,
         config: {
@@ -609,9 +609,9 @@ export class ReportDemo {
         type: 'WelchANOVA',
         title: 'Welch\'s ANOVA Analysis',
         x: 6,
-        y: 16,
+        y: 43,
         w: 6,
-        h: 5,
+        h: 6,
         config: {
           analysisId: 'sample-welch-anova',
           analysisName: 'Welch&apos;s ANOVA Analysis'
@@ -621,8 +621,8 @@ export class ReportDemo {
         id: 'mann-whitney-u-test',
         type: 'mannWhitneyUTest',
         title: 'Mann-Whitney U Test Analysis',
-        x: 6,
-        y: 22,
+        x: 0,
+        y: 49,
         w: 6,
         h: 7,
         config: {
@@ -634,10 +634,10 @@ export class ReportDemo {
         id: 'kruskal-wallis-test',
         type: 'kruskalWallisTest',
         title: 'Kruskal-Wallis Test Analysis',
-        x: 0,
-        y: 29,
+        x: 6,
+        y: 49,
         w: 6,
-        h: 6,
+        h: 7,
         config: {
           analysisId: 'sample-kruskal-wallis-test',
           analysisName: 'Kruskal-Wallis Test Analysis'
@@ -647,8 +647,8 @@ export class ReportDemo {
         id: 'shapiro-wilk-test',
         type: 'shapiroWilkTest',
         title: 'Shapiro-Wilk Test Analysis',
-        x: 6,
-        y: 29,
+        x: 0,
+        y: 56,
         w: 6,
         h: 6,
         config: {
@@ -660,8 +660,8 @@ export class ReportDemo {
         id: 'kolmogorov-smirnov-normality-test',
         type: 'kolmogorovSmirnovNormalityTest',
         title: 'Kolmogorov-Smirnov Normality Test Analysis',
-        x: 0,
-        y: 35,
+        x: 6,
+        y: 56,
         w: 6,
         h: 6,
         config: {
@@ -673,8 +673,8 @@ export class ReportDemo {
         id: 'anderson-darling-normality-test',
         type: 'andersonDarlingNormalityTest',
         title: 'Anderson-Darling Normality Test Analysis',
-        x: 6,
-        y: 35,
+        x: 0,
+        y: 62,
         w: 6,
         h: 6,
         config: {
@@ -686,8 +686,8 @@ export class ReportDemo {
         id: 'box-whisker-normality-plot',
         type: 'boxWhiskerNormalityPlot',
         title: 'Box-Whisker Normality Plot',
-        x: 0,
-        y: 41,
+        x: 6,
+        y: 62,
         w: 6,
         h: 6,
         config: {
@@ -705,8 +705,8 @@ export class ReportDemo {
         id: 'kpi-basic',
         type: 'data',
         title: 'Basic KPI',
-        x: 6,
-        y: 41,
+        x: 0,
+        y: 68,
         w: 2,
         h: 2,
         config: {
@@ -721,8 +721,8 @@ export class ReportDemo {
         id: 'kpi-with-trend',
         type: 'data',
         title: 'KPI with Trend',
-        x: 8,
-        y: 41,
+        x: 2,
+        y: 68,
         w: 2,
         h: 2,
         config: {
@@ -739,8 +739,8 @@ export class ReportDemo {
         id: 'kpi-percentage',
         type: 'data',
         title: 'Percentage KPI',
-        x: 10,
-        y: 41,
+        x: 4,
+        y: 68,
         w: 2,
         h: 2,
         config: {
@@ -756,7 +756,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Custom Format KPI',
         x: 6,
-        y: 43,
+        y: 68,
         w: 3,
         h: 2,
         config: {
@@ -773,7 +773,7 @@ export class ReportDemo {
         type: 'data',
         title: 'Currency KPI',
         x: 9,
-        y: 43,
+        y: 68,
         w: 3,
         h: 2,
         config: {
