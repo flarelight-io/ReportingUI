@@ -1,10 +1,7 @@
-import { Component, Prop, h, Host, Element } from '@stencil/core';
-import { DataSource } from '../../api/types/common';
+import { Component, Prop, h, Host, State, Watch, Element } from '@stencil/core';
 
 export interface SourceInfoWidgetConfig {
-  sourceId?: string;
   hideTitle?: boolean;
-  showFieldList?: boolean;
 }
 
 @Component({
@@ -17,22 +14,39 @@ export class SourceInfoWidget {
   
   @Prop() widgetId: string;
   @Prop() widgetTitle: string;
+  @Prop() reportId?: string;
   @Prop() width?: number;
   @Prop() height?: number;
   @Prop() readOnly: boolean = false;
   @Prop() isInEditor: boolean = false;
-  @Prop() config: SourceInfoWidgetConfig = { 
-    sourceId: '',
-    hideTitle: false,
-    showFieldList: true 
-  };
-  @Prop() availableSources: DataSource[] = [];
+  @Prop() isViewer?: boolean;
+  @Prop() fetchChartData?: (config: any) => Promise<any>;
+  @Prop() data?: any;
+  @Prop() config: SourceInfoWidgetConfig = {};
+  
+  @State() loading: boolean = false;
+  @State() sourceInfoData: any[] = [];
   
   componentWillLoad() {
+    // If we already have data from props, use it
+    if (this.data) {
+      this.sourceInfoData = this.data;
+      this.loading = false;
+    } else {
+      this.loading = false;
+    }
+    
+    // Listen for data updates
+    this.el.addEventListener('dataUpdate', (event: CustomEvent) => {
+      if (event.detail) {
+        this.sourceInfoData = event.detail;
+        this.loading = false;
+      }
+    });
+    
     // Listen for config updates
     this.el.addEventListener('configUpdate', (event: CustomEvent) => {
       if (event.detail) {
-        // Update config with the received values
         this.config = {
           ...this.config,
           ...event.detail
@@ -41,59 +55,76 @@ export class SourceInfoWidget {
     });
   }
   
+  @Watch('config')
+  configChanged(newConfig: SourceInfoWidgetConfig) {
+    this.config = newConfig;
+  }
+  
+  @Watch('data')
+  dataChanged(newData: any) {
+    if (newData) {
+      this.sourceInfoData = newData;
+      this.loading = false;
+    }
+  }
+  
   disconnectedCallback() {
     // Clean up event listeners
+    this.el.removeEventListener('dataUpdate', null);
     this.el.removeEventListener('configUpdate', null);
   }
-
-
+  
   render() {
-    // Find the selected source from available sources
-    const selectedSource = this.availableSources.find(source => source.id === this.config.sourceId);
+    if (this.loading) {
+      return (
+        <Host>
+          <base-widget
+            widgetId={this.widgetId}
+            widgetTitle={this.widgetTitle || "Source Information"}
+            width={this.width}
+            height={this.height}
+            readOnly={this.readOnly}
+            isInEditor={this.isInEditor}
+            hideTitle={this.config.hideTitle || false}
+          >
+            <div class="loading-spinner">Loading...</div>
+          </base-widget>
+        </Host>
+      );
+    }
 
+    // Render a DataWidget with table visualization for all sources
     return (
       <Host>
-        <base-widget
+        <data-widget
           widgetId={this.widgetId}
-          widgetTitle={this.widgetTitle}
+          widgetTitle={this.widgetTitle || "Source Information"}
+          reportId={this.reportId}
           width={this.width}
           height={this.height}
           readOnly={this.readOnly}
+          isViewer={this.isViewer}
           isInEditor={this.isInEditor}
-          hideTitle={this.config.hideTitle}
-        >
-          <div class="source-info-widget">
-            {selectedSource ? (
-              <div class="source-content">
-                <h3 class="source-name">{selectedSource.name}</h3>
-                
-                {selectedSource.description && (
-                  <p class="source-description">{selectedSource.description}</p>
-                )}
-                
-                {this.config.showFieldList && selectedSource.fields && selectedSource.fields.length > 0 && (
-                  <div class="fields-container">
-                    <h4 class="fields-title">Fields:</h4>
-                    <ul class="fields-list">
-                      {selectedSource.fields.map(field => (
-                        <li class="field-item" key={field.name}>
-                          <span class="field-name">{field.displayName || field.name}</span>
-                          {field.description && (
-                            <span class="field-description">{field.description}</span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div class="empty-state">
-                <p>No data source selected</p>
-              </div>
-            )}
-          </div>
-        </base-widget>
+          fetchChartData={this.fetchChartData}
+          data={this.sourceInfoData}
+          availableSources={[{
+            id: '00000000-0000-0000-0000-000000000000',
+            name: "All Sources",
+            alias: "Sources",
+            type: 'Sources'
+          }]}
+          config={{
+            sourceId: '00000000-0000-0000-0000-000000000000',
+            visualizationType: 'table',
+            columns: [
+              { field: 'Name', header: 'Name' },
+              { field: 'SourceType', header: 'Source Type' },
+              { field: 'CreatedDate', header: 'Created Date' }
+            ],
+            hideTitle: this.config.hideTitle
+          }}
+          activeFilters={[]}
+        ></data-widget>
       </Host>
     );
   }

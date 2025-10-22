@@ -783,7 +783,19 @@ export class ReportDemo {
           prefix: '$',
           format: '##,##.##'
         }
-      }
+      },
+        {
+          id: 'source-info-widget',
+          type: 'sourceInfo',
+          title: 'Report Information',
+          x: 0,
+          y: 70,
+          w: 6,
+          h: 2,
+          config: {
+            hideTitle: false
+          }
+        }
     ],
     sources: [
       {
@@ -1413,6 +1425,13 @@ export class ReportDemo {
   private fetchChartData = async (request: any) => {    
     if (DEBUG_MODE) console.log('Fetch chart data request:', request);
     
+    // Special handling for source info widget - return data for all sources when SourceType = Sources
+    if (request.sourceId === '00000000-0000-0000-0000-000000000000' || 
+        (request.sourceType && request.sourceType === 'Sources')) {
+      if (DEBUG_MODE) console.log('Source info widget detected, returning all sources data');
+      return this.getAllSourcesData();
+    }
+    
     // Special handling for filter visualizations - always return unfiltered data
     if (request.widgetType === 'filter') {
       if (DEBUG_MODE) console.log('Filter visualization detected, returning unfiltered base data');
@@ -1629,6 +1648,23 @@ export class ReportDemo {
     });
   }
   
+  private getAllSourcesData() {
+    // Return information about all sources configured in the report
+    return this.demoConfiguration.sources.map(source => ({
+      Name: source.name,
+      SourceType: source.type === 'mock' ? 'DataImport' : source.type === 'analysis' ? 'Analysis' : 'DataImport',
+      CreatedDate: this.generateRandomDate()
+    }));
+  }
+
+  private generateRandomDate() {
+    // Generate a random date within the last year
+    const now = new Date();
+    const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+    const randomTime = oneYearAgo.getTime() + Math.random() * (now.getTime() - oneYearAgo.getTime());
+    return new Date(randomTime).toISOString();
+  }
+
   private getBaseData(sourceId: string) {
     // Mock data based on the source ID or chart type
     switch (sourceId) {

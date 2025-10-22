@@ -364,19 +364,10 @@
       "type": "object",
       "description": "Configuration for source info widgets",
       "properties": {
-        "sourceId": {
-          "type": "string",
-          "description": "ID of the data source to display information for"
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
           "default": false
-        },
-        "showFieldList": {
-          "type": "boolean",
-          "description": "Whether to show the list of fields",
-          "default": true
         }
       }
     },

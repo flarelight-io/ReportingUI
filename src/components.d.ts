@@ -12,7 +12,7 @@ import { ColorTheme } from "./utils/chart-theme";
 import { BoxWhiskerNormalityPlotWidgetConfig } from "./components/widgets/box-whisker-normality-plot-widget";
 import { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlation-analysis-widget";
 import { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data-widget";
-import { DataSource, Filter } from "./api/types/common";
+import { Filter } from "./api/types/common";
 import { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
 import { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/independent-two-sample-hypothesis-test-widget";
 import { KolmogorovSmirnovNormalityTestWidgetConfig } from "./components/widgets/kolmogorov-smirnov-normality-test-widget";
@@ -35,7 +35,7 @@ export { ColorTheme } from "./utils/chart-theme";
 export { BoxWhiskerNormalityPlotWidgetConfig } from "./components/widgets/box-whisker-normality-plot-widget";
 export { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlation-analysis-widget";
 export { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data-widget";
-export { DataSource, Filter } from "./api/types/common";
+export { Filter } from "./api/types/common";
 export { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
 export { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/independent-two-sample-hypothesis-test-widget";
 export { KolmogorovSmirnovNormalityTestWidgetConfig } from "./components/widgets/kolmogorov-smirnov-normality-test-widget";
@@ -639,22 +639,22 @@ export namespace Components {
     }
     interface SourceInfoWidget {
         /**
-          * @default []
-         */
-        "availableSources": DataSource[];
-        /**
-          * @default {      sourceId: '',     hideTitle: false,     showFieldList: true    }
+          * @default {}
          */
         "config": SourceInfoWidgetConfig;
+        "data"?: any;
+        "fetchChartData"?: (config: any) => Promise<any>;
         "height"?: number;
         /**
           * @default false
          */
         "isInEditor": boolean;
+        "isViewer"?: boolean;
         /**
           * @default false
          */
         "readOnly": boolean;
+        "reportId"?: string;
         "widgetId": string;
         "widgetTitle": string;
         "width"?: number;
@@ -1862,22 +1862,22 @@ declare namespace LocalJSX {
     }
     interface SourceInfoWidget {
         /**
-          * @default []
-         */
-        "availableSources"?: DataSource[];
-        /**
-          * @default {      sourceId: '',     hideTitle: false,     showFieldList: true    }
+          * @default {}
          */
         "config"?: SourceInfoWidgetConfig;
+        "data"?: any;
+        "fetchChartData"?: (config: any) => Promise<any>;
         "height"?: number;
         /**
           * @default false
          */
         "isInEditor"?: boolean;
+        "isViewer"?: boolean;
         /**
           * @default false
          */
         "readOnly"?: boolean;
+        "reportId"?: string;
         "widgetId"?: string;
         "widgetTitle"?: string;
         "width"?: number;

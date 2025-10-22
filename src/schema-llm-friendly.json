@@ -100,11 +100,8 @@
     "SourceInfoConfig": {
       "type": "object",
       "properties": {
-        "sourceId": {"type": "string"},
-        "hideTitle": {"type": "boolean", "default": false},
-        "showFieldList": {"type": "boolean", "default": true}
-      },
-      "required": ["sourceId"]
+        "hideTitle": {"type": "boolean", "default": false}
+      }
     },
     "AnalysisConfig": {
       "type": "object",
@@ -291,6 +288,15 @@
         "multiSelect": false,
         "placeholder": "Choose a product..."
       }
+    },
+    "sourceInfoWidget": {
+      "id": "sourceinfo1",
+      "type": "sourceInfo",
+      "title": "Report Information",
+      "x": 0, "y": 17, "w": 6, "h": 2,
+      "config": {
+        "hideTitle": false
+      }
     }
   },
   "visualizationRequirements": {
@@ -313,6 +319,7 @@
     "lollipop": "Requires: groupByField + valueField + aggregation",
     "lollipop-h": "Requires: groupByField + valueField + aggregation",
     "box-whisker": "Requires: groupByField (optional)",
-    "filter": "Requires: valueField"
+    "filter": "Requires: valueField",
+    "sourceInfo": "No configuration required - displays report information"
   }
 }

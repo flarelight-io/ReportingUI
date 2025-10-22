@@ -509,26 +509,47 @@ export class ReportViewer {
         // Set properties directly
         (element as any).widgetId = widget.id;
         (element as any).widgetTitle = widget.title || '';
+        (element as any).reportId = this.reportId || '';
         (element as any).readOnly = true;
         (element as any).isInEditor = false;
+        (element as any).isViewer = this.isViewer;
         
         // Set config as direct property
         const sourceInfoConfig = widget.config || {};
         (element as any).config = sourceInfoConfig;
         
-        // Set available sources as direct property
-        (element as any).availableSources = this.dataSources || [];
-        
-        // Dispatch a config update event
-        setTimeout(() => {
-          if (element.isConnected) {
-            const configEvent = new CustomEvent('configUpdate', {
-              detail: sourceInfoConfig,
-              bubbles: false
-            });
-            element.dispatchEvent(configEvent);
-          }
-        }, 100);
+        // Directly pass pre-fetched data to the component
+        if (widgetDataCache) {
+          // Set data directly
+          (element as any).data = widgetDataCache;
+          
+          // We also need to pass a dummy fetchChartData function
+          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
+          
+          // Dispatch custom events for data update
+          setTimeout(() => {
+            if (element.isConnected) {
+              // Data update event
+              const dataEvent = new CustomEvent('dataUpdate', {
+                detail: widgetDataCache,
+                bubbles: false
+              });
+              element.dispatchEvent(dataEvent);
+              
+              // Config update event
+              const configEvent = new CustomEvent('configUpdate', {
+                detail: sourceInfoConfig,
+                bubbles: false
+              });
+              element.dispatchEvent(configEvent);
+            }
+          }, 100);
+        } else if (this.fetchChartData) {
+          // If data is still loading, set loading state
+          (element as any).loading = dataIsLoading;
+          // Pass real function for future updates
+          (element as any).fetchChartData = this.fetchChartData;
+        }
         break;
         
       case 'descriptiveAnalysis':

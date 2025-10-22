@@ -36,8 +36,7 @@ graph TD;
   report-viewer --> data-widget
   text-widget --> base-widget
   source-info-widget --> base-widget
-  descriptive-analysis-widget --> base-widget
-  descriptive-analysis-widget --> data-widget
+  source-info-widget --> data-widget
   data-widget --> table-visualization
   data-widget --> bar-chart-visualization
   data-widget --> stacked-bar-chart-visualization
@@ -54,6 +53,8 @@ graph TD;
   data-widget --> box-whisker-chart-visualization
   data-widget --> filter-visualization
   data-widget --> base-widget
+  descriptive-analysis-widget --> base-widget
+  descriptive-analysis-widget --> data-widget
   correlation-analysis-widget --> base-widget
   one-sample-hypothesis-test-widget --> base-widget
   one-sample-wilcoxon-signed-rank-widget --> base-widget
