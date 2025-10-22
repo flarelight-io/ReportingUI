@@ -264,7 +264,7 @@ export class FilterVisualization {
 
     const valueField = 'valueField' in this.config ? this.config.valueField : '';
     const multiSelect = 'multiSelect' in this.config ? this.config.multiSelect : false;
-    const showButtons = this.uniqueValues.length < 6;
+    const showButtons = this.uniqueValues.length < 7;
 
     return (
       <div class="filter-container">
