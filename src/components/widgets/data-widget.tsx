@@ -524,10 +524,6 @@ export class DataWidget {
             { fieldName: yField }
           ];
         }
-      } else if (visualizationType === 'filter') {
-        // For filter visualizations, we don't need specific value fields
-        // We just need the raw data to extract unique values from the specified column
-        request.valueFields = [];
       } else {
         // For standard charts, use single value field
         if (valueField) {
