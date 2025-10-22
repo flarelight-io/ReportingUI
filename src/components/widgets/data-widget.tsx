@@ -533,6 +533,10 @@ export class DataWidget {
           }];
         }
       }
+
+      if(visualizationType === 'filter') {
+        request.filters = [];
+      }
       
       // Fetch the data
       if (typeof this.fetchChartData === 'function') {
