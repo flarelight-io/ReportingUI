@@ -181,7 +181,7 @@ export class ReportDemo {
         config: {
           sourceId: 'sample-categorical',
           visualizationType: 'filter',
-          column: 'category',
+          valueField: 'category',
           multiSelect: false,
           placeholder: 'Select category...'
         }
@@ -197,7 +197,7 @@ export class ReportDemo {
         config: {
           sourceId: 'sample-categorical',
           visualizationType: 'filter',
-          column: 'category',
+          valueField: 'category',
           multiSelect: true,
           placeholder: 'Select categories...'
         }
@@ -213,7 +213,7 @@ export class ReportDemo {
         config: {
           sourceId: 'sample-small-categorical',
           visualizationType: 'filter',
-          column: 'status',
+          valueField: 'status',
           multiSelect: false,
           placeholder: 'Select status...'
         }
@@ -229,7 +229,7 @@ export class ReportDemo {
         config: {
           sourceId: 'sample-small-categorical',
           visualizationType: 'filter',
-          column: 'status',
+          valueField: 'status',
           multiSelect: true,
           placeholder: 'Select statuses...'
         }

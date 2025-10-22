@@ -36,17 +36,17 @@ export class FilterVisualization {
   }
 
   private updateSelectedValuesFromActiveFilters() {
-    const column = 'column' in this.config ? this.config.column : '';
+    const valueField = 'valueField' in this.config ? this.config.valueField : '';
     const sourceId = this.config.sourceId || '';
     
-    if (!column || !sourceId) {
+    if (!valueField || !sourceId) {
       this.selectedValues = [];
       return;
     }
 
-    // Find filters for this specific source and column
+    // Find filters for this specific source and field
     const relevantFilters = this.activeFilters.filter(filter => 
-      filter.sourceId === sourceId && filter.field === column
+      filter.sourceId === sourceId && filter.field === valueField
     );
 
     if (relevantFilters.length > 0) {
@@ -67,17 +67,17 @@ export class FilterVisualization {
 
   private extractUniqueValues() {
     const rawData = this.data.rawData || [];
-    const column = 'column' in this.config ? this.config.column : '';
+    const valueField = 'valueField' in this.config ? this.config.valueField : '';
     
-    if (!column || rawData.length === 0) {
+    if (!valueField || rawData.length === 0) {
       this.uniqueValues = [];
       return;
     }
 
-    // Extract unique values from the specified column
+    // Extract unique values from the specified field
     const values = new Set<string>();
     rawData.forEach(row => {
-      const value = row[column];
+      const value = row[valueField];
       if (value !== null && value !== undefined && value !== '') {
         values.add(String(value));
       }
@@ -110,7 +110,7 @@ export class FilterVisualization {
     // Emit filter change event
     this.filterChange.emit({
       sourceId,
-      field: 'column' in this.config ? this.config.column : '',
+      field: 'valueField' in this.config ? this.config.valueField : '',
       value: this.selectedValues.length > 0 ? this.selectedValues : null
     });
   }
@@ -136,7 +136,7 @@ export class FilterVisualization {
     // Emit filter change event
     this.filterChange.emit({
       sourceId,
-      field: 'column' in this.config ? this.config.column : '',
+      field: 'valueField' in this.config ? this.config.valueField : '',
       value: this.selectedValues.length > 0 ? this.selectedValues : null
     });
   }
@@ -147,7 +147,7 @@ export class FilterVisualization {
     // Emit filter change event
     this.filterChange.emit({
       sourceId: this.config.sourceId || '',
-      field: 'column' in this.config ? this.config.column : '',
+      field: 'valueField' in this.config ? this.config.valueField : '',
       value: this.selectedValues.length > 0 ? this.selectedValues : null
     });
   }
@@ -262,14 +262,14 @@ export class FilterVisualization {
       return <div class="empty-data">No data available for filtering</div>;
     }
 
-    const column = 'column' in this.config ? this.config.column : '';
+    const valueField = 'valueField' in this.config ? this.config.valueField : '';
     const multiSelect = 'multiSelect' in this.config ? this.config.multiSelect : false;
     const showButtons = this.uniqueValues.length < 5;
 
     return (
       <div class="filter-container">
         <div class="filter-header">
-          <h4 class="filter-title">Filter by {column}</h4>
+          <h4 class="filter-title">Filter by {valueField}</h4>
           {multiSelect && (
             <span class="filter-mode">Multi-select</span>
           )}
@@ -290,7 +290,7 @@ export class FilterVisualization {
                 this.selectedValues = [];
                 this.filterChange.emit({
                   sourceId: this.config.sourceId || '',
-                  field: column,
+                  field: valueField,
                   value: null
                 });
               }}

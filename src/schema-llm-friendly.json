@@ -126,7 +126,7 @@
         "visualizationType": {"enum": [
           "table", "bar", "line", "pie", "donut", "hbar", "scatter", "sunburst",
           "heatmap", "bubble", "kpi", "histogram", "stacked-bar", "stacked-hbar",
-          "clustered-bar", "clustered-hbar", "lollipop", "lollipop-h", "box-whisker"
+          "clustered-bar", "clustered-hbar", "lollipop", "lollipop-h", "box-whisker", "filter"
         ], "default": "table"},
         "fields": {"type": "array", "items": {"type": "string"}},
         "hideTitle": {"type": "boolean", "default": false},
@@ -134,7 +134,7 @@
         "showGrid": {"type": "boolean", "default": true},
         "showLegend": {"type": "boolean", "default": true},
         "groupByField": {"type": "string"},
-        "valueField": {"type": "string"},
+        "valueField": {"type": "string", "description": "Field to use for values (also used as the column to filter by for filter visualization)"},
         "labelField": {"type": "string"},
         "aggregation": {"enum": ["none", "sum", "avg", "count", "min", "max"], "default": "none"},
         "xField": {"type": "string"},
@@ -154,6 +154,8 @@
         "colorScaleType": {"enum": ["sequential", "diverging", "categorical"], "default": "sequential"},
         "showValues": {"type": "boolean", "default": false},
         "valueFormat": {"enum": ["number", "percentage", "currency"], "default": "number"},
+        "multiSelect": {"type": "boolean", "description": "Whether to allow multiple selections (for filter visualization)", "default": false},
+        "placeholder": {"type": "string", "description": "Placeholder text for the filter", "default": "Select values..."},
         "colorTheme": {"type": "string", "enum": ["brand", "rainbow", "blue", "grayscale", "rainbow-alt"]}
       },
       "required": ["sourceId", "sourceName"]
@@ -261,6 +263,34 @@
         "showValues": true,
         "valueFormat": "currency"
       }
+    },
+    "filterWidget": {
+      "id": "filter1",
+      "type": "data",
+      "title": "Filter by Region",
+      "x": 0, "y": 14, "w": 4, "h": 3,
+      "config": {
+        "sourceId": "sales_data",
+        "sourceName": "Sales Data",
+        "visualizationType": "filter",
+        "valueField": "region",
+        "multiSelect": true,
+        "placeholder": "Select regions..."
+      }
+    },
+    "singleSelectFilter": {
+      "id": "filter2",
+      "type": "data",
+      "title": "Filter by Product",
+      "x": 4, "y": 14, "w": 4, "h": 3,
+      "config": {
+        "sourceId": "sales_data",
+        "sourceName": "Sales Data",
+        "visualizationType": "filter",
+        "valueField": "product",
+        "multiSelect": false,
+        "placeholder": "Choose a product..."
+      }
     }
   },
   "visualizationRequirements": {
@@ -282,6 +312,7 @@
     "clustered-hbar": "Requires: groupByField + fields array + aggregation",
     "lollipop": "Requires: groupByField + valueField + aggregation",
     "lollipop-h": "Requires: groupByField + valueField + aggregation",
-    "box-whisker": "Requires: groupByField (optional)"
+    "box-whisker": "Requires: groupByField (optional)",
+    "filter": "Requires: valueField"
   }
 }

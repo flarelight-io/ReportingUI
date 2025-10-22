@@ -1640,7 +1640,8 @@
             "clustered-hbar",
             "lollipop",
             "lollipop-h",
-            "box-whisker"
+            "box-whisker",
+            "filter"
           ],
           "default": "table"
         },
@@ -1682,7 +1683,7 @@
         },
         "valueField": {
           "type": "string",
-          "description": "Field to use for values"
+          "description": "Field to use for values (also used as the column to filter by for filter visualization)"
         },
         "labelField": {
           "type": "string",
@@ -1738,6 +1739,16 @@
             },
             "required": ["field", "header"]
           }
+        },
+        "multiSelect": {
+          "type": "boolean",
+          "description": "Whether to allow multiple selections (for filter visualization)",
+          "default": false
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "Placeholder text for the filter",
+          "default": "Select values..."
         },
         "colorTheme": {
           "type": "string",
