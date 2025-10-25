@@ -636,7 +636,8 @@ export class CorrelationAnalysisWidget {
     const brightness = this.getColorBrightness(backgroundColor);
     
     // Use light text on dark backgrounds, dark text on light backgrounds
-    return brightness < 0.5 ? theme.panel : theme.labelColor;
+    // Lowered threshold to 0.6 to ensure all purple colors get white text
+    return brightness < 0.6 ? theme.panel : theme.labelColor;
   }
   
   // Helper to calculate color brightness (0 = black, 1 = white)

@@ -17,7 +17,7 @@
       "format": "esm"
     },
     "dist/esm/anderson-darling-normality-test-widget_37.entry.js": {
-      "bytes": 224588,
+      "bytes": 224667,
       "imports": [
         {
           "path": "dist/esm/filter-visualization-B6aIMiKO.js",
