@@ -119,6 +119,96 @@ const colorThemes: Record<ColorTheme, { light: string[], dark: string[] }> = {
   }
 };
 
+// Helper function to get distinct colors for correlation analysis
+// Returns 5 colors: [strong-, moderate-, neutral, moderate+, strong+]
+function getDistinctColors(colorTheme: ColorTheme, mode: ChartMode): string[] {
+  const isLight = mode === "light";
+  
+  switch (colorTheme) {
+    case 'brand':
+      return isLight ? [
+        '#ef4444', // Strong negative - red
+        '#f59e0b', // Moderate negative - orange  
+        '#c084fc', // Neutral - light purple
+        '#7a37d0', // Moderate positive - medium purple
+        '#4d19a2'  // Strong positive - dark purple
+      ] : [
+        '#f87171', // Strong negative - light red (dark mode)
+        '#fb923c', // Moderate negative - light orange
+        '#e879f9', // Neutral - light purple
+        '#a855f7', // Moderate positive - medium purple
+        '#7c3aed'  // Strong positive - dark purple
+      ];
+      
+    case 'rainbow':
+      return isLight ? [
+        '#ef4444', // Strong negative - red
+        '#f97316', // Moderate negative - orange
+        '#eab308', // Neutral - yellow
+        '#22c55e', // Moderate positive - green
+        '#06b6d4'  // Strong positive - cyan
+      ] : [
+        '#f87171', // Strong negative - light red
+        '#fb923c', // Moderate negative - light orange
+        '#facc15', // Neutral - light yellow
+        '#4ade80', // Moderate positive - light green
+        '#22d3ee'  // Strong positive - light cyan
+      ];
+      
+    case 'blue':
+      return isLight ? [
+        '#ef4444', // Strong negative - red
+        '#f59e0b', // Moderate negative - orange
+        '#93c5fd', // Neutral - light blue
+        '#3b82f6', // Moderate positive - medium blue
+        '#1e40af'  // Strong positive - dark blue
+      ] : [
+        '#f87171', // Strong negative - light red
+        '#fb923c', // Moderate negative - light orange
+        '#bfdbfe', // Neutral - very light blue
+        '#60a5fa', // Moderate positive - light blue
+        '#2563eb'  // Strong positive - medium blue
+      ];
+      
+    case 'grayscale':
+      return isLight ? [
+        '#111827', // Strong negative - darkest gray
+        '#4b5563', // Moderate negative - dark gray
+        '#9ca3af', // Neutral - medium gray
+        '#6b7280', // Moderate positive - medium-dark gray
+        '#374151'  // Strong positive - dark gray
+      ] : [
+        '#f9fafb', // Strong negative - lightest gray
+        '#d1d5db', // Moderate negative - light gray
+        '#6b7280', // Neutral - medium gray
+        '#9ca3af', // Moderate positive - medium-light gray
+        '#e5e7eb'  // Strong positive - light gray
+      ];
+      
+    case 'rainbow-alt':
+      return isLight ? [
+        '#ef4444', // Strong negative - red
+        '#f97316', // Moderate negative - orange
+        '#8b5cf6', // Neutral - purple
+        '#3b82f6', // Moderate positive - blue
+        '#06b6d4'  // Strong positive - cyan
+      ] : [
+        '#f87171', // Strong negative - light red
+        '#fb923c', // Moderate negative - light orange
+        '#a78bfa', // Neutral - light purple
+        '#60a5fa', // Moderate positive - light blue
+        '#22d3ee'  // Strong positive - light cyan
+      ];
+      
+    default:
+      return isLight ? [
+        '#ef4444', '#f59e0b', '#eab308', '#22c55e', '#06b6d4'
+      ] : [
+        '#f87171', '#fb923c', '#facc15', '#4ade80', '#22d3ee'
+      ];
+  }
+}
+
 // Helper function to create theme with color palette
 function createTheme(mode: ChartMode, colorTheme: ColorTheme = "brand") {
   const colors = colorThemes[colorTheme][mode];
@@ -143,6 +233,8 @@ function createTheme(mode: ChartMode, colorTheme: ColorTheme = "brand") {
     gridColor: isLight ? "#e5e7eb" : "#252a36",
     // dynamic series palette based on color theme
     series: colors,
+    // distinct colors for correlation analysis (5 colors: strong-, moderate-, neutral, moderate+, strong+)
+    distinct: getDistinctColors(colorTheme, mode),
     // analytical elements (regression lines, trend indicators, etc.)
     regressionColor: isLight ? "#0D9488" : "#22d3ee",
     // effects

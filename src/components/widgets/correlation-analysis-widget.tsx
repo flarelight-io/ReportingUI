@@ -181,61 +181,24 @@ export class CorrelationAnalysisWidget {
   private getCorrelationColor(value: number): string {
     const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
-    // Create a professional correlation color scale with better contrast:
-    // - Use theme colors for positive values (0 to +1)
-    // - Use CSS filters for negative values to ensure contrast
-    // - Use neutral color for zero values
+    // Use the theme's distinct colors for correlation analysis
+    // distinct[0] = strong-, distinct[1] = moderate-, distinct[2] = neutral, 
+    // distinct[3] = moderate+, distinct[4] = strong+
     
-    // For positive values: use theme colors with better spacing
-    if (value > 0) {
-      if (this.colorTheme === 'brand') {
-        // For brand theme, use better spaced purples
-        if (value >= 0.7) return '#4d19a2'; // Strong positive - dark purple
-        if (value >= 0.3) return '#7a37d0'; // Moderate positive - medium purple
-        return '#a75bf4'; // Weak positive - light purple
-      } else {
-        // For other themes, use theme colors
-        if (value >= 0.7) return theme.series[0]; // Strong positive - primary color
-        if (value >= 0.3) return theme.series[2]; // Moderate positive - 3rd color
-        return theme.series[4]; // Weak positive - 5th color
-      }
-    }
-    
-    // For zero: use neutral color
-    if (value === 0) {
-      if (this.colorTheme === 'brand') {
-        return '#c084fc'; // Light purple for zero in brand theme
-      }
-      return theme.series[6] || theme.series[4]; // Use a neutral color from the theme
-    }
-    
-    // For negative values: use theme colors with CSS filters for contrast
-    // This ensures contrast while respecting the theme
-    if (this.colorTheme === 'brand') {
-      // For brand theme, use complementary colors
-      if (value >= -0.3) return '#22c55e'; // Green for weak negative
-      if (value >= -0.7) return '#f59e0b'; // Orange for moderate negative
-      return '#ef4444'; // Red for strong negative
-    } else if (this.colorTheme === 'rainbow') {
-      // For rainbow theme, use contrasting colors from the palette
-      if (value >= -0.3) return theme.series[3]; // Green for weak negative
-      if (value >= -0.7) return theme.series[1]; // Orange for moderate negative
-      return theme.series[0]; // Red for strong negative
-    } else if (this.colorTheme === 'blue') {
-      // For blue theme, use warm contrasting colors
-      if (value >= -0.3) return '#22c55e'; // Green for weak negative
-      if (value >= -0.7) return '#f59e0b'; // Orange for moderate negative
-      return '#ef4444'; // Red for strong negative
-    } else if (this.colorTheme === 'grayscale') {
-      // For grayscale theme, use darker shades for negative
-      if (value >= -0.3) return theme.series[2]; // Medium gray for weak negative
-      if (value >= -0.7) return theme.series[1]; // Dark gray for moderate negative
-      return theme.series[0]; // Darkest gray for strong negative
+    if (value >= 0.7) {
+      return theme.distinct[4]; // Strong positive
+    } else if (value >= 0.3) {
+      return theme.distinct[3]; // Moderate positive
+    } else if (value > 0) {
+      return theme.distinct[3]; // Weak positive (use moderate+)
+    } else if (value === 0) {
+      return theme.distinct[2]; // Neutral
+    } else if (value >= -0.3) {
+      return theme.distinct[1]; // Weak negative (use moderate-)
+    } else if (value >= -0.7) {
+      return theme.distinct[1]; // Moderate negative
     } else {
-      // Default fallback for other themes
-      if (value >= -0.3) return '#22c55e'; // Green for weak negative
-      if (value >= -0.7) return '#f59e0b'; // Orange for moderate negative
-      return '#ef4444'; // Red for strong negative
+      return theme.distinct[0]; // Strong negative
     }
   }
   
@@ -430,19 +393,6 @@ export class CorrelationAnalysisWidget {
           >
             {/* Define gradients and filters for modern styling */}
             <defs>
-              {/* Create gradient definitions for the correlation scale */}
-              {Array.from({ length: 7 }, (_, i) => {
-                // Create a more granular scale: -1, -0.7, -0.3, 0, 0.3, 0.7, 1
-                const value = -1 + (i / 3) * 2; // -1, -0.33, 0.33, 1
-                const color = this.getCorrelationColor(value);
-                
-                return (
-                  <linearGradient key={`correlationGradient-${i}-${this.themeVersion}`} id={`correlationGradient-${i}-${this.themeVersion}`} x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stop-color={color} stop-opacity="1"/>
-                    <stop offset="100%" stop-color={color} stop-opacity="0.85"/>
-                  </linearGradient>
-                );
-              })}
               
               <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
                 <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
@@ -500,9 +450,6 @@ export class CorrelationAnalysisWidget {
                 const tooltipText = `${rowFields[i]} & ${this.fields[j]}: ${this.formatCorrelationValue(value)}`;
                 const cellIndex = i * row.length + j;
                 
-                // Calculate gradient index based on correlation value
-                const normalizedValue = (value + 1) / 2; // Convert from [-1,1] to [0,1]
-                const gradientIndex = Math.min(6, Math.floor(normalizedValue * 6));
                 
                 return (
                   <g 
@@ -519,7 +466,7 @@ export class CorrelationAnalysisWidget {
                       y={paddingTop + i * cellSize}
                       width={cellSize}
                       height={cellSize}
-                      fill={`url(#correlationGradient-${gradientIndex}-${this.themeVersion})`}
+                      fill={this.getCorrelationColor(value)}
                       stroke={theme.border}
                       stroke-width="0.5"
                       class="cell-animated cell-glow"
