@@ -536,6 +536,7 @@ export class DataWidget {
 
       if(visualizationType === 'filter') {
         request.filters = [];
+        request.groupByFields = request.valueFields;
       }
       
       // Fetch the data
