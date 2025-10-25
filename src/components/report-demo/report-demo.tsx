@@ -14,7 +14,7 @@ export class ReportDemo {
   @State() heightMode: 'auto' | 'fixed' = 'auto';
   
   @State() demoConfiguration = {
-    colorTheme: "brand",
+    colorTheme: "rainbow",
     widgets: [
       {
         id: 'title',
@@ -1039,7 +1039,7 @@ export class ReportDemo {
   };
 
   @State() darkMode = false;
-  @State() colorTheme: ColorTheme = "brand";
+  @State() colorTheme: ColorTheme = "rainbow";
   @State() activeFilter: { sourceId: string; field: string; value: any } | null = null;
 
   @Watch('colorTheme')

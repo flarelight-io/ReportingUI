@@ -72,6 +72,7 @@ export class CorrelationAnalysisWidget {
     this.el.addEventListener('colorThemeChange', (event: CustomEvent) => {
       if (event.detail && event.detail.colorTheme) {
         this.colorTheme = event.detail.colorTheme;
+        this.themeVersion++; // Force re-render
       }
     });
     
@@ -115,6 +116,18 @@ export class CorrelationAnalysisWidget {
     
     // Theme changes are handled by the theme change listener
     // Custom color scales can still be applied via config if needed
+  }
+  
+  @Watch('colorTheme')
+  colorThemeChanged() {
+    // Force re-render when color theme changes
+    this.themeVersion++;
+  }
+  
+  // Method to handle external theme updates
+  public updateColorTheme(newTheme: ColorTheme) {
+    this.colorTheme = newTheme;
+    this.themeVersion++;
   }
   
   // Process incoming data
@@ -169,27 +182,63 @@ export class CorrelationAnalysisWidget {
     const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
     // Create a professional correlation color scale with better contrast:
-    // - Primary theme color with gradient for positive values (0 to +1)
-    // - Highlight color for neutral/zero values (0)
-    // - Shades of highlight color for negative values (-1 to 0)
+    // - Use theme colors for positive values (0 to +1)
+    // - Use CSS filters for negative values to ensure contrast
+    // - Use neutral color for zero values
     
-    // For positive values: use primary theme color with increasing intensity
+    // For positive values: use theme colors with better spacing
     if (value > 0) {
-      if (value >= 0.7) return theme.series[0]; // Strong positive - full primary color
-      if (value >= 0.3) return theme.series[2]; // Moderate positive - use 3rd color for better contrast
-      return theme.series[4]; // Weak positive - use 5th color for better contrast
+      if (this.colorTheme === 'brand') {
+        // For brand theme, use better spaced purples
+        if (value >= 0.7) return '#4d19a2'; // Strong positive - dark purple
+        if (value >= 0.3) return '#7a37d0'; // Moderate positive - medium purple
+        return '#a75bf4'; // Weak positive - light purple
+      } else {
+        // For other themes, use theme colors
+        if (value >= 0.7) return theme.series[0]; // Strong positive - primary color
+        if (value >= 0.3) return theme.series[2]; // Moderate positive - 3rd color
+        return theme.series[4]; // Weak positive - 5th color
+      }
     }
     
-    // For zero: use highlight/neutral color
+    // For zero: use neutral color
     if (value === 0) {
-      return theme.regressionColor; // Use the analytical highlight color
+      if (this.colorTheme === 'brand') {
+        return '#c084fc'; // Light purple for zero in brand theme
+      }
+      return theme.series[6] || theme.series[4]; // Use a neutral color from the theme
     }
     
-    // For negative values: use shades of highlight color with better contrast
-    if (value >= -0.3) return theme.regressionColor + 'CC'; // Weak negative - highlight with high opacity
-    if (value >= -0.7) return theme.regressionColor + '99'; // Moderate negative - medium opacity
-    return theme.regressionColor + '66'; // Strong negative - lower opacity but still visible
+    // For negative values: use theme colors with CSS filters for contrast
+    // This ensures contrast while respecting the theme
+    if (this.colorTheme === 'brand') {
+      // For brand theme, use complementary colors
+      if (value >= -0.3) return '#22c55e'; // Green for weak negative
+      if (value >= -0.7) return '#f59e0b'; // Orange for moderate negative
+      return '#ef4444'; // Red for strong negative
+    } else if (this.colorTheme === 'rainbow') {
+      // For rainbow theme, use contrasting colors from the palette
+      if (value >= -0.3) return theme.series[3]; // Green for weak negative
+      if (value >= -0.7) return theme.series[1]; // Orange for moderate negative
+      return theme.series[0]; // Red for strong negative
+    } else if (this.colorTheme === 'blue') {
+      // For blue theme, use warm contrasting colors
+      if (value >= -0.3) return '#22c55e'; // Green for weak negative
+      if (value >= -0.7) return '#f59e0b'; // Orange for moderate negative
+      return '#ef4444'; // Red for strong negative
+    } else if (this.colorTheme === 'grayscale') {
+      // For grayscale theme, use darker shades for negative
+      if (value >= -0.3) return theme.series[2]; // Medium gray for weak negative
+      if (value >= -0.7) return theme.series[1]; // Dark gray for moderate negative
+      return theme.series[0]; // Darkest gray for strong negative
+    } else {
+      // Default fallback for other themes
+      if (value >= -0.3) return '#22c55e'; // Green for weak negative
+      if (value >= -0.7) return '#f59e0b'; // Orange for moderate negative
+      return '#ef4444'; // Red for strong negative
+    }
   }
+  
   
   // Format correlation value for display using theme utilities
   private formatCorrelationValue(value: number): string {
@@ -386,13 +435,15 @@ export class CorrelationAnalysisWidget {
                 // Create a more granular scale: -1, -0.7, -0.3, 0, 0.3, 0.7, 1
                 const value = -1 + (i / 3) * 2; // -1, -0.33, 0.33, 1
                 const color = this.getCorrelationColor(value);
+                
                 return (
-                  <linearGradient key={`correlationGradient-${i}`} id={`correlationGradient-${i}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                  <linearGradient key={`correlationGradient-${i}-${this.themeVersion}`} id={`correlationGradient-${i}-${this.themeVersion}`} x1="0%" y1="0%" x2="0%" y2="100%">
                     <stop offset="0%" stop-color={color} stop-opacity="1"/>
                     <stop offset="100%" stop-color={color} stop-opacity="0.85"/>
                   </linearGradient>
                 );
               })}
+              
               <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
                 <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
               </filter>
@@ -455,7 +506,7 @@ export class CorrelationAnalysisWidget {
                 
                 return (
                   <g 
-                    key={`cell-${i}-${j}`}
+                    key={`cell-${i}-${j}-${this.themeVersion}`}
                     onMouseMove={(e) => this.handleMouseMove(e, tooltipText)}
                     onMouseLeave={() => this.handleMouseLeave()}
                     onClick={() => this.handleFilterClick(
@@ -468,7 +519,7 @@ export class CorrelationAnalysisWidget {
                       y={paddingTop + i * cellSize}
                       width={cellSize}
                       height={cellSize}
-                      fill={`url(#correlationGradient-${gradientIndex})`}
+                      fill={`url(#correlationGradient-${gradientIndex}-${this.themeVersion})`}
                       stroke={theme.border}
                       stroke-width="0.5"
                       class="cell-animated cell-glow"
@@ -476,9 +527,9 @@ export class CorrelationAnalysisWidget {
                         cursor: 'pointer',
                         transition: ChartAnimations.getHoverTransition(),
                         animationDelay: `${ChartAnimations.getStaggerDelay(cellIndex)}ms`,
-                        animationFillMode: 'both'
+                        animationFillMode: 'both',
+                        filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))'
                       }}
-                      filter="url(#softShadow)"
                     />
                     
                     {/* Show correlation values in cells if configured */}

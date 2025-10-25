@@ -41,6 +41,18 @@ export class ReportViewer {
     }
   };
   
+  private dispatchColorThemeToCorrelationWidgets(colorTheme: ColorTheme) {
+    // Find all correlation analysis widgets and dispatch color theme change events
+    const correlationWidgets = this.el.querySelectorAll('correlation-analysis-widget');
+    correlationWidgets.forEach(widget => {
+      const colorThemeEvent = new CustomEvent('colorThemeChange', {
+        detail: { colorTheme },
+        bubbles: false
+      });
+      widget.dispatchEvent(colorThemeEvent);
+    });
+  }
+  
   @Watch('configuration')
   onConfigurationChange(newValue: any) {
     let parsedConfig = newValue;
@@ -139,6 +151,9 @@ export class ReportViewer {
           // If no configuration exists, just re-render with the new theme
           this.renderWidgets();
         }
+        
+        // Also dispatch color theme change events to all existing correlation widgets
+        this.dispatchColorThemeToCorrelationWidgets(event.detail.colorTheme);
       }
     });
     
@@ -613,6 +628,7 @@ export class ReportViewer {
         (element as any).readOnly = true;
         (element as any).isInEditor = false;
         (element as any).isViewer = this.isViewer;
+        (element as any).colorTheme = this.colorTheme; // Pass color theme!
         
         // Set config as direct property
         const correlationConfig = widget.config || {};
@@ -642,6 +658,13 @@ export class ReportViewer {
                 bubbles: false
               });
               element.dispatchEvent(configEvent);
+              
+              // Color theme change event
+              const colorThemeEvent = new CustomEvent('colorThemeChange', {
+                detail: { colorTheme: this.colorTheme },
+                bubbles: false
+              });
+              element.dispatchEvent(colorThemeEvent);
             }
           }, 100);
         } else if (this.fetchChartData) {
