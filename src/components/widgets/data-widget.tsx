@@ -538,6 +538,21 @@ export class DataWidget {
         request.filters = [];
         request.groupByFields = request.valueFields;
       }
+
+      if(visualizationType === 'kpi') {
+        request.valueFields = [{
+          fieldName: valueField,
+          aggregation: aggregation === 'none' ? undefined : aggregation
+        }];
+
+        const previousValueField = 'previousValueField' in this.config ? (this.config as any).previousValueField : undefined;
+        if(previousValueField) {
+          request.valueFields.push({
+            fieldName: previousValueField,
+            aggregation: aggregation === 'none' ? undefined : aggregation
+          });
+        } 
+      }
       
       // Fetch the data
       if (typeof this.fetchChartData === 'function') {

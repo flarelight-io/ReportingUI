@@ -30,6 +30,34 @@ export class DescriptiveAnalysisWidget {
   @State() analysisSourceId: string = null;
   @State() analysisData: any = null;
   
+  // Format number to max 2 decimal places
+  private formatNumber(value: any): any {
+    if (typeof value === 'number' && !isNaN(value)) {
+      // Format to 2 decimal places and remove trailing zeros
+      return parseFloat(value.toFixed(2));
+    }
+    return value;
+  }
+  
+  // Format all numeric values in the analysis data
+  private formatAnalysisData(data: any): any {
+    if (!data) return data;
+    
+    if (Array.isArray(data)) {
+      return data.map(item => this.formatAnalysisData(item));
+    }
+    
+    if (typeof data === 'object' && data !== null) {
+      const formatted: any = {};
+      for (const key in data) {
+        formatted[key] = this.formatAnalysisData(data[key]);
+      }
+      return formatted;
+    }
+    
+    return this.formatNumber(data);
+  }
+  
   componentWillLoad() {
     if (this.config.analysisId) {
       this.analysisSourceId = this.config.analysisId;
@@ -37,7 +65,7 @@ export class DescriptiveAnalysisWidget {
     
     // If we already have data from props, use it
     if (this.data) {
-      this.analysisData = this.data;
+      this.analysisData = this.formatAnalysisData(this.data);
       this.loading = false;
     } else {
       this.loading = false;
@@ -46,7 +74,7 @@ export class DescriptiveAnalysisWidget {
     // Listen for data updates
     this.el.addEventListener('dataUpdate', (event: CustomEvent) => {
       if (event.detail) {
-        this.analysisData = event.detail;
+        this.analysisData = this.formatAnalysisData(event.detail);
         this.loading = false;
       }
     });
@@ -69,7 +97,7 @@ export class DescriptiveAnalysisWidget {
   @Watch('data')
   dataChanged(newData: any) {
     if (newData) {
-      this.analysisData = newData;
+      this.analysisData = this.formatAnalysisData(newData);
       this.loading = false;
     }
   }
