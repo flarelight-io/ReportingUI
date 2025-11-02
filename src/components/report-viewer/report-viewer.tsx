@@ -51,6 +51,16 @@ export class ReportViewer {
       });
       widget.dispatchEvent(colorThemeEvent);
     });
+    
+    // Also dispatch to box-whisker normality plot widgets
+    const boxWhiskerWidgets = this.el.querySelectorAll('box-whisker-normality-plot-widget');
+    boxWhiskerWidgets.forEach(widget => {
+      const colorThemeEvent = new CustomEvent('colorThemeChange', {
+        detail: { colorTheme },
+        bubbles: false
+      });
+      widget.dispatchEvent(colorThemeEvent);
+    });
   }
   
   @Watch('configuration')
@@ -424,7 +434,8 @@ export class ReportViewer {
   private needsFetchChartData(widgetType: string): boolean {
     return ['data', 'table', 'kpi', 'bar', 'pie', 'donut', 'line', 'hbar', 
             'scatter', 'sunburst', 'heatmap', 'bubble', 'histogram',
-            'descriptiveAnalysis', 'correlationAnalysis', 'oneSampleHypothesisTest', 'oneSampleWilcoxonSignedRank', 'pairedTwoSampleWilcoxonSignedRank', 'independentTwoSampleHypothesisTest', 'pairedTwoSampleHypothesisTest', 'welchTwoSampleHypothesisTest', 'WelchANOVA', 'OneWayANOVA', 'mannWhitneyUTest', 'kruskalWallisTest', 'shapiroWilkTest', 'kolmogorovSmirnovNormalityTest', 'andersonDarlingNormalityTest'].includes(widgetType);
+            'stacked-bar', 'stacked-hbar', 'clustered-bar', 'clustered-hbar', 'lollipop', 'lollipop-h',
+            'descriptiveAnalysis', 'correlationAnalysis', 'oneSampleHypothesisTest', 'oneSampleWilcoxonSignedRank', 'pairedTwoSampleWilcoxonSignedRank', 'independentTwoSampleHypothesisTest', 'pairedTwoSampleHypothesisTest', 'welchTwoSampleHypothesisTest', 'WelchANOVA', 'OneWayANOVA', 'oneWayANOVA', 'mannWhitneyUTest', 'kruskalWallisTest', 'shapiroWilkTest', 'kolmogorovSmirnovNormalityTest', 'andersonDarlingNormalityTest'].includes(widgetType);
   }
   
   private renderWidgets() {
@@ -976,6 +987,7 @@ export class ReportViewer {
         break;
         
       case 'OneWayANOVA':
+      case 'oneWayANOVA':
         // Create one-way ANOVA widget  
         element = document.createElement('one-way-anova-widget') as unknown as HTMLElement;
         
@@ -1336,6 +1348,7 @@ export class ReportViewer {
         (element as any).readOnly = true;
         (element as any).isInEditor = false;
         (element as any).isViewer = this.isViewer;
+        (element as any).colorTheme = this.colorTheme; // Pass color theme!
         
         // Set config as direct property
         const boxWhiskerNormalityPlotConfig = widget.config || {};
@@ -1365,6 +1378,13 @@ export class ReportViewer {
                 bubbles: false
               });
               element.dispatchEvent(configEvent);
+              
+              // Color theme change event
+              const colorThemeEvent = new CustomEvent('colorThemeChange', {
+                detail: { colorTheme: this.colorTheme },
+                bubbles: false
+              });
+              element.dispatchEvent(colorThemeEvent);
             }
           }, 100);
         } else if (this.fetchChartData) {
@@ -1388,6 +1408,12 @@ export class ReportViewer {
       case 'heatmap':
       case 'bubble':
       case 'histogram':
+      case 'stacked-bar':
+      case 'stacked-hbar':
+      case 'clustered-bar':
+      case 'clustered-hbar':
+      case 'lollipop':
+      case 'lollipop-h':
         // Create data widget with specific visualization type
         element = document.createElement('data-widget') as unknown as HTMLElement;
         element.setAttribute('widgetId', widget.id);

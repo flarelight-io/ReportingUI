@@ -11,6 +11,7 @@ export interface BoxWhiskerNormalityPlotWidgetConfig {
   showLegend?: boolean;
   showOutliers?: boolean;
   boxWidth?: number;
+  colorTheme?: ColorTheme; // Widget-level color theme override
 }
 
 @Component({
@@ -216,6 +217,9 @@ export class BoxWhiskerNormalityPlotWidget {
       );
     }
 
+    // Determine effective color theme: widget-level override takes precedence over report-level default
+    const effectiveColorTheme = this.config.colorTheme || this.colorTheme;
+
     // Create a data-widget configuration for the box-whisker chart
     const chartConfig = {
       sourceId: this.config.analysisId,
@@ -226,7 +230,8 @@ export class BoxWhiskerNormalityPlotWidget {
       showGrid: this.config.showGrid !== false,
       showLegend: this.config.showLegend !== false,
       showOutliers: this.config.showOutliers !== false,
-      boxWidth: this.config.boxWidth || 0.8
+      boxWidth: this.config.boxWidth || 0.8,
+      colorTheme: effectiveColorTheme // Pass effective theme to data-widget config
     };
 
     return (
@@ -244,7 +249,7 @@ export class BoxWhiskerNormalityPlotWidget {
             isViewer={this.isViewer}
             width={this.width}
             height={this.height}
-            colorTheme={this.colorTheme}
+            colorTheme={effectiveColorTheme}
           />
         </div>
       </Host>
