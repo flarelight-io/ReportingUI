@@ -1,7 +1,7 @@
 {
   "inputs": {
-    "dist/esm/filter-visualization-BOST5O6H.js": {
-      "bytes": 562480,
+    "dist/esm/filter-visualization-BNWTunB5.js": {
+      "bytes": 562397,
       "imports": [
         {
           "path": "dist/esm/index-CzXqbqd9.js",
@@ -17,17 +17,17 @@
       "format": "esm"
     },
     "dist/esm/anderson-darling-normality-test-widget_37.entry.js": {
-      "bytes": 222192,
+      "bytes": 223147,
       "imports": [
         {
-          "path": "dist/esm/filter-visualization-BOST5O6H.js",
+          "path": "dist/esm/filter-visualization-BNWTunB5.js",
           "kind": "import-statement",
-          "original": "./filter-visualization-BOST5O6H.js"
+          "original": "./filter-visualization-BNWTunB5.js"
         },
         {
-          "path": "dist/esm/filter-visualization-BOST5O6H.js",
+          "path": "dist/esm/filter-visualization-BNWTunB5.js",
           "kind": "import-statement",
-          "original": "./filter-visualization-BOST5O6H.js"
+          "original": "./filter-visualization-BNWTunB5.js"
         },
         {
           "path": "dist/esm/index-CzXqbqd9.js",
@@ -59,7 +59,7 @@
       "format": "esm"
     },
     "dist/esm/loader.js": {
-      "bytes": 12418,
+      "bytes": 12465,
       "imports": [
         {
           "path": "dist/esm/index-CzXqbqd9.js",
@@ -108,17 +108,17 @@
       "exports": [],
       "entryPoint": "temp-bundle-entry.js",
       "inputs": {
-        "dist/esm/filter-visualization-BOST5O6H.js": {
-          "bytesInOutput": 522161
+        "dist/esm/filter-visualization-BNWTunB5.js": {
+          "bytesInOutput": 522071
         },
         "dist/esm/anderson-darling-normality-test-widget_37.entry.js": {
-          "bytesInOutput": 207245
+          "bytesInOutput": 208042
         },
         "dist/esm/index-CzXqbqd9.js": {
           "bytesInOutput": 96489
         },
         "dist/esm/loader.js": {
-          "bytesInOutput": 10977
+          "bytesInOutput": 11020
         },
         "loader/index.js": {
           "bytesInOutput": 414
@@ -127,7 +127,7 @@
           "bytesInOutput": 4536
         }
       },
-      "bytes": 844050
+      "bytes": 844800
     }
   }
 }

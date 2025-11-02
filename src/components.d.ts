@@ -6,7 +6,7 @@
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { AndersonDarlingNormalityTestWidgetConfig } from "./components/widgets/anderson-darling-normality-test-widget";
-import { DataWidgetConfig } from "./components/widgets/data-widget";
+import { DataWidgetConfig, HeatmapConfig } from "./components/widgets/data-widget";
 import { FilterChangeEventDetail, VisualizationData } from "./components/widgets/visualizations/base-visualization";
 import { ColorTheme } from "./utils/chart-theme";
 import { BoxWhiskerNormalityPlotWidgetConfig } from "./components/widgets/box-whisker-normality-plot-widget";
@@ -29,7 +29,7 @@ import { TextWidgetConfig } from "./components/widgets/text-widget";
 import { WelchAnovaWidgetConfig } from "./components/widgets/welch-anova-widget";
 import { WelchTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/welch-two-sample-hypothesis-test-widget";
 export { AndersonDarlingNormalityTestWidgetConfig } from "./components/widgets/anderson-darling-normality-test-widget";
-export { DataWidgetConfig } from "./components/widgets/data-widget";
+export { DataWidgetConfig, HeatmapConfig } from "./components/widgets/data-widget";
 export { FilterChangeEventDetail, VisualizationData } from "./components/widgets/visualizations/base-visualization";
 export { ColorTheme } from "./utils/chart-theme";
 export { BoxWhiskerNormalityPlotWidgetConfig } from "./components/widgets/box-whisker-normality-plot-widget";
@@ -211,9 +211,6 @@ export namespace Components {
           * @default "brand"
          */
         "colorTheme": ColorTheme;
-        /**
-          * @default {     visualizationType: 'table'   }
-         */
         "config": DataWidgetConfig1;
         /**
           * @default []
@@ -283,7 +280,7 @@ export namespace Components {
           * @default "brand"
          */
         "colorTheme": ColorTheme;
-        "config": DataWidgetConfig;
+        "config": HeatmapConfig;
         "data": VisualizationData;
     }
     interface HistogramChartVisualization {
@@ -1426,9 +1423,6 @@ declare namespace LocalJSX {
           * @default "brand"
          */
         "colorTheme"?: ColorTheme;
-        /**
-          * @default {     visualizationType: 'table'   }
-         */
         "config"?: DataWidgetConfig1;
         /**
           * @default []
@@ -1499,7 +1493,7 @@ declare namespace LocalJSX {
           * @default "brand"
          */
         "colorTheme"?: ColorTheme;
-        "config"?: DataWidgetConfig;
+        "config"?: HeatmapConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: HeatmapVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }

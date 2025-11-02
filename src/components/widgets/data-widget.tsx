@@ -258,9 +258,7 @@ export class DataWidget {
   @Prop() readOnly: boolean = false;
   @Prop() isInEditor: boolean = false;
   @Prop() isViewer: boolean = false;
-  @Prop() config: DataWidgetConfig = {
-    visualizationType: 'table'
-  };
+  @Prop() config: DataWidgetConfig;
   @Prop() availableSources: any[] = [];
   @Prop() activeFilters: Filter[] = [];
   @Prop() fetchChartData: Function;
@@ -691,7 +689,7 @@ export class DataWidget {
       case 'heatmap':
         return (
           <heatmap-visualization 
-            config={this.config} 
+            config={this.config as HeatmapConfig} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
           />

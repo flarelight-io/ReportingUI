@@ -1,6 +1,6 @@
 import { Component, Prop, h, State, Event, EventEmitter } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
-import { DataWidgetConfig } from '../data-widget';
+import { HeatmapConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 
 interface HeatmapMatrix {
@@ -24,7 +24,7 @@ interface TooltipState {
   shadow: true
 })
 export class HeatmapVisualization {
-  @Prop() config: DataWidgetConfig;
+  @Prop() config: HeatmapConfig;
   @Prop() data: VisualizationData;
   @Prop() colorTheme: ColorTheme = "brand";
   
@@ -39,16 +39,6 @@ export class HeatmapVisualization {
     ChartThemeUtils.onThemeChange(() => {
       this.themeVersion++;
     });
-  }
-
-  private handleFilterClick(fieldName: string, value: any) {
-    if (this.config.sourceId && fieldName) {
-      this.filterChange.emit({
-        sourceId: this.config.sourceId,
-        field: fieldName,
-        value: value
-      });
-    }
   }
 
   private processData(): HeatmapMatrix {
@@ -398,10 +388,7 @@ export class HeatmapVisualization {
                   onMouseLeave={() => {
                     this.tooltip = { ...this.tooltip, visible: false };
                   }}
-                  onClick={() => this.handleFilterClick(
-                    groupByField || '',
-                    heatmapData.rowLabels[cell.rowIdx]
-                  )}
+                  onClick={() => {}}
                 >
                   <rect
                     x={heatmapOffsetX + rowLabelPadding + (cell.colIdx * cellWidth)}
@@ -422,7 +409,7 @@ export class HeatmapVisualization {
                   />
                 
                   {/* Show values in cells if needed and if there's enough space */}
-                  {this.config.showLabels && (
+                  {this.config.showValues && (
                     <text
                       x={heatmapOffsetX + rowLabelPadding + (cell.colIdx * cellWidth) + (cellWidth / 2)}
                       y={heatmapOffsetY + colLabelPadding + (cell.rowIdx * cellHeight) + (cellHeight / 2)}

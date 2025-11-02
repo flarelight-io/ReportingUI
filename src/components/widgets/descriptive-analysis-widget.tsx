@@ -1,9 +1,11 @@
 import { Component, Prop, h, Host, State, Watch, Element } from '@stencil/core';
+import { ChartDataRequest } from '../../api/types/common';
 
 export interface DescriptiveAnalysisWidgetConfig {
   analysisId?: string;
   analysisName?: string;
   hideTitle?: boolean;
+  columns?: string[];
 }
 
 @Component({
@@ -29,6 +31,9 @@ export class DescriptiveAnalysisWidget {
   @State() loading: boolean = true;
   @State() analysisSourceId: string = null;
   @State() analysisData: any = null;
+  
+  // Store original fetchChartData to avoid recursion
+  private originalFetchChartData: Function;
   
   // Format number to max 2 decimal places
   private formatNumber(value: any): any {
@@ -59,6 +64,11 @@ export class DescriptiveAnalysisWidget {
   }
   
   componentWillLoad() {
+    // Store reference to original fetchChartData if it's available
+    if (this.fetchChartData && typeof this.fetchChartData === 'function') {
+      this.originalFetchChartData = this.fetchChartData;
+    }
+    
     if (this.config.analysisId) {
       this.analysisSourceId = this.config.analysisId;
     }
@@ -102,12 +112,35 @@ export class DescriptiveAnalysisWidget {
     }
   }
   
+  @Watch('fetchChartData')
+  fetchChartDataChanged(newValue: Function) {
+    // Update stored reference when prop changes
+    if (newValue && typeof newValue === 'function') {
+      this.originalFetchChartData = newValue;
+    }
+  }
+  
   disconnectedCallback() {
     // Clean up event listeners
     this.el.removeEventListener('dataUpdate', null);
     this.el.removeEventListener('configUpdate', null);
   }
   
+  // Use arrow function to preserve 'this' context when passed as prop
+  fetchAndFormatData = async (request: ChartDataRequest) => {
+    // Get the original fetchChartData function, ensuring it's initialized
+    // If originalFetchChartData isn't set yet, fall back to the prop
+    const fetchFn = this.originalFetchChartData || this.fetchChartData;
+    
+    if (!fetchFn || typeof fetchFn !== 'function') {
+      throw new Error('fetchChartData function not available');
+    }
+    
+    // Use stored original reference to avoid recursion
+    const data = await fetchFn(request);
+    return this.formatAnalysisData(data);
+  }
+
   render() {
     if (this.loading) {
       return (
@@ -160,7 +193,7 @@ export class DescriptiveAnalysisWidget {
           readOnly={this.readOnly}
           isViewer={this.isViewer}
           isInEditor={this.isInEditor}
-          fetchChartData={this.fetchChartData}
+          fetchChartData={this.fetchAndFormatData}
           data={this.analysisData}
           availableSources={[{
             id: this.analysisSourceId,
@@ -171,7 +204,7 @@ export class DescriptiveAnalysisWidget {
           config={{
             sourceId: this.analysisSourceId,
             visualizationType: 'table',
-            columns: [],
+            columns: this.config.columns?.map(column => ({ field: column, header: column })) || [],
             hideTitle: this.config.hideTitle
           }}
           activeFilters={[]}

@@ -404,8 +404,7 @@ export class ReportDemo {
           xField: 'x',
           yField: 'y',
           valueField: 'value',
-          showValues: true,
-          showLabels: true
+          showValues: true
         }
       },
       
