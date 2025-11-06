@@ -1,5 +1,5 @@
 import { Component, Prop, h, Host, State, Watch, Element } from '@stencil/core';
-import { ChartDataRequest } from '../../api/types/common';
+import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
 
 export interface OneWayAnovaData {
   Id: number;
@@ -129,19 +129,18 @@ export class OneWayAnovaWidget {
       this.loading = true;
       
       // Use the standard getChartData method
-      const chartDataRequest: ChartDataRequest = {
-        reportId: this.reportId,
-        sourceId: this.config.analysisId,
-        sourceType: 'AnalysisResult', 
-        valueFields: [],
-        groupByFields: [],
-        labelFields: [],
-        filters: [],
-        sorts: [{ fieldName: 'Id', direction: 'Ascending' }],
-        isViewer: this.isViewer || false,
-        widgetType: 'oneWayAnova',
-        widgetId: this.widgetId
-      };
+      if (!this.reportId) {
+        throw new Error('reportId is required');
+      }
+      
+      const chartDataRequest = ChartDataRequestBuilder.buildForAnalysisWidget(
+        this.reportId,
+        this.config.analysisId,
+        this.widgetId,
+        'oneWayAnova',
+        this.isViewer || false,
+        [{ fieldName: 'Id', direction: 'Ascending' }]
+      );
       
       const data = await this.fetchChartData(chartDataRequest);
       this.processData(data);

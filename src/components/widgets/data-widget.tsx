@@ -2,6 +2,7 @@ import { Component, Prop, h, Host, State, Watch, Element, Listen } from '@stenci
 import { FilterChangeEventDetail, VisualizationData } from './visualizations/base-visualization';
 import { Filter } from '../../api/types/common';
 import { ColorTheme } from '../../utils/chart-theme';
+import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
 
 // Add debug flag at the top
 const DEBUG_MODE = false; // Set to true to enable verbose logging
@@ -455,102 +456,43 @@ export class DataWidget {
           JSON.stringify(sourceFilters.map(f => `${f.field}:${f.value}`).sort()) : 
           'nofilters');
       
-      // Create chart data request with timestamp to bust cache
-      const request: any = {
-        reportId: this.reportId,
+      // Prepare config object for the builder
+      const builderConfig: any = {
         sourceId: sourceId,
-        sourceType: source.type as 'DataImport' | 'DataPreparation' | 'AnalysisResult',
-        valueFields: [],
-        groupByFields: groupByField ? [{ fieldName: groupByField }] : [],
-        labelFields: labelField ? [{ fieldName: labelField }] : [],
-        filters: sourceFilters.map(filter => ({
-          fieldName: filter.field,
-          operation: 'eq',
-          value: filter.value
-        })),
-        isViewer: this.isViewer,
-        widgetType: visualizationType,
-        widgetId: this.widgetId,
+        valueField,
+        valueFields: fields,
+        fields: fields, // Also pass as fields for stacked/clustered bars
+        groupByField,
+        labelField,
+        aggregation,
+        columns,
+        previousValueField: 'previousValueField' in this.config ? (this.config as any).previousValueField : undefined
+      };
+      
+      // Add heatmap-specific fields
+      if (visualizationType === 'heatmap') {
+        builderConfig.xField = 'xField' in this.config ? this.config.xField : undefined;
+        builderConfig.yField = 'yField' in this.config ? this.config.yField : undefined;
+        builderConfig.valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+      }
+      
+      // Build chart data request using utility class
+      const chartDataRequest = ChartDataRequestBuilder.buildForDataWidget(
+        this.reportId || '',
+        source,
+        this.widgetId,
+        visualizationType,
+        builderConfig,
+        this.activeFilters,
+        this.isViewer
+      );
+      
+      // Add cache key and timestamp as extra properties
+      const request: any = {
+        ...chartDataRequest,
         _cacheKey: `${sourceId}:${filterKey}:${this.widgetId}`,
         _timestamp: now
       };
-
-      // Handle value fields based on visualization type
-      if (visualizationType === 'stacked-bar' || 
-          visualizationType === 'stacked-hbar' ||
-          visualizationType === 'clustered-bar' || 
-          visualizationType === 'clustered-hbar') {
-        // For multi-series charts, use multiple value fields
-        if (fields && fields.length > 0) {
-          request.valueFields = fields.map(field => ({
-            fieldName: field,
-            aggregation: aggregation === 'none' ? undefined : aggregation
-          }));
-        }
-      } else if (visualizationType === 'table') {
-        // For table visualization, use configured columns as value fields
-        if (columns && columns.length > 0) {
-          request.valueFields = columns.map(column => ({
-            fieldName: column.field,
-            aggregation: aggregation === 'none' ? undefined : aggregation
-          }));
-        } else if (fields && fields.length > 0) {
-          // Fallback to fields if columns not configured
-          request.valueFields = fields.map(field => ({
-            fieldName: field,
-            aggregation: aggregation === 'none' ? undefined : aggregation
-          }));
-        }
-      } else if (visualizationType === 'heatmap') {
-        // For heatmap visualization, handle xField, yField, and valueField
-        const xField = 'xField' in this.config ? this.config.xField : undefined;
-        const yField = 'yField' in this.config ? this.config.yField : undefined;
-        const heatmapValueField = 'valueField' in this.config ? this.config.valueField : undefined;
-        
-        // Set value field for the heatmap values
-        if (heatmapValueField) {
-          request.valueFields = [{
-            fieldName: heatmapValueField,
-            aggregation: aggregation === 'none' ? undefined : aggregation
-          }];
-        }
-        
-        // Set label fields for x and y axes
-        if (xField && yField) {
-          request.labelFields = [
-            { fieldName: xField },
-            { fieldName: yField }
-          ];
-        }
-      } else {
-        // For standard charts, use single value field
-        if (valueField) {
-          request.valueFields = [{
-            fieldName: valueField,
-            aggregation: aggregation === 'none' ? undefined : aggregation
-          }];
-        }
-      }
-
-      if(visualizationType === 'filter') {
-        request.filters = [];
-        request.groupByFields = request.valueFields;
-      }
-
-      if(visualizationType === 'kpi') {
-        request.valueFields = [{
-          fieldName: valueField,
-          aggregation: aggregation === 'none' ? undefined : aggregation
-        }];
-
-        const previousValueField = 'previousValueField' in this.config ? (this.config as any).previousValueField : undefined;
-        if(previousValueField) {
-          request.valueFields.push({
-            fieldName: previousValueField,
-            aggregation: aggregation === 'none' ? undefined : aggregation
-          });
-        } 
-      }
       
       // Fetch the data
       if (typeof this.fetchChartData === 'function') {

@@ -1,5 +1,5 @@
 import { Component, Prop, h, Host, State, Watch, Element } from '@stencil/core';
-import { ChartDataRequest } from '../../api/types/common';
+import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
 
 export interface OneSampleWilcoxonSignedRankWidgetConfig {
   analysisId?: string;
@@ -151,18 +151,17 @@ export class OneSampleWilcoxonSignedRankWidget {
       this.loading = true;
       
       // Use the standard getChartData method
-      const chartDataRequest: ChartDataRequest = {
-        reportId: this.reportId,
-        sourceId: this.config.analysisId,
-        sourceType: 'AnalysisResult', 
-        valueFields: [],
-        groupByFields: [],
-        labelFields: [],
-        filters: [],
-        isViewer: this.isViewer || false,
-        widgetType: 'oneSampleWilcoxonSignedRank',
-        widgetId: this.widgetId
-      };
+      if (!this.reportId) {
+        throw new Error('reportId is required');
+      }
+      
+      const chartDataRequest = ChartDataRequestBuilder.buildForAnalysisWidget(
+        this.reportId,
+        this.config.analysisId,
+        this.widgetId,
+        'oneSampleWilcoxonSignedRank',
+        this.isViewer || false
+      );
       
       const data = await this.fetchChartData(chartDataRequest);
       this.processData(data);

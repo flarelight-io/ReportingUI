@@ -2,6 +2,7 @@ import { Component, Prop, h, State, Watch, Element, Listen } from '@stencil/core
 import { DataSource, Filter, ChartDataRequest } from '../../api/types/common';
 import { WidgetData } from '../widgets/base-widget';
 import { ColorTheme } from '../../utils/chart-theme';
+import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
 
 interface WidgetDataCache {
   [widgetId: string]: any;
@@ -358,11 +359,13 @@ export class ReportViewer {
       return null;
     }
     
+    if (!this.reportId) {
+      console.error("reportId is required for fetching data");
+      return null;
+    }
+    
     try {
       const sourceId = (widget.config?.analysisId || widget.config?.sourceId) as string;
-      const valueField = widget.config?.valueField as string;
-      const groupByField = widget.config?.groupByField as string;
-      const rawAggregation = widget.config?.aggregation as string;
       
       // Get relevant filters for this source
       const sourceFilters = this.activeFilters.filter(f => f.sourceId === sourceId);
@@ -384,30 +387,39 @@ export class ReportViewer {
         ? (widget.config?.visualizationType as string || 'table')
         : widget.type;
       
-      // Create chart data request
-      const chartDataRequest: ChartDataRequest = {
-        reportId: this.reportId,
-        sourceId: sourceId,
-        sourceType: source.type as 'DataImport' | 'DataPreparation' | 'AnalysisResult',
-        valueFields: valueField ? [
-          {
-            fieldName: valueField,
-            aggregation: (!rawAggregation || rawAggregation === 'none') 
-              ? undefined 
-              : rawAggregation as "sum" | "avg" | "min" | "max" | "count" | "countDistinct" | "stdDev" | "stdDevPop"
-          }
-        ] : [],
-        groupByFields: groupByField ? [{ fieldName: groupByField }] : [],
-        labelFields: [],
-        filters: sourceFilters.map(filter => ({
-          fieldName: filter.field,
-          operation: 'eq',
-          value: filter.value
-        })),
-        isViewer: this.isViewer,
-        widgetType: visualizationType,
-        widgetId: widget.id
-      };
+      // Check if this is an analysis widget
+      const isAnalysisWidget = this.needsFetchChartData(widget.type) && 
+        (widget.type !== 'data' && widget.type !== 'table' && widget.type !== 'kpi' &&
+         widget.type !== 'bar' && widget.type !== 'pie' && widget.type !== 'donut' &&
+         widget.type !== 'line' && widget.type !== 'hbar' && widget.type !== 'scatter' &&
+         widget.type !== 'sunburst' && widget.type !== 'heatmap' && widget.type !== 'bubble' &&
+         widget.type !== 'histogram' && widget.type !== 'stacked-bar' && widget.type !== 'stacked-hbar' &&
+         widget.type !== 'clustered-bar' && widget.type !== 'clustered-hbar' &&
+         widget.type !== 'lollipop' && widget.type !== 'lollipop-h');
+      
+      let chartDataRequest: ChartDataRequest;
+      
+      if (isAnalysisWidget && widget.config?.analysisId) {
+        // Use analysis widget builder
+        chartDataRequest = ChartDataRequestBuilder.buildForAnalysisWidget(
+          this.reportId,
+          widget.config.analysisId as string,
+          widget.id,
+          visualizationType,
+          this.isViewer
+        );
+      } else {
+        // Use data widget builder
+        chartDataRequest = ChartDataRequestBuilder.buildForDataWidget(
+          this.reportId,
+          source,
+          widget.id,
+          visualizationType,
+          widget.config || {},
+          this.activeFilters,
+          this.isViewer
+        );
+      }
       
       // Add cache key to request as extra property outside the typed object
       const requestWithCache = {

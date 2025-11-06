@@ -1,7 +1,7 @@
 export interface ChartDataRequest {
-  reportId?: string;
+  reportId: string; // Required, matches backend Guid
   sourceId: string; // Using string for GUID
-  sourceType: 'DataImport' | 'DataPreparation' | 'AnalysisResult';
+  sourceType: 'DataImport' | 'DataPreparation' | 'AnalysisResult' | 'Sources';
   valueFields: ChartField[];
   groupByFields: ChartField[];
   labelFields: ChartField[];
@@ -10,7 +10,7 @@ export interface ChartDataRequest {
   pagination?: Pagination;
   isViewer: boolean;
   widgetType?: string;
-  widgetId: string;
+  widgetId?: string; // Optional, matches backend
 }
 
 export interface ChartField {

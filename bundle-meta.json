@@ -1,7 +1,7 @@
 {
   "inputs": {
-    "dist/esm/filter-visualization-DFfYbx2H.js": {
-      "bytes": 563896,
+    "dist/esm/filter-visualization-M5HBvu0-.js": {
+      "bytes": 565504,
       "imports": [
         {
           "path": "dist/esm/index-CzXqbqd9.js",
@@ -17,17 +17,17 @@
       "format": "esm"
     },
     "dist/esm/anderson-darling-normality-test-widget_37.entry.js": {
-      "bytes": 223147,
+      "bytes": 223006,
       "imports": [
         {
-          "path": "dist/esm/filter-visualization-DFfYbx2H.js",
+          "path": "dist/esm/filter-visualization-M5HBvu0-.js",
           "kind": "import-statement",
-          "original": "./filter-visualization-DFfYbx2H.js"
+          "original": "./filter-visualization-M5HBvu0-.js"
         },
         {
-          "path": "dist/esm/filter-visualization-DFfYbx2H.js",
+          "path": "dist/esm/filter-visualization-M5HBvu0-.js",
           "kind": "import-statement",
-          "original": "./filter-visualization-DFfYbx2H.js"
+          "original": "./filter-visualization-M5HBvu0-.js"
         },
         {
           "path": "dist/esm/index-CzXqbqd9.js",
@@ -108,11 +108,11 @@
       "exports": [],
       "entryPoint": "temp-bundle-entry.js",
       "inputs": {
-        "dist/esm/filter-visualization-DFfYbx2H.js": {
-          "bytesInOutput": 523365
+        "dist/esm/filter-visualization-M5HBvu0-.js": {
+          "bytesInOutput": 524644
         },
         "dist/esm/anderson-darling-normality-test-widget_37.entry.js": {
-          "bytesInOutput": 208042
+          "bytesInOutput": 207887
         },
         "dist/esm/index-CzXqbqd9.js": {
           "bytesInOutput": 96489
@@ -127,7 +127,7 @@
           "bytesInOutput": 4536
         }
       },
-      "bytes": 846094
+      "bytes": 847218
     }
   }
 }
