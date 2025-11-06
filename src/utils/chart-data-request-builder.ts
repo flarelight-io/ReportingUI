@@ -191,15 +191,18 @@ export class ChartDataRequestBuilder {
    * Builds a ChartDataRequest for an analysis widget (descriptive, correlation, hypothesis tests, etc.)
    */
   static buildForAnalysisWidget(
-    reportId: string,
+    reportId: string | undefined,
     analysisId: string,
     widgetId: string,
     widgetType: string,
     isViewer: boolean = false,
     sorts?: ChartSort[]
   ): ChartDataRequest {
+    // Use default GUID if reportId is missing
+    const defaultReportId = '00000000-0000-0000-0000-000000000000';
+    
     return {
-      reportId,
+      reportId: reportId || defaultReportId,
       sourceId: analysisId,
       sourceType: 'AnalysisResult',
       valueFields: [],

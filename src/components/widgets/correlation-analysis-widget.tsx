@@ -156,10 +156,6 @@ export class CorrelationAnalysisWidget {
       this.loading = true;
       
       // Use the standard getChartData method
-      if (!this.reportId) {
-        throw new Error('reportId is required');
-      }
-      
       const chartDataRequest = ChartDataRequestBuilder.buildForAnalysisWidget(
         this.reportId,
         this.config.analysisId,
