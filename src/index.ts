@@ -13,6 +13,8 @@ export type * from './components.d.ts';
 export { Components, JSX } from './components';
 export * from './components/widgets/base-widget';
 export * from './api/types/common';
+export { ChartDataRequestBuilder } from './utils/chart-data-request-builder';
+export type { ChartDataRequestBuilderOptions, ChartSort } from './utils/chart-data-request-builder';
 
 // Export specific widget components
 export * from './components/widgets/text-widget';

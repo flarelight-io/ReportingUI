@@ -299,6 +299,170 @@ function App() {
 export default App;
 ```
 
+## Using ChartDataRequestBuilder in React
+
+The `ChartDataRequestBuilder` utility class helps you build `ChartDataRequest` objects consistently, ensuring they match the backend C# model. This is especially useful when you need to fetch data for widgets directly in your React code.
+
+### Import the Utility
+
+```tsx
+import { ChartDataRequestBuilder, ChartDataRequest } from '@your-organization/flarelight-reporting';
+import type { DataSource, Filter } from '@your-organization/flarelight-reporting';
+```
+
+### Example: Building Requests for Data Widgets
+
+```tsx
+import React, { useState, useEffect } from 'react';
+import { ChartDataRequestBuilder, ChartDataRequest } from '@your-organization/flarelight-reporting';
+import type { DataSource, Filter } from '@your-organization/flarelight-reporting';
+
+const MyReportComponent = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  const reportId = 'my-report-id';
+  const source: DataSource = {
+    id: 'data-source-id',
+    name: 'Sales Data',
+    type: 'DataImport',
+    fields: []
+  };
+  const activeFilters: Filter[] = [];
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      // Build a request for a bar chart
+      const request = ChartDataRequestBuilder.buildForDataWidget(
+        reportId,
+        source,
+        'widget-1',
+        'bar',
+        {
+          valueField: 'sales',
+          groupByField: 'region',
+          aggregation: 'sum'
+        },
+        activeFilters,
+        true // isViewer
+      );
+      
+      // Fetch the data
+      const response = await fetch('/api/chart-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request)
+      });
+      
+      const result = await response.json();
+      setData(result);
+      setLoading(false);
+    };
+    
+    fetchData();
+  }, []);
+  
+  return <div>{/* Render your data */}</div>;
+};
+```
+
+### Example: Building Requests for Analysis Widgets
+
+```tsx
+import React, { useState, useEffect } from 'react';
+import { ChartDataRequestBuilder } from '@your-organization/flarelight-reporting';
+
+const AnalysisWidgetComponent = () => {
+  const [data, setData] = useState([]);
+  
+  const reportId = 'my-report-id';
+  const analysisId = 'analysis-result-id';
+  
+  useEffect(() => {
+    const fetchAnalysisData = async () => {
+      // Build a request for a correlation analysis widget
+      const request = ChartDataRequestBuilder.buildForAnalysisWidget(
+        reportId,
+        analysisId,
+        'correlation-widget-1',
+        'correlationAnalysis',
+        true // isViewer
+      );
+      
+      // Fetch the data
+      const response = await fetch('/api/chart-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request)
+      });
+      
+      const result = await response.json();
+      setData(result);
+    };
+    
+    fetchAnalysisData();
+  }, []);
+  
+  return <div>{/* Render your analysis data */}</div>;
+};
+```
+
+### Example: Using with Custom fetchChartData Function
+
+You can also use the builder in your `fetchChartData` function to ensure consistency:
+
+```tsx
+import { ChartDataRequestBuilder } from '@your-organization/flarelight-reporting';
+import type { ChartDataRequest, DataSource, Filter } from '@your-organization/flarelight-reporting';
+
+const ReportPage = () => {
+  const sources: DataSource[] = [
+    {
+      id: 'sales-data',
+      name: 'Sales Data',
+      type: 'DataImport',
+      fields: []
+    }
+  ];
+  
+  const activeFilters: Filter[] = [];
+  
+  const fetchChartData = async (request: ChartDataRequest) => {
+    // The request is already built by the widget using ChartDataRequestBuilder
+    // You can use it directly or rebuild it if needed
+    
+    const response = await fetch('/api/chart-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request)
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch chart data');
+    }
+    
+    return await response.json();
+  };
+  
+  return (
+    <report-viewer
+      reportId="my-report"
+      configuration={config}
+      fetchChartData={fetchChartData}
+    />
+  );
+};
+```
+
+### Available Methods
+
+- `ChartDataRequestBuilder.buildForDataWidget()` - Builds requests for standard data widgets (tables, charts, KPIs, etc.)
+- `ChartDataRequestBuilder.buildForAnalysisWidget()` - Builds requests for analysis widgets (descriptive, correlation, hypothesis tests, etc.)
+- `ChartDataRequestBuilder.build()` - Generic builder for custom cases
+
+All methods ensure the request structure matches the backend C# `ChartDataRequest` model.
+```
+
 ## Advanced Usage
 
 ### Dynamic Configuration
@@ -334,6 +498,7 @@ function ReportPage() {
   }, []);
 
   // Function to fetch chart data from your API
+  // You can use ChartDataRequestBuilder to build requests consistently
   const fetchChartData = async (request) => {
     try {
       const response = await fetch('/api/data/chart-data', {
