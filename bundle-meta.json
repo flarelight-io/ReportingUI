@@ -17,7 +17,7 @@
       "format": "esm"
     },
     "dist/esm/anderson-darling-normality-test-widget_37.entry.js": {
-      "bytes": 225370,
+      "bytes": 226257,
       "imports": [
         {
           "path": "dist/esm/filter-visualization-fDMXD_i7.js",
@@ -112,7 +112,7 @@
           "bytesInOutput": 522155
         },
         "dist/esm/anderson-darling-normality-test-widget_37.entry.js": {
-          "bytesInOutput": 209658
+          "bytesInOutput": 210485
         },
         "dist/esm/index-CzXqbqd9.js": {
           "bytesInOutput": 96489
@@ -127,7 +127,7 @@
           "bytesInOutput": 4536
         }
       },
-      "bytes": 846521
+      "bytes": 847348
     }
   }
 }

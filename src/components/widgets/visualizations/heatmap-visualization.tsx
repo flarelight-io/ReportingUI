@@ -334,12 +334,28 @@ export class HeatmapVisualization {
       }
     }
     
-    // For the legend, we'll create gradient steps
+    // Legend buckets showing value ranges
     const legendSteps = 5;
-    const legendStepValues = [];
-    for (let i = 0; i <= legendSteps; i++) {
-      const value = heatmapData.minValue + (i / legendSteps) * (heatmapData.maxValue - heatmapData.minValue);
-      legendStepValues.push(value);
+    const legendBuckets: { start: number; end: number; color: string }[] = [];
+    const valueRange = heatmapData.maxValue - heatmapData.minValue;
+    
+    if (valueRange === 0) {
+      legendBuckets.push({
+        start: heatmapData.minValue,
+        end: heatmapData.maxValue,
+        color: this.getColorForValue(heatmapData.minValue, heatmapData.minValue, heatmapData.maxValue)
+      });
+    } else {
+      for (let i = 0; i < legendSteps; i++) {
+        const start = heatmapData.minValue + (i / legendSteps) * valueRange;
+        const end = heatmapData.minValue + ((i + 1) / legendSteps) * valueRange;
+        const midpoint = (start + end) / 2;
+        legendBuckets.push({
+          start,
+          end,
+          color: this.getColorForValue(midpoint, heatmapData.minValue, heatmapData.maxValue)
+        });
+      }
     }
     
     return (
@@ -514,21 +530,25 @@ export class HeatmapVisualization {
         {/* Color legend */}
         {(this.config.showLegend !== false) && (
           <div class="chart-legend">
-            {legendStepValues.map((value, idx) => (
-              <div key={idx} class="legend-item">
-                <div 
-                  class="color-indicator" 
-                  style={{ 
-                    backgroundColor: this.getColorForValue(
-                      value, 
-                      heatmapData.minValue, 
-                      heatmapData.maxValue
-                    ) 
-                  }}
-                ></div>
-                <span class="legend-text">{this.formatValue(value)}</span>
-              </div>
-            ))}
+            {legendBuckets.map((bucket, idx) => {
+              const startLabel = this.formatValue(bucket.start);
+              const endLabel = this.formatValue(bucket.end);
+              const rangeLabel = bucket.start === bucket.end
+                ? startLabel
+                : `${startLabel} - ${endLabel}`;
+              
+              return (
+                <div key={idx} class="legend-item">
+                  <div 
+                    class="color-indicator" 
+                    style={{ 
+                      backgroundColor: bucket.color
+                    }}
+                  ></div>
+                  <span class="legend-text">{rangeLabel}</span>
+                </div>
+              );
+            })}
           </div>
         )}
         
