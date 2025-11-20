@@ -794,7 +794,24 @@ export class ReportDemo {
           config: {
             hideTitle: false
           }
-        }
+        },
+        {
+          id: 'heatmap2',
+          type: 'data',
+          title: 'Heatmap',
+          x: 6,
+          y: 70,
+          w: 6,
+          h: 4,
+          config: {
+            sourceId: 'sample-heatmap',
+            visualizationType: 'heatmap',
+            xField: 'x',
+            yField: 'y',
+            valueField: 'value',
+            showValues: true
+          }
+        },
     ],
     sources: [
       {
