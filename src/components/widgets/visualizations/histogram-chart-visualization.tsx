@@ -168,7 +168,6 @@ export class HistogramChartVisualization {
     }
     
     // Extract config properties for use in render
-    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
     const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
     
     const histogramData = this.processData();

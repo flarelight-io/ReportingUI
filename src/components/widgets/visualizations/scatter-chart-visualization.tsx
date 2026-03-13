@@ -230,7 +230,6 @@ export class ScatterChartVisualization {
     
     // Extract config properties for use in render
     const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
-    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
     const showRegressionLine = 'showRegressionLine' in this.config ? this.config.showRegressionLine : undefined;
     
     const chartData = this.processData();

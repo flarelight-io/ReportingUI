@@ -253,13 +253,6 @@ export class HeatmapVisualization {
     return parseFloat(value.toFixed(2)).toString();
   }
   
-  private truncateText(text: string, maxLength: number): string {
-    if (text.length <= maxLength) {
-      return text;
-    }
-    return text.substring(0, maxLength - 3) + '...';
-  }
-  
   private handleMouseMove(e: MouseEvent, rowIdx: number, colIdx: number, value: number, heatmapData: HeatmapMatrix) {
     const svgRect = (e.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
     if (svgRect) {
@@ -286,10 +279,6 @@ export class HeatmapVisualization {
     if (this.data.error) {
       return <div class="error-message">{this.data.error}</div>;
     }
-    
-    // Extract config properties for use in render
-    const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
-    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
     
     const heatmapData = this.processData();
     const theme = ChartThemeUtils.getTheme(this.colorTheme);

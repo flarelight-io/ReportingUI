@@ -166,7 +166,6 @@ export class PieChartVisualization {
     
     // Extract config properties for use in render
     const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
-    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
     
     const chartData = this.processData();
     
