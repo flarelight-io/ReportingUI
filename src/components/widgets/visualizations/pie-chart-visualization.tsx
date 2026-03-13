@@ -118,28 +118,22 @@ export class PieChartVisualization {
         value: Number(item[valueFieldName] || 0)
       }));
       
-      // Sort by value descending
-      processed.sort((a, b) => b.value - a.value);
       return processed;
-    } 
+    }
     // For legacy Group/Value format
     else if (rawData[0]?.Group !== undefined && rawData[0]?.Value !== undefined) {
-      const processed = rawData.map(item => ({
+      return rawData.map(item => ({
         category: String(item.Group === null ? 'Unknown' : item.Group),
         value: Number(item.Value || 0)
       }));
-      processed.sort((a, b) => b.value - a.value);
-      return processed;
     }
     // For simple two-column data
     else if (rawData.length > 0 && Object.keys(rawData[0]).length === 2) {
       const keys = Object.keys(rawData[0]);
-      const processed = rawData.map(item => ({
+      return rawData.map(item => ({
         category: String(item[keys[0]] === null ? 'Unknown' : item[keys[0]]),
         value: Number(item[keys[1]] || 0)
       }));
-      processed.sort((a, b) => b.value - a.value);
-      return processed;
     }
     
     return [];

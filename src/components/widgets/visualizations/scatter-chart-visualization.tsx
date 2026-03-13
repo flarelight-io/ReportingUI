@@ -117,60 +117,25 @@ export class ScatterChartVisualization {
         y: Number(item[yField] || 0)
       }));
       
-      // Sort by x value (assuming it might be a date or a number)
-      return this.sortDataPoints(processed);
-    } 
+      return processed;
+    }
     // For legacy X/Y format
     else if (rawData[0]?.X !== undefined && rawData[0]?.Y !== undefined) {
-      const processed = rawData.map(item => ({
+      return rawData.map(item => ({
         x: item.X === null ? 'Unknown' : item.X,
         y: Number(item.Y || 0)
       }));
-      return this.sortDataPoints(processed);
     }
     // For simple two-column data
     else if (rawData.length > 0 && Object.keys(rawData[0]).length === 2) {
       const keys = Object.keys(rawData[0]);
-      const processed = rawData.map(item => ({
+      return rawData.map(item => ({
         x: item[keys[0]] === null ? 'Unknown' : item[keys[0]],
         y: Number(item[keys[1]] || 0)
       }));
-      return this.sortDataPoints(processed);
     }
-    
-    return [];
-  }
 
-  private sortDataPoints(data: ScatterDataPoint[]): ScatterDataPoint[] {
-    // Try to determine if x is a date
-    const isDate = data.length > 0 && 
-      (typeof data[0].x === 'string' && !isNaN(Date.parse(data[0].x as string)));
-    
-    if (isDate) {
-      return [...data].sort((a, b) => {
-        const dateA = typeof a.x === 'string' ? new Date(a.x) : new Date();
-        const dateB = typeof b.x === 'string' ? new Date(b.x) : new Date();
-        return dateA.getTime() - dateB.getTime();
-      });
-    }
-    
-    // Try to determine if x is a number
-    const isNumber = data.length > 0 && 
-      (typeof data[0].x === 'number' || 
-      (typeof data[0].x === 'string' && !isNaN(Number(data[0].x))));
-    
-    if (isNumber) {
-      return [...data].sort((a, b) => {
-        const numA = typeof a.x === 'number' ? a.x : Number(a.x);
-        const numB = typeof b.x === 'number' ? b.x : Number(b.x);
-        return numA - numB;
-      });
-    }
-    
-    // If x is a string, sort alphabetically
-    return [...data].sort((a, b) => {
-      return String(a.x).localeCompare(String(b.x));
-    });
+    return [];
   }
   
   private calculateLinearRegression(points: { x: number, y: number }[]): RegressionResult | null {

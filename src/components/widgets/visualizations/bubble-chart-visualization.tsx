@@ -128,91 +128,53 @@ export class BubbleChartVisualization {
         originalData: item
       }));
       
-      return this.sortDataPoints(processed);
-    } 
+      return processed;
+    }
     // For legacy data format
     else if (rawData[0]?.X !== undefined && rawData[0]?.Y !== undefined) {
       // Try to find a size field, or use Y if not found
-      const sizeField = rawData[0]?.Size !== undefined ? 'Size' : 
+      const sizeField = rawData[0]?.Size !== undefined ? 'Size' :
                         rawData[0]?.Z !== undefined ? 'Z' : 'Y';
-      
+
       // Try to find a category field
-      const categoryField = rawData[0]?.Category !== undefined ? 'Category' : 
+      const categoryField = rawData[0]?.Category !== undefined ? 'Category' :
                             rawData[0]?.Name !== undefined ? 'Name' : 'X';
-      
-      const processed = rawData.map(item => ({
+
+      return rawData.map(item => ({
         x: item.X === null ? 'Unknown' : item.X,
         y: Number(item.Y || 0),
         size: Math.max(5, Math.sqrt(Number(item[sizeField] || 0)) * 2),
         category: String(item[categoryField] || ''),
         originalData: item
       }));
-      
-      return this.sortDataPoints(processed);
     }
     // For simple multi-column data, try to infer x, y, and size
     else if (rawData.length > 0) {
       const keys = Object.keys(rawData[0]);
-      
+
       // If we have at least 3 columns, use them for x, y, and size
       if (keys.length >= 3) {
-        const processed = rawData.map(item => ({
+        return rawData.map(item => ({
           x: item[keys[0]] === null ? 'Unknown' : item[keys[0]],
           y: Number(item[keys[1]] || 0),
           size: Math.max(5, Math.sqrt(Number(item[keys[2]] || 0)) * 2),
           category: String(item[keys.length > 3 ? keys[3] : keys[0]] || ''),
           originalData: item
         }));
-        
-        return this.sortDataPoints(processed);
       }
       // If we have only 2 columns, use them for x and y, and y for size
       else if (keys.length === 2) {
-        const processed = rawData.map(item => ({
+        return rawData.map(item => ({
           x: item[keys[0]] === null ? 'Unknown' : item[keys[0]],
           y: Number(item[keys[1]] || 0),
           size: Math.max(5, Math.sqrt(Number(item[keys[1]] || 0)) * 2),
           category: String(item[keys[0]] || ''),
           originalData: item
         }));
-        
-        return this.sortDataPoints(processed);
       }
     }
-    
-    return [];
-  }
 
-  private sortDataPoints(data: BubbleDataPoint[]): BubbleDataPoint[] {
-    // Try to determine if x is a date
-    const isDate = data.length > 0 && 
-      (typeof data[0].x === 'string' && !isNaN(Date.parse(data[0].x as string)));
-    
-    if (isDate) {
-      return [...data].sort((a, b) => {
-        const dateA = typeof a.x === 'string' ? new Date(a.x) : new Date();
-        const dateB = typeof b.x === 'string' ? new Date(b.x) : new Date();
-        return dateA.getTime() - dateB.getTime();
-      });
-    }
-    
-    // Try to determine if x is a number
-    const isNumber = data.length > 0 && 
-      (typeof data[0].x === 'number' || 
-      (typeof data[0].x === 'string' && !isNaN(Number(data[0].x))));
-    
-    if (isNumber) {
-      return [...data].sort((a, b) => {
-        const numA = typeof a.x === 'number' ? a.x : Number(a.x);
-        const numB = typeof b.x === 'number' ? b.x : Number(b.x);
-        return numA - numB;
-      });
-    }
-    
-    // If x is a string, sort alphabetically
-    return [...data].sort((a, b) => {
-      return String(a.x).localeCompare(String(b.x));
-    });
+    return [];
   }
   
   private getUniqueCategories(data: BubbleDataPoint[]): string[] {

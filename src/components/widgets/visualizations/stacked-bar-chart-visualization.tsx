@@ -110,9 +110,7 @@ export class StackedBarChartVisualization {
       return acc;
     }, {});
     
-    // Convert to array and sort by total
     const processed = Object.values(groupedData) as StackedChartItem[];
-    processed.sort((a, b) => b.total - a.total);
     
     return processed;
   }

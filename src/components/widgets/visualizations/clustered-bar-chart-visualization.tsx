@@ -111,9 +111,7 @@ export class ClusteredBarChartVisualization {
       return acc;
     }, {});
     
-    // Convert to array and sort by max value
     const processed = Object.values(groupedData) as ClusteredChartItem[];
-    processed.sort((a, b) => b.maxValue - a.maxValue);
     
     return processed;
   }
