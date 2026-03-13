@@ -153,7 +153,10 @@
         "valueFormat": {"enum": ["number", "percentage", "currency"], "default": "number"},
         "multiSelect": {"type": "boolean", "description": "Whether to allow multiple selections (for filter visualization)", "default": false},
         "placeholder": {"type": "string", "description": "Placeholder text for the filter", "default": "Select values..."},
-        "colorTheme": {"type": "string", "enum": ["brand", "rainbow", "blue", "grayscale", "rainbow-alt"]}
+        "colorTheme": {"type": "string", "enum": ["brand", "rainbow", "blue", "grayscale", "rainbow-alt"]},
+        "showXAxisLabels": {"type": "boolean", "description": "Whether to show x-axis category labels (line chart)", "default": false},
+        "sortField": {"type": "string", "description": "Field name to sort data by before rendering"},
+        "sortDirection": {"enum": ["Ascending", "Descending"], "default": "Ascending"}
       },
       "required": ["sourceId", "sourceName"]
     }

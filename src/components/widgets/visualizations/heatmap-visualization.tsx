@@ -302,9 +302,11 @@ export class HeatmapVisualization {
     const rowCount = heatmapData.rowLabels.length;
     const colCount = heatmapData.colLabels.length;
     
-    // Fixed padding for labels - consistent sizing
-    const rowLabelPadding = 120; // Space for row labels (left side)
-    const colLabelPadding = 80; // Space for rotated column labels (top)
+    // Dynamic padding based on actual max label length
+    const maxRowLabelLen = Math.max(...heatmapData.rowLabels.map(l => l.length), 1);
+    const maxColLabelLen = Math.max(...heatmapData.colLabels.map(l => l.length), 1);
+    const rowLabelPadding = Math.max(80, Math.min(280, maxRowLabelLen * 9 + 20));
+    const colLabelPadding = Math.max(50, Math.min(180, maxColLabelLen * 6 + 20));
     
     // Calculate available space for the heatmap grid (excluding labels)
     // Use most of the container space, leaving minimal padding
@@ -410,7 +412,7 @@ export class HeatmapVisualization {
             </defs>
             {/* Row labels (y-axis) */}
             {heatmapData.rowLabels.map((label, idx) => {
-              const truncatedLabel = this.truncateText(label, 15);
+              const truncatedLabel = label;
               // Scale font size with cell size - base 14px, scale up with larger cells
               const labelFontSize = Math.max(14, Math.min(18, cellSize * 0.28));
               return (
@@ -437,7 +439,7 @@ export class HeatmapVisualization {
             
             {/* Column labels (x-axis) - rotated for readability */}
             {heatmapData.colLabels.map((label, idx) => {
-              const truncatedLabel = this.truncateText(label, 12);
+              const truncatedLabel = label;
               const xPos = heatmapOffsetX + (idx * cellSize) + (cellSize / 2);
               const yPos = heatmapOffsetY - 20;
               // Scale font size with cell size - base 14px, scale up with larger cells

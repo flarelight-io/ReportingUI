@@ -322,17 +322,19 @@ export class HistogramChartVisualization {
             />
             
             {/* X-axis labels (only show a subset to avoid crowding) */}
-            {bars.filter((_, i) => 
-              histogramData.length <= 5 || 
-              i % Math.max(1, Math.ceil(histogramData.length / 5)) === 0
-            ).map((bar, i) => {
+            {(() => {
+              const { maxTextLength } = this.calculateLabelProperties(histogramData.length);
+              return bars.filter((_, i) =>
+                histogramData.length <= 5 ||
+                i % Math.max(1, Math.ceil(histogramData.length / 5)) === 0
+              ).map((bar, i) => {
               const labelText = bar.bin.label;
-              const truncatedLabel = labelText.length > 10 
-                ? labelText.substring(0, 10) + '...' 
+              const truncatedLabel = labelText.length > maxTextLength
+                ? labelText.substring(0, maxTextLength) + '...'
                 : labelText;
               
               return (
-                <text 
+                <text
                   key={`x-label-${i}`}
                   x={bar.x + (bar.width / 2)}
                   y={105}
@@ -351,7 +353,8 @@ export class HistogramChartVisualization {
                   {truncatedLabel}
                 </text>
               );
-            })}
+            });
+            })()}
             
             {/* Y-axis labels */}
             {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
@@ -416,5 +419,16 @@ export class HistogramChartVisualization {
   private getColors(): string[] {
     const theme = ChartThemeUtils.getTheme(this.colorTheme);
     return theme.series;
+  }
+
+  private calculateLabelProperties(binCount: number) {
+    const baseFontSize = 5;
+    const baseMaxLength = 20;
+    const countAdjustment = binCount <= 4 ? 1.1 :
+                            binCount <= 6 ? 1 :
+                            binCount <= 8 ? 0.8 : 0.6;
+    const fontSize = Math.max(4, Math.round(baseFontSize * countAdjustment * 10) / 10);
+    const maxTextLength = Math.max(4, Math.round(baseMaxLength * countAdjustment));
+    return { fontSize, maxTextLength };
   }
 } 

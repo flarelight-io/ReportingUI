@@ -429,8 +429,8 @@ export class LollipopChartVisualization {
               <g>
                 {lollipops.map((lollipop, i) => {
                   // Truncate text based on available space
-                  const displayText = lollipop.category.length > 15 
-                    ? `${lollipop.category.substring(0, 15)}...` 
+                  const displayText = lollipop.category.length > maxTextLength
+                    ? `${lollipop.category.substring(0, maxTextLength)}...`
                     : lollipop.category;
                   
                   return (

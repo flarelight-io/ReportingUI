@@ -18,6 +18,8 @@ interface BaseDataWidgetConfig {
   showGrid?: boolean;
   showLegend?: boolean;
   colorTheme?: ColorTheme; // Widget-level color theme override
+  sortField?: string;
+  sortDirection?: 'Ascending' | 'Descending';
 }
 
 // Box-whisker chart specific configuration
@@ -424,6 +426,8 @@ export class DataWidget {
     const aggregation = 'aggregation' in this.config ? this.config.aggregation : undefined;
     const fields = 'fields' in this.config ? this.config.fields : undefined;
     const columns = 'columns' in this.config ? this.config.columns : undefined;
+    const sortField = this.config.sortField;
+    const sortDirection = this.config.sortDirection;
     
     // Skip if necessary conditions aren't met
     if (!sourceId || !this.isMounted) {
@@ -467,7 +471,9 @@ export class DataWidget {
         labelField,
         aggregation,
         columns,
-        previousValueField: 'previousValueField' in this.config ? (this.config as any).previousValueField : undefined
+        previousValueField: 'previousValueField' in this.config ? (this.config as any).previousValueField : undefined,
+        sortField,
+        sortDirection
       };
       
       // Add heatmap-specific fields

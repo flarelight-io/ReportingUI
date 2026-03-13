@@ -1,4 +1,4 @@
-import { ChartDataRequest, ChartField, ChartFilter, DataSource, Filter, Pagination } from '../api/types/common';
+import { ChartDataRequest, ChartField, ChartFilter, ChartSort, DataSource, Filter, Pagination } from '../api/types/common';
 
 export interface ChartDataRequestBuilderOptions {
   reportId: string;
@@ -15,10 +15,7 @@ export interface ChartDataRequestBuilderOptions {
   pagination?: Pagination;
 }
 
-export interface ChartSort {
-  fieldName: string;
-  direction: 'Ascending' | 'Descending';
-}
+export type { ChartSort };
 
 /**
  * Utility class for building ChartDataRequest objects consistently across the application.
@@ -46,6 +43,8 @@ export class ChartDataRequestBuilder {
       xField?: string;
       yField?: string;
       previousValueField?: string;
+      sortField?: string;
+      sortDirection?: 'Ascending' | 'Descending';
     },
     activeFilters: Filter[],
     isViewer: boolean = false
@@ -173,6 +172,10 @@ export class ChartDataRequestBuilder {
           value: filter.value
         }));
     
+    const sorts: ChartSort[] = config.sortField
+      ? [{ fieldName: config.sortField, direction: config.sortDirection || 'Ascending' }]
+      : undefined;
+
     return {
       reportId,
       sourceId,
@@ -181,6 +184,7 @@ export class ChartDataRequestBuilder {
       groupByFields,
       labelFields,
       filters: filters.length > 0 ? filters : undefined,
+      sorts,
       isViewer,
       widgetType,
       widgetId

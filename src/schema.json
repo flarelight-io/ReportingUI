@@ -1653,6 +1653,11 @@
           "description": "Whether to show labels on the chart",
           "default": true
         },
+        "showXAxisLabels": {
+          "type": "boolean",
+          "description": "Whether to show x-axis category labels (line chart)",
+          "default": false
+        },
         "showGrid": {
           "type": "boolean",
           "description": "Whether to show grid lines",
@@ -1667,6 +1672,16 @@
           "type": "boolean",
           "description": "Whether to show regression line (for scatter plots)",
           "default": false
+        },
+        "sortField": {
+          "type": "string",
+          "description": "Field name to sort data by before rendering"
+        },
+        "sortDirection": {
+          "type": "string",
+          "description": "Sort direction",
+          "enum": ["Ascending", "Descending"],
+          "default": "Ascending"
         },
         "groupByField": {
           "type": "string",
