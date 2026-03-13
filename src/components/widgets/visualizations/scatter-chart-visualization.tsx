@@ -1,4 +1,4 @@
-import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
+import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
@@ -33,14 +33,36 @@ export class ScatterChartVisualization {
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0;
-  
+  @State() legendFontSize: number = 10;
+
+  @Element() el: HTMLElement;
+
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
+  private adjustingFont: boolean = false;
+
   componentWillLoad() {
-    // Listen for theme changes to force re-render
     ChartThemeUtils.onThemeChange(() => {
       this.themeVersion++;
     });
+  }
+
+  componentDidRender() {
+    if (this.adjustingFont) return;
+    requestAnimationFrame(() => {
+      const legend = this.el.shadowRoot?.querySelector('.chart-legend') as HTMLElement;
+      if (!legend) return;
+      if (legend.scrollHeight > legend.clientHeight && this.legendFontSize > 6) {
+        this.adjustingFont = true;
+        this.legendFontSize = Math.max(6, this.legendFontSize - 1);
+        this.adjustingFont = false;
+      }
+    });
+  }
+
+  @Watch('data')
+  onDataChange() {
+    this.legendFontSize = 10;
   }
 
   private handleFilterClick(fieldName: string, value: any) {
@@ -527,10 +549,8 @@ export class ScatterChartVisualization {
                     class="color-indicator" 
                     style={{ backgroundColor: colors[i % colors.length] }}
                   ></div>
-                  <span class="legend-text">
-                    {String(item.x).length > 10 
-                      ? String(item.x).substring(0, 10) + '...' 
-                      : String(item.x)}: {item.y}
+                  <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>
+                    {String(item.x)}: {item.y}
                   </span>
                 </div>
               ))
@@ -538,29 +558,21 @@ export class ScatterChartVisualization {
               // If we have too many points, just show a summary
               <div class="legend-item">
                 <div class="color-indicator" style={{ backgroundColor: colors[0] }}></div>
-                <span class="legend-text">{chartData.length} data points</span>
+                <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>{chartData.length} data points</span>
               </div>
             )}
-            
+
             {/* Add regression line to legend if it exists */}
             {showRegressionLine && regressionLine && (
               <div class="legend-item">
                 <div class="color-indicator regression-indicator" style={{ backgroundColor: theme.regressionColor }}></div>
-                <span class="legend-text">
+                <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>
                   Regression Line (R² = {regressionLine.r2.toFixed(2)})
                 </span>
               </div>
             )}
           </div>
         )}
-        
-        <div class="chart-metadata">
-          {groupByField && valueField && (
-            <div class="chart-info">
-              Group: {groupByField || 'N/A'} • Value: {valueField || 'N/A'} • Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
-            </div>
-          )}
-        </div>
       </div>
     );
   }

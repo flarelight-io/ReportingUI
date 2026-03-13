@@ -130,7 +130,8 @@ export class ReportDemo {
           groupByField: 'date',
           valueField: 'value',
           showGrid: true,
-          showLegend: true
+          showLegend: true,
+          showXAxisLabels: true
         }
       },
       {

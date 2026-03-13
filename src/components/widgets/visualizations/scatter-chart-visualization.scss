@@ -39,6 +39,7 @@
 .scatter-chart-container {
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -99,19 +100,19 @@ g:hover .point-animated {
 
 .chart-legend {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 6px;
-  margin-top: 12px;
-  padding: 12px 0 0 0;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 2px;
+  margin-top: 6px;
+  padding: 6px 0 0 0;
   border-top: 1px solid var(--fl-chart-border);
   font-family: var(--fl-chart-font-family);
-  max-height: 80px;
+  max-height: 140px;
   overflow-y: auto;
 }
 
 .legend-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   padding: 2px 4px;
   border-radius: 3px;
   cursor: pointer;
@@ -128,6 +129,7 @@ g:hover .point-animated {
   height: 8px;
   border-radius: 50%;
   margin-right: 6px;
+  margin-top: 2px;
   flex-shrink: 0;
   transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
   
@@ -143,27 +145,13 @@ g:hover .point-animated {
 }
 
 .legend-text {
-  font-size: 10px;
   color: var(--fl-chart-text-color);
   font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 80px;
-  line-height: 1.2;
-}
-
-.chart-metadata {
-  padding: 4px 8px;
-  font-size: 0.6875rem;
-  color: var(--fl-text-color-secondary, #6b7280);
-  text-align: center;
-  margin-top: 4px;
-}
-
-.chart-info {
-  font-size: 0.6875rem;
-  color: var(--fl-text-color-secondary, #6b7280);
+  white-space: normal;
+  word-break: break-word;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.3;
 }
 
 /* Tooltip styling */

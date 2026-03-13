@@ -14,6 +14,7 @@ interface BaseDataWidgetConfig {
   visualizationType?: 'table' | 'bar' | 'line' | 'pie' | 'donut' | 'hbar' | 'scatter' | 'sunburst' | 'heatmap' | 'bubble' | 'kpi' | 'histogram' | 'stacked-bar' | 'stacked-hbar' | 'clustered-bar' | 'clustered-hbar' | 'lollipop' | 'lollipop-h' | 'box-whisker' | 'filter'; // This is the discriminator - must be present
   hideTitle?: boolean;
   showLabels?: boolean;
+  showXAxisLabels?: boolean;
   showGrid?: boolean;
   showLegend?: boolean;
   colorTheme?: ColorTheme; // Widget-level color theme override

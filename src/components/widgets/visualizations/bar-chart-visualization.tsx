@@ -1,4 +1,4 @@
-import { Component, Prop, h, Event, EventEmitter, State, Watch } from '@stencil/core';
+import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
@@ -26,21 +26,41 @@ export class BarChartVisualization {
   @Prop() colorTheme: ColorTheme = "brand";
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
-  @State() themeVersion: number = 0; // Force re-render when theme changes
-  
+  @State() themeVersion: number = 0;
+  @State() legendFontSize: number = 10;
+
+  @Element() el: HTMLElement;
+
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
+  private adjustingFont: boolean = false;
+
   componentWillLoad() {
-    // Listen for theme changes
     ChartThemeUtils.onThemeChange(() => {
       this.themeVersion++;
     });
   }
-  
-  // Watch for changes to the colorTheme prop
+
+  componentDidRender() {
+    if (this.adjustingFont) return;
+    requestAnimationFrame(() => {
+      const legend = this.el.shadowRoot?.querySelector('.chart-legend') as HTMLElement;
+      if (!legend) return;
+      if (legend.scrollHeight > legend.clientHeight && this.legendFontSize > 6) {
+        this.adjustingFont = true;
+        this.legendFontSize = Math.max(6, this.legendFontSize - 1);
+        this.adjustingFont = false;
+      }
+    });
+  }
+
+  @Watch('data')
+  onDataChange() {
+    this.legendFontSize = 10;
+  }
+
   @Watch('colorTheme')
   colorThemeChanged() {
-    // Force re-render when color theme changes
     this.themeVersion++;
   }
 
@@ -149,9 +169,10 @@ export class BarChartVisualization {
     // Find the maximum value for scaling
     const maxValue = Math.max(...chartData.map(item => item.value)) * 1.1; // Add 10% padding
     
-    // For horizontal bar charts, adjust viewBox width based on aspect ratio
     const viewBoxWidth = isHorizontal ? 200 : 200;
     const viewBoxHeight = isHorizontal ? 300 : 100;
+    // Vertical bars: rotated labels sit at y=105 and extend to ~y=125; expand the rendered viewBox
+    const svgViewBoxHeight = isHorizontal ? 300 : 130;
     const step = Math.floor(viewBoxWidth / chartData.length);
     
     // Calculate positions and dimensions for bars
@@ -251,7 +272,7 @@ export class BarChartVisualization {
           <svg 
             width="100%" 
             height="100%" 
-            viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`} 
+            viewBox={`0 0 ${viewBoxWidth} ${svgViewBoxHeight}`}
             preserveAspectRatio="xMidYMin meet"
             {...ChartThemeUtils.getSVGAttributes()}
           >
@@ -441,22 +462,13 @@ export class BarChartVisualization {
             {bars.map((bar, i) => (
               <div key={i} class="legend-item">
                 <div class="color-indicator" style={{ backgroundColor: bar.color }}></div>
-                <span class="legend-text">
-                  {bar.category.length > 10 ? `${bar.category.substring(0, 10)}...` : bar.category}: {ChartThemeUtils.formatNumber(bar.value)}
+                <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>
+                  {bar.category}: {ChartThemeUtils.formatNumber(bar.value)}
                 </span>
               </div>
             ))}
           </div>
         )}
-        
-        <div class="chart-info-text">
-          {groupByField && valueField && (
-            <span>
-              Group: {groupByField} • Value: {valueField} • 
-              Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
-            </span>
-          )}
-        </div>
       </div>
     );
   }

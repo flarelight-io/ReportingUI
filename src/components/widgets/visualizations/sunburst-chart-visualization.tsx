@@ -1,4 +1,4 @@
-import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
+import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
@@ -48,8 +48,31 @@ export class SunburstChartVisualization {
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0; // Force re-render when theme changes
-  
+  @State() legendFontSize: number = 10;
+
+  @Element() el: HTMLElement;
+
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
+
+  private adjustingFont: boolean = false;
+
+  componentDidRender() {
+    if (this.adjustingFont) return;
+    requestAnimationFrame(() => {
+      const legend = this.el.shadowRoot?.querySelector('.chart-legend') as HTMLElement;
+      if (!legend) return;
+      if (legend.scrollHeight > legend.clientHeight && this.legendFontSize > 6) {
+        this.adjustingFont = true;
+        this.legendFontSize = Math.max(6, this.legendFontSize - 1);
+        this.adjustingFont = false;
+      }
+    });
+  }
+
+  @Watch('data')
+  onDataChange() {
+    this.legendFontSize = 10;
+  }
 
   componentWillLoad() {
     // Listen for theme changes
@@ -514,7 +537,7 @@ export class SunburstChartVisualization {
         {displayedLegendItems.map((node, index) => (
           <div key={index} class="legend-item">
             <div class="color-indicator" style={{ backgroundColor: node.color }}></div>
-            <span class="legend-text">{node.label || node.name}: {ChartThemeUtils.formatNumber(node.value)}</span>
+            <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>{node.label || node.name}: {ChartThemeUtils.formatNumber(node.value)}</span>
           </div>
         ))}
         {legendItems.length > maxLegendItems && (

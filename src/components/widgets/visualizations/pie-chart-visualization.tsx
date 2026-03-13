@@ -1,4 +1,4 @@
-import { Component, Prop, h, Event, EventEmitter, State, Watch } from '@stencil/core';
+import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
@@ -28,20 +28,40 @@ export class PieChartVisualization {
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0; // Force re-render when theme changes
-  
+  @State() legendFontSize: number = 10;
+
+  @Element() el: HTMLElement;
+
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
+  private adjustingFont: boolean = false;
+
   componentWillLoad() {
-    // Listen for theme changes
     ChartThemeUtils.onThemeChange(() => {
       this.themeVersion++;
     });
   }
-  
-  // Watch for changes to the colorTheme prop
+
+  componentDidRender() {
+    if (this.adjustingFont) return;
+    requestAnimationFrame(() => {
+      const legend = this.el.shadowRoot?.querySelector('.chart-legend') as HTMLElement;
+      if (!legend) return;
+      if (legend.scrollHeight > legend.clientHeight && this.legendFontSize > 6) {
+        this.adjustingFont = true;
+        this.legendFontSize = Math.max(6, this.legendFontSize - 1);
+        this.adjustingFont = false;
+      }
+    });
+  }
+
+  @Watch('data')
+  onDataChange() {
+    this.legendFontSize = 10;
+  }
+
   @Watch('colorTheme')
   colorThemeChanged() {
-    // Force re-render when color theme changes
     this.themeVersion++;
   }
 
@@ -159,11 +179,10 @@ export class PieChartVisualization {
     const colors = this.getColors();
     const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
-    // Rendering constants for the chart - reduced radius to leave space for labels
     const centerX = 50;
     const centerY = 50;
-    const radius = 40; // Reduced from 45 to provide more space for labels
-    const innerRadius = this.config.visualizationType === 'donut' ? 22 : 0;
+    const radius = 44;
+    const innerRadius = this.config.visualizationType === 'donut' ? 24 : 0;
 
     // Special case handling for single data point
     if (dataWithPercentages.length === 1) {
@@ -213,10 +232,10 @@ export class PieChartVisualization {
       return (
         <div class="pie-chart-container">
           <div class="visualization-container">
-            <svg 
-              width="100%" 
-              height="100%" 
-              viewBox="0 0 100 100" 
+            <svg
+              width="100%"
+              height="100%"
+              viewBox="-25 -10 150 120"
               preserveAspectRatio="xMidYMid meet"
               {...ChartThemeUtils.getSVGAttributes()}
             >
@@ -316,17 +335,10 @@ export class PieChartVisualization {
             </div>
           )}
           
-          <div class="chart-metadata">
-          {groupByField && valueField && (
-            <div class="chart-info">
-              Group: {groupByField} • Value: {valueField} • Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
-            </div>
-          )}
-          </div>
         </div>
       );
     }
-    
+
     // Calculate arcs for each segment
     let startAngle = 0;
     const segments = dataWithPercentages.map((item, index) => {
@@ -380,9 +392,9 @@ export class PieChartVisualization {
       const labelY = centerY + labelRadius * Math.sin(midAngleRadians);
       
       // Calculate position for external category labels - keep within viewBox
-      const maxLabelDistance = 1.15; // Reduced from 1.2 to ensure labels stay in viewBox
+      const maxLabelDistance = 1.15; // Labels sit just outside the pie edge
       const outerLabelRadius = radius * maxLabelDistance;
-      const outerConnectorRadius = radius * 1.02; // Shorter connectors
+      const outerConnectorRadius = radius * 1.02; // Connector end just outside the pie
       const outerLabelX = centerX + outerLabelRadius * Math.cos(midAngleRadians);
       const outerLabelY = centerY + outerLabelRadius * Math.sin(midAngleRadians);
       const connectorX = centerX + outerConnectorRadius * Math.cos(midAngleRadians);
@@ -420,10 +432,10 @@ export class PieChartVisualization {
     return (
       <div class="pie-chart-container">
         <div class="visualization-container">
-          <svg 
-            width="100%" 
-            height="100%" 
-            viewBox="0 0 100 100" 
+          <svg
+            width="100%"
+            height="100%"
+            viewBox="-25 -10 150 120"
             preserveAspectRatio="xMidYMid meet"
             {...ChartThemeUtils.getSVGAttributes()}
           >
@@ -525,14 +537,16 @@ export class PieChartVisualization {
                 // Calculate the average text length 
                 const avgTextLength = dataWithPercentages.reduce((sum, item) => sum + item.category.length, 0) / dataWithPercentages.length;
                 
-                // Further adjust font size based on segment count and text length
+                // Further adjust font size based on segment count and text length,
+                // capped at 3.5 SVG units so text width stays predictable within the viewBox
                 let adjustedFontSize = fontSize;
                 if (avgTextLength > 8 || segments.length > 6) {
                   adjustedFontSize = Math.max(2.5, fontSize * 0.65);
                 }
-                
-                // Truncate text based on available space and segment size
-                const maxLength = Math.min(maxTextLength, Math.max(3, Math.floor(segment.angle / 10)));
+                adjustedFontSize = Math.min(3.5, adjustedFontSize);
+
+                // Truncate text to maxTextLength (scales down as segment count increases)
+                const maxLength = maxTextLength;
                 const displayText = segment.category.length > maxLength 
                   ? `${segment.category.substring(0, maxLength)}...` 
                   : segment.category;
@@ -586,32 +600,17 @@ export class PieChartVisualization {
         
         {(this.config.showLegend !== false) && (
           <div class="chart-legend">
-            {segments.map((segment, i) => {
-              // Truncate category name in legend if too long
-              const displayText = segment.category.length > 15 
-                ? `${segment.category.substring(0, 15)}...` 
-                : segment.category;
-              
-              return (
-                <div key={i} class="legend-item">
-                  <div class="color-indicator" style={{ backgroundColor: segment.color }}></div>
-                  <span class="legend-text">
-                    {displayText}: {segment.value} ({segment.displayPercentage}%)
-                  </span>
-                </div>
-              );
-            })}
+            {segments.map((segment, i) => (
+              <div key={i} class="legend-item">
+                <div class="color-indicator" style={{ backgroundColor: segment.color }}></div>
+                <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>
+                  {segment.category}: {segment.value} ({segment.displayPercentage}%)
+                </span>
+              </div>
+            ))}
           </div>
         )}
         
-        <div class="chart-metadata">
-          {groupByField && valueField && (
-            <div class="chart-info">
-              Group: {groupByField} • Value: {valueField} • 
-              Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
-            </div>
-          )}
-        </div>
       </div>
     );
   }

@@ -36,6 +36,7 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
   overflow: hidden;
   background-color: var(--fl-chart-panel);
   border-radius: var(--fl-chart-radius);
@@ -202,30 +203,30 @@
 /* Legend styling - PowerBI grade */
 .chart-legend {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 6px;
-  margin-top: 8px;
-  padding: 8px 0 0 0;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 2px;
+  margin-top: 6px;
+  padding: 6px 0 0 0;
   border-top: 1px solid var(--fl-chart-border);
   font-family: var(--fl-chart-font-family);
-  max-height: 80px;
+  max-height: 140px;
   overflow-y: auto;
   flex-shrink: 0;
 }
 
 .legend-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   cursor: pointer;
-  transition: opacity 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
   padding: 2px 4px;
   border-radius: 3px;
-  
+
   &:hover {
-    opacity: 0.8;
+    opacity: 0.9;
     background-color: var(--fl-hover-color);
   }
-  
+
   &.dimmed {
     opacity: var(--fl-chart-dim-opacity);
   }
@@ -235,24 +236,24 @@
   width: 8px;
   height: 8px;
   border-radius: 0;
-  margin-right: 4px;
+  margin-right: 6px;
+  margin-top: 2px;
   flex-shrink: 0;
   transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   .legend-item:hover & {
     transform: scale(1.1);
   }
 }
 
 .legend-text {
-  font-size: 10px;
   color: var(--fl-chart-text-color);
   font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 80px;
-  line-height: 1.2;
+  white-space: normal;
+  word-break: break-word;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.3;
 }
 
 .legend-more {

@@ -1,4 +1,4 @@
-import { Component, Prop, h, State, Event, EventEmitter, Element } from '@stencil/core';
+import { Component, Prop, h, State, Event, EventEmitter, Element, Watch } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { HeatmapConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
@@ -32,9 +32,11 @@ export class HeatmapVisualization {
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0; // Force re-render when theme changes
   @State() containerSize: { width: number; height: number } = { width: 800, height: 600 };
-  
+  @State() legendFontSize: number = 10;
+
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
-  
+
+  private adjustingFont: boolean = false;
 
   componentWillLoad() {
     // Listen for theme changes
@@ -58,6 +60,24 @@ export class HeatmapVisualization {
         }
       }
     });
+  }
+
+  componentDidRender() {
+    if (this.adjustingFont) return;
+    requestAnimationFrame(() => {
+      const legend = this.el.shadowRoot?.querySelector('.chart-legend') as HTMLElement;
+      if (!legend) return;
+      if (legend.scrollHeight > legend.clientHeight && this.legendFontSize > 6) {
+        this.adjustingFont = true;
+        this.legendFontSize = Math.max(6, this.legendFontSize - 1);
+        this.adjustingFont = false;
+      }
+    });
+  }
+
+  @Watch('data')
+  onDataChange() {
+    this.legendFontSize = 10;
   }
 
   private updateContainerSize() {
@@ -545,21 +565,13 @@ export class HeatmapVisualization {
                       backgroundColor: bucket.color
                     }}
                   ></div>
-                  <span class="legend-text">{rangeLabel}</span>
+                  <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>{rangeLabel}</span>
                 </div>
               );
             })}
           </div>
         )}
         
-        <div class="chart-info-text">
-          {groupByField && valueField && (
-            <span>
-              Group: {groupByField} • Value: {valueField} • 
-              Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
-            </span>
-          )}
-        </div>
       </div>
     );
   }

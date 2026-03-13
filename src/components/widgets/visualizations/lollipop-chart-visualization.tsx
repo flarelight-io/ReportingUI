@@ -1,4 +1,4 @@
-import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
+import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
@@ -27,14 +27,37 @@ export class LollipopChartVisualization {
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0; // Force re-render when theme changes
-  
+  @State() legendFontSize: number = 10;
+
+  @Element() el: HTMLElement;
+
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
+
+  private adjustingFont: boolean = false;
 
   componentWillLoad() {
     // Listen for theme changes
     ChartThemeUtils.onThemeChange(() => {
       this.themeVersion++;
     });
+  }
+
+  componentDidRender() {
+    if (this.adjustingFont) return;
+    requestAnimationFrame(() => {
+      const legend = this.el.shadowRoot?.querySelector('.chart-legend') as HTMLElement;
+      if (!legend) return;
+      if (legend.scrollHeight > legend.clientHeight && this.legendFontSize > 6) {
+        this.adjustingFont = true;
+        this.legendFontSize = Math.max(6, this.legendFontSize - 1);
+        this.adjustingFont = false;
+      }
+    });
+  }
+
+  @Watch('data')
+  onDataChange() {
+    this.legendFontSize = 10;
   }
 
   private handleFilterClick(field: string, value: any) {
@@ -146,6 +169,7 @@ export class LollipopChartVisualization {
     // SVG dimensions
     const viewBoxWidth = isHorizontal ? 200 : 200;
     const viewBoxHeight = isHorizontal ? 300 : 100;
+    const svgViewBoxHeight = isHorizontal ? viewBoxHeight : 130;
     const step = Math.floor(viewBoxWidth / chartData.length);
     
     // Circle radius and stroke width for the lollipops
@@ -236,7 +260,7 @@ export class LollipopChartVisualization {
           <svg 
             width="100%" 
             height="100%" 
-            viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`} 
+            viewBox={`0 0 ${viewBoxWidth} ${svgViewBoxHeight}`}
             preserveAspectRatio="xMidYMin meet"
             {...ChartThemeUtils.getSVGAttributes()}
           >
@@ -456,21 +480,13 @@ export class LollipopChartVisualization {
           <div class="chart-legend">
             <div class="legend-item">
               <div class="color-indicator" style={{ backgroundColor: mainColor }}></div>
-              <span class="legend-text">
+              <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>
                 {valueField || 'Value'}
               </span>
             </div>
           </div>
         )}
         
-        <div class="chart-info-text">
-          {groupByField && valueField && (
-            <span>
-              Group: {groupByField} • Value: {valueField} • 
-              Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
-            </span>
-          )}
-        </div>
       </div>
     );
   }

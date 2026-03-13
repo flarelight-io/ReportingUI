@@ -1,4 +1,4 @@
-import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
+import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
@@ -28,15 +28,37 @@ export class HistogramChartVisualization {
   @Prop() colorTheme: ColorTheme = "brand";
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
-  @State() themeVersion: number = 0; // Force re-render when theme changes
-  
+  @State() themeVersion: number = 0;
+  @State() legendFontSize: number = 10;
+
+  @Element() el: HTMLElement;
+
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
+  private adjustingFont: boolean = false;
+
   componentWillLoad() {
-    // Listen for theme changes
     ChartThemeUtils.onThemeChange(() => {
       this.themeVersion++;
     });
+  }
+
+  componentDidRender() {
+    if (this.adjustingFont) return;
+    requestAnimationFrame(() => {
+      const legend = this.el.shadowRoot?.querySelector('.chart-legend') as HTMLElement;
+      if (!legend) return;
+      if (legend.scrollHeight > legend.clientHeight && this.legendFontSize > 6) {
+        this.adjustingFont = true;
+        this.legendFontSize = Math.max(6, this.legendFontSize - 1);
+        this.adjustingFont = false;
+      }
+    });
+  }
+
+  @Watch('data')
+  onDataChange() {
+    this.legendFontSize = 10;
   }
 
   private handleFilterClick(fieldName: string, value: any) {
@@ -161,6 +183,7 @@ export class HistogramChartVisualization {
     // Set viewBox dimensions to match other charts
     const viewBoxWidth = 200;
     const viewBoxHeight = 100;
+    const svgViewBoxHeight = 130; // Rotated x-axis labels sit at y=105 and extend to ~y=125
     
     // Calculate bar dimensions
     const barWidth = (viewBoxWidth - 10) / histogramData.length;
@@ -193,7 +216,7 @@ export class HistogramChartVisualization {
           <svg 
             width="100%" 
             height="100%" 
-            viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+            viewBox={`0 0 ${viewBoxWidth} ${svgViewBoxHeight}`}
             preserveAspectRatio="xMidYMid meet"
             {...ChartThemeUtils.getSVGAttributes()}
           >
@@ -380,21 +403,12 @@ export class HistogramChartVisualization {
           <div class="chart-legend">
             <div class="legend-item">
               <div class="color-indicator" style={{ backgroundColor: colors[0] }}></div>
-              <span class="legend-text">
+              <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>
                 {valueField || "Count"}
               </span>
             </div>
           </div>
         )}
-        
-        <div class="chart-info-text">
-          {groupByField && valueField && (
-            <span>
-              Group: {groupByField} • Value: {valueField} • 
-              Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
-            </span>
-          )}
-        </div>
       </div>
     );
   }

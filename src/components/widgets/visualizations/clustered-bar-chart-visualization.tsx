@@ -1,4 +1,4 @@
-import { Component, Prop, h, Event, EventEmitter, State } from '@stencil/core';
+import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
@@ -30,15 +30,37 @@ export class ClusteredBarChartVisualization {
   @Prop() colorTheme: ColorTheme = "brand";
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
-  @State() themeVersion: number = 0; // Force re-render when theme changes
-  
+  @State() themeVersion: number = 0;
+  @State() legendFontSize: number = 10;
+
+  @Element() el: HTMLElement;
+
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
+  private adjustingFont: boolean = false;
+
   componentWillLoad() {
-    // Listen for theme changes
     ChartThemeUtils.onThemeChange(() => {
       this.themeVersion++;
     });
+  }
+
+  componentDidRender() {
+    if (this.adjustingFont) return;
+    requestAnimationFrame(() => {
+      const legend = this.el.shadowRoot?.querySelector('.chart-legend') as HTMLElement;
+      if (!legend) return;
+      if (legend.scrollHeight > legend.clientHeight && this.legendFontSize > 6) {
+        this.adjustingFont = true;
+        this.legendFontSize = Math.max(6, this.legendFontSize - 1);
+        this.adjustingFont = false;
+      }
+    });
+  }
+
+  @Watch('data')
+  onDataChange() {
+    this.legendFontSize = 10;
   }
 
   private handleFilterClick(field: string, value: any) {
@@ -149,6 +171,7 @@ export class ClusteredBarChartVisualization {
     // SVG dimensions and spacing
     const viewBoxWidth = 200;
     const viewBoxHeight = isHorizontal ? Math.max(200, chartData.length * 35) : 100;
+    const svgViewBoxHeight = isHorizontal ? viewBoxHeight : 130;
     
     // Calculate spacing based on available space and number of bars
     const categoryCount = chartData.length;
@@ -239,7 +262,7 @@ export class ClusteredBarChartVisualization {
           <svg 
             width="100%" 
             height="100%" 
-            viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`} 
+            viewBox={`0 0 ${viewBoxWidth} ${svgViewBoxHeight}`}
             preserveAspectRatio="xMidYMin meet"
             {...ChartThemeUtils.getSVGAttributes()}
           >
@@ -464,22 +487,13 @@ export class ClusteredBarChartVisualization {
             {fields && fields.map((field, i) => (
               <div key={i} class="legend-item">
                 <div class="color-indicator" style={{ backgroundColor: colors[i % colors.length] }}></div>
-                <span class="legend-text">
-                  {field.length > 10 ? `${field.substring(0, 10)}...` : field}
+                <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>
+                  {field}
                 </span>
               </div>
             ))}
           </div>
         )}
-        
-        <div class="chart-info-text">
-          {groupByField && fields && (
-            <span>
-              Group: {groupByField} • Values: {fields?.join(', ')} • 
-              Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
-            </span>
-          )}
-        </div>
       </div>
     );
   }

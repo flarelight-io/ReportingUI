@@ -1,4 +1,4 @@
-import { Component, Prop, h, Event, EventEmitter, State, Watch } from '@stencil/core';
+import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
@@ -27,20 +27,40 @@ export class LineChartVisualization {
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0;
-  
+  @State() legendFontSize: number = 10;
+
+  @Element() el: HTMLElement;
+
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
+  private adjustingFont: boolean = false;
+
   componentWillLoad() {
-    // Listen for theme changes to force re-render
     ChartThemeUtils.onThemeChange(() => {
       this.themeVersion++;
     });
   }
-  
-  // Watch for changes to the colorTheme prop
+
+  componentDidRender() {
+    if (this.adjustingFont) return;
+    requestAnimationFrame(() => {
+      const legend = this.el.shadowRoot?.querySelector('.chart-legend') as HTMLElement;
+      if (!legend) return;
+      if (legend.scrollHeight > legend.clientHeight && this.legendFontSize > 6) {
+        this.adjustingFont = true;
+        this.legendFontSize = Math.max(6, this.legendFontSize - 1);
+        this.adjustingFont = false;
+      }
+    });
+  }
+
+  @Watch('data')
+  onDataChange() {
+    this.legendFontSize = 10;
+  }
+
   @Watch('colorTheme')
   colorThemeChanged() {
-    // Force re-render when color theme changes
     this.themeVersion++;
   }
 
@@ -177,6 +197,7 @@ export class LineChartVisualization {
     // Calculate optimal aspect ratio
     const viewBoxWidth = 100;
     const viewBoxHeight = 60;
+    const svgViewBoxHeight = this.config.showXAxisLabels ? 80 : viewBoxHeight;
     
     // Generate points for the line, spaced evenly across the width
     const points = chartData.map((item, index) => {
@@ -200,7 +221,7 @@ export class LineChartVisualization {
           <svg 
             width="100%" 
             height="100%" 
-            viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+            viewBox={`0 0 ${viewBoxWidth} ${svgViewBoxHeight}`}
             preserveAspectRatio="xMidYMid meet"
             {...ChartThemeUtils.getSVGAttributes()}
           >
@@ -314,62 +335,57 @@ export class LineChartVisualization {
               opacity="0.6"
             />
             
-            {/* Labels (only show if not too many points) */}
-            {chartData.length <= 8 && (
-              <>
-                {points.map((point, i) => {
-                  // Only show labels for every other point if there are many
-                  if (chartData.length > 5 && i % 2 !== 0) {
-                    return null;
-                  }
-                  
-                  const displayText = String(point.category);
-                  const truncatedText = displayText.length > 10 
-                    ? displayText.substring(0, 10) + '...' 
-                    : displayText;
-                  
-                  return (
-                    <text 
-                      key={i} 
-                      x={point.x} 
-                      y={viewBoxHeight - 2} 
-                      font-size="2.5" 
-                      text-anchor="middle" 
-                      fill="var(--fl-chart-text-secondary)"
-                      font-family={theme.fontFamily}
-                      font-weight="500"
-                    >
-                      {truncatedText}
-                    </text>
-                  );
-                })}
-                
-                {this.config.showLabels && points.map((point, i) => {
-                  // Only show value labels for every other point if there are many
-                  if (chartData.length > 5 && i % 2 !== 0) {
-                    return null;
-                  }
-                  
-                  return (
-                    <text 
-                      key={`value-${i}`} 
-                      x={point.x} 
-                      y={point.y - 3} 
-                      font-size="2.5" 
-                      text-anchor="middle" 
-                      fill="var(--fl-chart-text-color)"
-                      font-family={theme.fontFamily}
-                      font-weight="600"
-                      paint-order="stroke fill"
-                      stroke="white"
-                      stroke-width="0.5"
-                    >
-                      {ChartThemeUtils.formatNumber(point.value)}
-                    </text>
-                  );
-                })}
-              </>
-            )}
+            {/* X-axis category labels */}
+            {this.config.showXAxisLabels && (() => {
+              const skipStep = Math.max(1, Math.ceil(chartData.length / 10));
+              return points.map((point, i) => {
+                if (i % skipStep !== 0) return null;
+                const displayText = String(point.category);
+                const truncated = displayText.length > 15
+                  ? displayText.substring(0, 15) + '...'
+                  : displayText;
+                return (
+                  <text
+                    key={`x-${i}`}
+                    x={point.x}
+                    y={58}
+                    font-size="2.5"
+                    text-anchor="end"
+                    fill="var(--fl-chart-text-secondary)"
+                    font-family={theme.fontFamily}
+                    font-weight="500"
+                    transform={`rotate(-45, ${point.x}, 58)`}
+                  >
+                    {truncated}
+                  </text>
+                );
+              });
+            })()}
+
+            {/* Value labels above points */}
+            {this.config.showLabels && (() => {
+              const skipStep = Math.max(1, Math.ceil(chartData.length / 8));
+              return points.map((point, i) => {
+                if (i % skipStep !== 0) return null;
+                return (
+                  <text
+                    key={`value-${i}`}
+                    x={point.x}
+                    y={point.y - 3}
+                    font-size="2.5"
+                    text-anchor="middle"
+                    fill="var(--fl-chart-text-color)"
+                    font-family={theme.fontFamily}
+                    font-weight="600"
+                    paint-order="stroke fill"
+                    stroke="white"
+                    stroke-width="0.5"
+                  >
+                    {ChartThemeUtils.formatNumber(point.value)}
+                  </text>
+                );
+              });
+            })()}
             
             {/* Y-axis labels */}
             {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
@@ -413,18 +429,10 @@ export class LineChartVisualization {
           <div class="chart-legend">
             <div class="legend-item">
               <div class="color-indicator" style={{ backgroundColor: colors[0] }}></div>
-              <span class="legend-text">{valueField || "Value"}</span>
+              <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>{valueField || "Value"}</span>
             </div>
           </div>
         )}
-        
-        <div class="chart-metadata">
-          {groupByField && valueField && (
-            <div class="chart-info">
-              Group: {groupByField} • Value: {valueField} • Agg: {'aggregation' in this.config ? this.config.aggregation || 'none' : 'none'}
-            </div>
-          )}
-        </div>
       </div>
     );
   }
