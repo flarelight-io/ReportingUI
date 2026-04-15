@@ -26,3 +26,4 @@ UserInterfaceState.xcuserstate
 .env
 flarelight-reporting-esbuild.js
 demo-esbuild.html
+bundle-meta.json
