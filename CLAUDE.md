@@ -69,8 +69,9 @@ export class MyWidget {
 
 ### Integration Guides
 
-Root-level markdown files document integration for each host environment:
-- `react-integration-guide.md`
-- `plain-javascript-integration-guide.md`
-- `dotnet-integration-guide.md`
-- `ESBUILD-BUNDLE-USAGE.md`
+Integration guides live in the `docs/` folder:
+- `docs/react-integration.md`
+- `docs/javascript-integration.md`
+- `docs/dotnet-integration.md`
+- `docs/esbuild-bundle.md`
+- `docs/development.md` — full architecture and contributor guide

@@ -1,265 +1,198 @@
 [![Built With Stencil](https://img.shields.io/badge/-Built%20With%20Stencil-16161d.svg?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDE5LjIuMSwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI%2BCjxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI%2BCgkuc3Qwe2ZpbGw6I0ZGRkZGRjt9Cjwvc3R5bGU%2BCjxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik00MjQuNywzNzMuOWMwLDM3LjYtNTUuMSw2OC42LTkyLjcsNjguNkgxODAuNGMtMzcuOSwwLTkyLjctMzAuNy05Mi43LTY4LjZ2LTMuNmgzMzYuOVYzNzMuOXoiLz4KPHBhdGggY2xhc3M9InN0MCIgZD0iTTQyNC43LDI5Mi4xSDE4MC40Yy0zNy42LDAtOTIuNy0zMS05Mi43LTY4LjZ2LTMuNkgzMzJjMzcuNiwwLDkyLjcsMzEsOTIuNyw2OC42VjI5Mi4xeiIvPgo8cGF0aCBjbGFzcz0ic3QwIiBkPSJNNDI0LjcsMTQxLjdIODcuN3YtMy42YzAtMzcuNiw1NC44LTY4LjYsOTIuNy02OC42SDMzMmMzNy45LDAsOTIuNywzMC43LDkyLjcsNjguNlYxNDEuN3oiLz4KPC9zdmc%2BCg%3D%3D&colorA=16161d&style=flat-square)](https://stenciljs.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 # Flarelight Reporting
 
-A StencilJS-based reporting component library for creating interactive data visualization dashboards and reports.
+A StencilJS web components library for building interactive reporting dashboards. Drop data visualization widgets — charts, statistical analyses, KPIs, and more — into React, Angular, Vue, .NET, or vanilla JavaScript applications.
+
+## Features
+
+- **Metadata-driven rendering** — the entire report layout, widget types, and data sources are defined as a plain JSON configuration object. Store configs in a database, generate them server-side, or build a visual editor — no code changes needed to change what a report shows
+- **20+ visualization types** — bar, line, pie, scatter, bubble, heatmap, KPI, sunburst, histogram, lollipop, box & whisker, table, and more
+- **Statistical analysis widgets** — normality tests (Shapiro-Wilk, Anderson-Darling, Kolmogorov-Smirnov), ANOVA, Mann-Whitney, Kruskal-Wallis, Wilcoxon, correlation, descriptive statistics
+- **Bring your own data** — a single `fetchChartData(request)` callback is all the library needs; you control how data is fetched, cached, and transformed
+- **Grid-based layout** via [Gridstack](https://gridstackjs.com/) — draggable, resizable widgets
+- **Framework-agnostic** Web Components — works with any frontend stack
+- **PDF generation** support via PuppeteerSharp / headless Chrome
+- **Standalone esbuild bundle** — single `<script>` tag, no build step required
+- **TypeScript** — full type definitions included
 
 ## Installation
 
-### 1. Configure npm to use Azure Artifacts
-
-Create or update your `.npmrc` file with the following:
-
-```
-registry=https://registry.npmjs.org/
-@your-organization:registry=https://pkgs.dev.azure.com/your-organization/_packaging/your-feed-name/npm/registry/
-always-auth=true
-```
-
-### 2. Install the package
-
 ```bash
-npm install @your-organization/flarelight-reporting --save
+npm install @flarelight-io/reporting
 ```
 
-## Usage in React Applications
+## Quick Start
 
-This is a StencilJS component library published as Web Components that can be used in React applications.
-
-### Setup
-
-In your React application, add the following to integrate the Flarelight Reporting components:
+### React
 
 ```jsx
-// In your index.js or App.js
-import { defineCustomElements } from '@your-organization/flarelight-reporting/loader';
+// index.jsx / index.tsx
+import { defineCustomElements } from '@flarelight-io/reporting/loader';
+import '@flarelight-io/reporting/dist/flarelight-reporting/flarelight-reporting.css';
 
-// Register the custom elements
 defineCustomElements();
 ```
 
-### Using Components
-
-Once registered, you can use the custom elements directly in your React components:
-
 ```jsx
-import React from 'react';
-
 function Dashboard() {
-  // Demo report configuration
-  const reportConfig = {
-    widgets: [
-      {
-        id: 'chart1',
-        type: 'bar',
-        title: 'Sales by Region',
-        x: 0,
-        y: 0,
-        w: 6,
-        h: 4,
-        config: {
-          sourceId: 'sales-data',
-          groupByField: 'region',
-          valueField: 'sales',
-          showGrid: true,
-          showLegend: true
-        }
-      },
-      // Add more widgets as needed
-    ],
-    sources: [
-      {
-        id: 'sales-data',
-        name: 'Sales Data',
-        type: 'json',
-        fields: [
-          { name: 'region', displayName: 'Region', type: 'string' },
-          { name: 'sales', displayName: 'Sales Amount', type: 'number' }
-        ]
-      }
-    ]
-  };
-
-  // Function to fetch chart data
   const fetchChartData = async (request) => {
-    // In a real app, you would fetch from your API
-    // For this example, return mock data
-    return [
-      { region: 'North', sales: 1250 },
-      { region: 'South', sales: 1450 },
-      { region: 'East', sales: 950 },
-      { region: 'West', sales: 1650 }
-    ];
+    const res = await fetch('/api/chart-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request)
+    });
+    return res.json();
   };
 
   return (
-    <div className="dashboard">
-      <h1>Sales Dashboard</h1>
-      <div className="report-container">
-        <report-viewer
-          reportId="sales-dashboard"
-          configuration={reportConfig}
-          fetchChartData={fetchChartData}
-        ></report-viewer>
-      </div>
-    </div>
+    <report-viewer
+      reportId="my-dashboard"
+      configuration={reportConfig}
+      fetchChartData={fetchChartData}
+    />
   );
 }
-
-export default Dashboard;
 ```
 
-### Available Components
-
-The library includes the following components:
-
-- `<report-viewer>` - Main report container
-- `<base-widget>` - Base widget component
-- `<text-widget>` - Text display widget
-- `<source-info-widget>` - Data source information widget
-- `<data-widget>` - Data visualization widget
-- `<descriptive-analysis-widget>` - Statistical analysis widget
-- `<correlation-analysis-widget>` - Correlation matrix widget
-
-Plus multiple visualization components:
-- Bar charts
-- Line charts 
-- Pie/Donut charts
-- Scatter plots
-- Heatmaps
-- Sunburst charts
-- And more...
-
-## Creating a Bundle for Report Generator Apps
-
-If you need a single JavaScript file that you can drop into your report generator application, you can create a bundled version using esbuild.
-
-### Step 1: Build the Stencil Components
-
-First, ensure your Stencil components are built:
-
-```bash
-npm run build
-```
-
-### Step 2: Create the Bundle
-
-Run the esbuild bundling script:
-
-```bash
-npm run bundle:esbuild
-```
-
-This will create a single file called `flarelight-reporting-esbuild.js` that includes:
-- Complete Stencil runtime
-- All visualization components
-- Automatic custom element registration
-- Global helper functions
-- PuppeteerSharp compatibility fixes
-
-### Step 3: Use the Bundle
-
-The generated bundle can be included in any HTML page:
+### Vanilla JavaScript
 
 ```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My Report</title>
-</head>
-<body>
-    <h1>Sales Dashboard</h1>
-    
-    <!-- Include the bundle -->
-    <script src="flarelight-reporting-esbuild.js"></script>
-    
-    <!-- Create components programmatically -->
-    <div id="kpi-container"></div>
-    <div id="chart-container"></div>
-    
-    <script>
-        // Wait for components to be ready
-        window.addEventListener('flarelight-components-ready', async () => {
-            // Create a KPI widget
-            const kpi = await window.FlarelightReporting.createElement('kpi-visualization', {
-                config: {
-                    title: "Revenue",
-                    kpiFormatType: "currency"
-                },
-                data: {
-                    rawData: [{ value: 125000, previousValue: 120000, trend: "up" }],
-                    loading: false
-                }
-            });
-            document.getElementById('kpi-container').appendChild(kpi);
-            
-            // Create a bar chart
-            const barChart = await window.FlarelightReporting.createElement('bar-chart-visualization', {
-                config: {
-                    title: "Sales by Region",
-                    visualizationType: "bar",
-                    groupByField: "region",
-                    valueField: "sales"
-                },
-                data: {
-                    rawData: [
-                        { region: "North", sales: 12000 },
-                        { region: "South", sales: 19000 },
-                        { region: "East", sales: 3000 },
-                        { region: "West", sales: 5000 }
-                    ],
-                    loading: false
-                }
-            });
-            document.getElementById('chart-container').appendChild(barChart);
-        });
-    </script>
-</body>
-</html>
+<link rel="stylesheet" href="node_modules/@flarelight-io/reporting/dist/flarelight-reporting/flarelight-reporting.css">
+
+<report-viewer id="viewer" report-id="my-dashboard"></report-viewer>
+
+<script type="module">
+  import { defineCustomElements } from '@flarelight-io/reporting/loader';
+  defineCustomElements();
+
+  const viewer = document.getElementById('viewer');
+  viewer.configuration = { widgets: [...], sources: [...] };
+  viewer.fetchChartData = async (request) => { /* fetch from your API */ };
+</script>
 ```
 
-### Bundle Features
+### Standalone bundle (no build step)
 
-- **File Size**: ~391 KB (includes complete runtime)
-- **Format**: IIFE (Immediately Invoked Function Expression)
-- **Target**: ES2017 (compatible with modern browsers)
-- **Dependencies**: None (everything bundled)
-- **PuppeteerSharp**: Compatible with automatic baseURI fixes
+```html
+<report-viewer id="viewer" report-id="my-dashboard" is-viewer="true"></report-viewer>
+<script src="flarelight-reporting-esbuild.js"></script>
+<script>
+  customElements.whenDefined('report-viewer').then(() => {
+    const viewer = document.getElementById('viewer');
+    viewer.configuration = { widgets: [...], sources: [...] };
+    viewer.fetchChartData = async (request) => { /* ... */ };
+  });
+</script>
+```
 
-### Available Helper Functions
+Build the standalone bundle with `npm run bundle:esbuild`. See [docs/esbuild-bundle.md](docs/esbuild-bundle.md) for full details including PuppeteerSharp usage.
 
-The bundle provides these global helper functions:
+## How it Works
+
+The library is **fully metadata-driven**. A report is described entirely by a plain JSON configuration object — no JSX, no component trees, no hard-coded widget lists. Pass that object to `<report-viewer>` alongside a data-fetching callback, and the library handles rendering, layout, and interactivity.
+
+This means you can:
+- **Store reports in a database** and render any report by fetching its config at runtime
+- **Build a report editor** that saves configs as JSON — the viewer renders whatever the editor produces
+- **Generate reports server-side** by constructing the config programmatically
+- **Version and diff reports** since the entire definition is serialisable data
+
+`<report-viewer>` accepts a **configuration** object and a **fetchChartData** callback:
+
+- The configuration declares widget types, grid positions, and data source definitions.
+- `fetchChartData(request)` is called by the library whenever a widget needs data. The typed request describes exactly what is needed (source, filters, aggregation); your function makes the API call and returns the rows.
+- Widgets emit `filterChange` events upward; `<report-viewer>` aggregates them and re-fetches automatically.
 
 ```javascript
-// Check if components are ready
-window.FlarelightReporting.isReady
-
-// Wait for components to be ready
-await window.FlarelightReporting.whenReady()
-
-// Create any component
-await window.FlarelightReporting.createElement('kpi-visualization', config, data)
-
-// Create KPI specifically
-await window.FlarelightReporting.createKPI(config, value, previousValue, trend)
-
-// Create charts
-await window.FlarelightReporting.createChart('bar', config, data)
-
-// Render complete reports
-await window.FlarelightReporting.renderReport(container, reportConfig)
+const configuration = {
+  widgets: [
+    {
+      id: 'revenue-kpi',
+      type: 'kpi',
+      title: 'Total Revenue',
+      x: 0, y: 0, w: 3, h: 2,
+      config: { sourceId: 'sales', valueField: 'revenue' }
+    },
+    {
+      id: 'sales-chart',
+      type: 'bar',
+      title: 'Sales by Region',
+      x: 0, y: 2, w: 6, h: 4,
+      config: { sourceId: 'sales', groupByField: 'region', valueField: 'revenue' }
+    }
+  ],
+  sources: [
+    {
+      id: 'sales',
+      name: 'Sales Data',
+      type: 'json',
+      fields: [
+        { name: 'region', displayName: 'Region', type: 'string' },
+        { name: 'revenue', displayName: 'Revenue', type: 'number' }
+      ]
+    }
+  ]
+};
 ```
 
-### Demo Files
+## Widgets
 
-After running the bundle command, you'll also get:
-- `demo-esbuild.html` - Interactive demo showing all components
-- `bundle-meta.json` - Bundle analysis and dependency information
+### Visualization Widgets
+
+| Widget type | Description |
+|-------------|-------------|
+| `bar` | Bar chart |
+| `clusteredBar` | Clustered bar chart |
+| `stackedBar` | Stacked bar chart |
+| `line` | Line chart |
+| `pie` | Pie / donut chart |
+| `scatter` | Scatter plot |
+| `bubble` | Bubble chart |
+| `heatmap` | Heatmap |
+| `histogram` | Histogram |
+| `sunburst` | Sunburst chart |
+| `lollipop` | Lollipop chart |
+| `boxWhisker` | Box & whisker chart |
+| `table` | Data table |
+| `kpi` | KPI card |
+| `text` | Text / markdown |
+| `sourceInfo` | Data source info |
+
+### Statistical Analysis Widgets
+
+| Widget type | Description |
+|-------------|-------------|
+| `descriptiveAnalysis` | Descriptive statistics |
+| `correlationAnalysis` | Correlation matrix |
+| `shapiroWilkTest` | Shapiro-Wilk normality test |
+| `andersonDarlingTest` | Anderson-Darling normality test |
+| `kolmogorovSmirnovTest` | Kolmogorov-Smirnov normality test |
+| `boxWhiskerNormalityPlot` | Box-whisker normality plot |
+| `oneSampleHypothesisTest` | One-sample hypothesis test |
+| `independentTwoSampleTest` | Independent two-sample t-test |
+| `pairedTwoSampleTest` | Paired two-sample t-test |
+| `welchTwoSampleTest` | Welch two-sample t-test |
+| `oneWayAnova` | One-way ANOVA |
+| `welchAnova` | Welch ANOVA |
+| `mannWhitneyUTest` | Mann-Whitney U test |
+| `kruskalWallisTest` | Kruskal-Wallis test |
+| `oneSampleWilcoxon` | One-sample Wilcoxon signed-rank test |
+| `pairedWilcoxon` | Paired Wilcoxon signed-rank test |
+
+## Documentation
+
+- [Development Guide](docs/development.md) — architecture, patterns, how to add components
+- [React Integration](docs/react-integration.md) — detailed React setup and examples
+- [JavaScript Integration](docs/javascript-integration.md) — vanilla JS / CDN usage
+- [.NET Integration](docs/dotnet-integration.md) — PuppeteerSharp PDF generation
+- [esbuild Bundle](docs/esbuild-bundle.md) — standalone bundle reference
 
 ## Contributing
 
-Please refer to the internal development guidelines for contribution information.
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
