@@ -312,3 +312,74 @@ Value now: apps that don't want to build forms get a working builder out of the 
 
 Start with Phase 0, in small commits that keep the viewer's output unchanged: `columns` and `sources` on the viewer,
 then the layout engine with tests, then the widget registry, then the keyed renderer. Re-check the demo after each.
+
+## Implementation status
+
+Branch: `feat/report-builder` (not pushed yet). Last updated at the end of the first implementation session.
+
+### Phase 0: groundwork
+
+| Item | Status | Where |
+| ---- | ------ | ----- |
+| Configurable grid `columns` (property + config key, default 12; schema no longer caps x/w at 12) | Done | `report-viewer.tsx`, `schema.json`, `docs/theming.md` |
+| `sources` property on the viewer (overrides `configuration.sources`) | Done | `report-viewer.tsx`, `docs/development.md` |
+| Layout engine: move, resize, add, remove, compact, normalize, locked items, `compact: none`, plus `resolveRect` (the viewer's placement rule, now shared) | Done, 22 tests | `src/utils/layout.ts`, `layout.spec.ts` |
+| Widget registry replacing the viewer's ~1000-line `createWidgetElement` switch; `registerWidgetType` etc. exported | Done, tests, output verified identical | `src/utils/widget-registry.ts`, `docs/custom-widgets.md` |
+| Keyed incremental grid renderer | **Not started** (design below) | `report-viewer.tsx` `renderWidgets()` |
+| Per-widget data invalidation on configuration change | **Not started** (design below) | `report-viewer.tsx` `applyConfiguration()` |
+
+Commits so far on the branch: design doc, `columns` + `sources`, layout engine, widget registry. All 88 unit tests
+pass and the build is clean.
+
+How the registry refactor was verified (reuse this for the renderer): fingerprint every rendered widget in the demo
+(`.widget-item` position, child tag, `widgetId`, `widgetTitle`, `reportId`, `readOnly`, `isInEditor`, `isViewer`,
+`colorTheme`, `config` JSON, data length, fetch function presence, attributes, style), hash it, switch to the old code
+(stash only `report-viewer.tsx`, force `npx stencil build --docs`, confirm the served bundle lacks the new marker),
+and compare. The hashes were identical for all 50 widgets. Note the dev server does not always rebuild after a stash,
+so force a build and check the loaded bundle.
+
+### Remaining Phase 0 work
+
+**1. Keyed incremental renderer.** Today `renderWidgets()` clears the grid and recreates every widget on every call.
+Plan:
+
+- Keep `Map<key, { container, element, signature }>`; key is the widget id (suffix duplicates so two widgets with the
+  same id don't collide).
+- Per render, for each widget: compute `resolveRect`, create the node if missing, recreate only the element
+  (`container.replaceChild`) when its **signature** changed, otherwise only update grid position and the
+  `height-mode` attribute. Keep DOM order equal to widget order (`insertBefore`), remove nodes for widgets that are
+  gone, and handle the empty-report placeholder.
+- Signature = JSON of `[type, title, config, data-cache token, loading, colorTheme, reportId, isViewer,
+  sources token, filters cache key, fetchChartData token]`. Use a `WeakMap<object, number>` for the tokens.
+- Pitfalls found while reading the code: the text widget factory **mutates** `widget.config` (adds `text: ''`), so
+  compute the stored signature *after* creating the element; `refreshForFilters` clears `gridContainer.innerHTML`
+  before calling `renderWidgets()` (remove that line, and treat a node whose container is no longer a child of the
+  grid as missing, so external clearing still recovers); the demo's theme handler rebuilds the whole viewer element,
+  which is fine (fresh map).
+- Acceptance: the fingerprint hash above is unchanged on load; after a layout-only change the same element
+  instances are kept; a single widget config change replaces only that element.
+
+**2. Per-widget data invalidation.** `applyConfiguration()` resets **all** cached data and promises whenever anything
+except `colorTheme` changes, so a drag in the builder would refetch and rebuild everything. Plan:
+
+- Split the key: a *global* key (configuration without `colorTheme`, `widgets`, `layouts`, and the layout-only keys
+  `columns`, `rowHeight`, `rowAspectRatio`, `gap`) and a *per-widget* key `stableStringify([type, config])` taken from
+  `parsedConfig.widgets` (the definitions are there in both the `widgets` and the `layouts + widgets` formats).
+- On a configuration change: if the global key changed (or there were no widgets), reset everything as now; otherwise
+  delete the cache entry and promise only for widgets whose per-widget key changed or that are new, and drop entries
+  for removed widgets, then `parseConfiguration` + `prefetchAndRender()` as before.
+- Record the baseline (global key and per-widget keys) in `componentDidLoad` where `lastDataConfigKey` is set today.
+- Acceptance: moving or resizing a widget (changing only `x/y/w/h`) causes 0 fetches and 0 element recreations;
+  editing one widget's config causes at most that widget's fetch and recreation; changing a source or filter still
+  refreshes everything. Add unit tests for the key helpers (they are pure) and re-run the fetch-count check from the
+  earlier "fetched twice" work (45 fetches on load, one render).
+
+### Phase 1 (next after Phase 0)
+
+Start `<report-builder>` per the design above: controlled `configuration` / `configurationChange`, an edit overlay
+(selection frames, drag and resize handles, ghost placeholder) over the keyed renderer, using `moveItem`,
+`resizeItem`, `addItem` and `removeItems` from the layout engine, `addWidget` / `removeWidgets` / `select` methods and
+`widgetSelect`. Widgets get `pointer-events: none` in edit mode. Reuse the registry for creating widget elements.
+Add puppeteer e2e tests for drag, resize, add and delete (the repo has no e2e tests yet). The decisions at the top of
+this document apply (own layout engine, headless, sources from the app, same format with configurable columns,
+separate component, configuration hook on add).
