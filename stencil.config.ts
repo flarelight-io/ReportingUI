@@ -7,6 +7,11 @@ export const config: Config = {
     sass()
   ],
   globalStyle: 'src/global/theme.scss',
+  extras: {
+    // Emit literal import() calls for each lazy bundle so Vite/Parcel/webpack can follow them
+    // (without this the loader builds the path at runtime: import(`./${bundleId}.entry.js`))
+    enableImportInjection: true,
+  },
   outputTargets: [
     {
       type: 'dist',
@@ -14,7 +19,8 @@ export const config: Config = {
     },
     {
       type: 'dist-custom-elements',
-      customElementsExportBehavior: 'auto-define-custom-elements',
+      // Static, tree-shakeable ESM for bundlers: import { defineCustomElements } from '@flarelight-io/reporting/components'
+      customElementsExportBehavior: 'bundle',
       externalRuntime: false,
       generateTypeDeclarations: true,
     },

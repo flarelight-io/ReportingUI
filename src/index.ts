@@ -13,6 +13,8 @@ export type * from './components.d.ts';
 export { Components, JSX } from './components';
 export * from './components/widgets/base-widget';
 export * from './api/types/common';
+export { ChartThemeUtils } from './utils/chart-theme';
+export type { ChartMode, ColorTheme, BuiltInColorTheme, ColorThemeDefinition, ChartThemeOverrides } from './utils/chart-theme';
 export { ChartDataRequestBuilder } from './utils/chart-data-request-builder';
 export type { ChartDataRequestBuilderOptions, ChartSort } from './utils/chart-data-request-builder';
 

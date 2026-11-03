@@ -467,7 +467,7 @@ export class MannWhitneyUTestWidget {
     
     return (
       <Host>
-        <base-widget
+        <base-widget exportparts="card,header,title,body"
           widgetId={this.widgetId}
           widgetTitle={this.widgetTitle || this.config.analysisName || "Mann-Whitney U Test"}
           width={this.width}

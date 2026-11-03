@@ -1,11 +1,16 @@
 import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
-import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
+import { FilterChangeEventDetail, VisualizationData, fieldLabel } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
+import { PlotSizeTracker, computeBarFrame, clipLabel } from '../../../utils/bar-layout';
+import { applyTopN, topNOptions, OTHER_COLOR } from '../../../utils/top-n';
+import { renderValueAxis, buildAxis } from '../../../utils/chart-axes';
+import { placeTooltip } from '../../../utils/tooltip';
 
 interface ChartDataItem {
   category: string;
   value: number;
+  isOther?: boolean;
 }
 
 interface TooltipState {
@@ -28,12 +33,22 @@ export class LollipopChartVisualization {
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0; // Force re-render when theme changes
   @State() legendFontSize: number = 10;
+  @State() plotWidth: number = 0;
+  @State() plotHeight: number = 0;
 
   @Element() el: HTMLElement;
 
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
   private adjustingFont: boolean = false;
+  private plotSize = new PlotSizeTracker(({ width, height }) => {
+    if (width !== this.plotWidth) this.plotWidth = width;
+    if (height !== this.plotHeight) this.plotHeight = height;
+  });
+
+  disconnectedCallback() {
+    this.plotSize.detach();
+  }
 
   componentWillLoad() {
     // Listen for theme changes
@@ -65,7 +80,7 @@ export class LollipopChartVisualization {
   }
 
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     return theme.series;
   }
 
@@ -123,8 +138,8 @@ export class LollipopChartVisualization {
       this.tooltip = {
         visible: true,
         text: `${truncatedCategory}\n${formattedValue}`,
-        x: event.clientX - svgRect.left,
-        y: event.clientY - svgRect.top
+        x: event.clientX,
+        y: event.clientY
       };
     }
   }
@@ -146,7 +161,8 @@ export class LollipopChartVisualization {
     const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
     const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
     
-    const chartData = this.processData();
+    // Optionally keep the N largest categories and combine the rest into "Other"
+    const chartData = applyTopN(this.processData(), topNOptions(this.config));
     
     if (chartData.length === 0) {
       return <div class="empty-data">No data available</div>;
@@ -155,111 +171,60 @@ export class LollipopChartVisualization {
     // Use safe string comparison to avoid type errors
     const isHorizontal = String(this.config.visualizationType) === 'lollipop-h';
     const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     const mainColor = colors[0]; // Use first color as the main color
     
-    // Find the maximum value for scaling
-    const maxValue = Math.max(...chartData.map(item => item.value)) * 1.1; // Add 10% padding
-    
-    // SVG dimensions
-    const viewBoxWidth = isHorizontal ? 200 : 200;
-    const viewBoxHeight = isHorizontal ? 300 : 100;
-    const svgViewBoxHeight = isHorizontal ? viewBoxHeight : 130;
-    const step = Math.floor(viewBoxWidth / chartData.length);
-    
-    // Circle radius and stroke width for the lollipops
-    const circleRadius = 3;
+    const axis = buildAxis(0, Math.max(...chartData.map(item => item.value), 0), this.config, { length: (isHorizontal ? this.plotWidth : this.plotHeight), fontSize: Math.max(10, (theme.fontSize || 12) - 1), horizontal: isHorizontal });
+    const scale = axis.scale;
+    const maxValue = scale.max || 1;
+
+    // Lay out in real pixels so text keeps a constant, readable size at any container size
+    const W = this.plotWidth;
+    const H = this.plotHeight;
+    const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
+    const rawLabels = chartData.map(item => clipLabel(item.category, 28));
+    const showValues = !!this.config.showLabels;
+    const frame = computeBarFrame({
+      width: W, height: H, horizontal: isHorizontal, labels: rawLabels, fontSize, valueLabels: showValues, showCategories: true,
+      tickLabels: axis.labels
+    });
+    const { plotX, plotY, plotW, plotH, rotate, slot, labelStride, charWidth } = frame;
+    const labels = frame.labels;
+    const showCategories = frame.showCategories;
+    const circleRadius = Math.max(3, Math.min(6, slot * 0.25));
     const strokeWidth = 1.5;
-    
-    // Label properties
-    const { fontSize, maxTextLength } = this.calculateLabelProperties(chartData);
-    
-    // Calculate positions for lollipops
+    const valueStride = isHorizontal
+      ? Math.max(1, Math.ceil((fontSize * 1.3) / slot))
+      : Math.max(1, Math.ceil((charWidth * 4) / slot));
+
     const lollipops = chartData.map((item, index) => {
-      const scaledValue = (item.value / maxValue) * 90; // Max height/width is 90% of the available space
-      
+      const length = Math.min(isHorizontal ? plotW : plotH, Math.max(0, (item.value / maxValue) * (isHorizontal ? plotW : plotH)));
+      const center = (isHorizontal ? plotY : plotX) + index * slot + slot / 2;
       if (isHorizontal) {
-        // For horizontal lollipops
-        // Adjust to prevent lollipops from going outside the bottom boundary
-        const totalRows = chartData.length;
-        const verticalSpace = viewBoxHeight - 25; // Significantly increase padding at bottom
-        const requiredSpace = totalRows * step * 1.45;
-        
-        // Calculate y position ensuring it stays within the chart boundary
-        let y;
-        if (requiredSpace > verticalSpace) {
-          // Compress the lollipops to fit
-          const adjustedStep = verticalSpace / totalRows;
-          y = viewBoxHeight - 25 - (index * adjustedStep); // Start much higher
-        } else {
-          // Regular spacing with adjustment for the last lollipop
-          y = viewBoxHeight - 25 - (index * step * 1.45); // Start much higher
-          // Ensure the bottom lollipop doesn't extend beyond the chart
-          if (index === totalRows - 1) {
-            y = Math.min(y, viewBoxHeight - 25 - circleRadius);
-          }
-        }
-        
         return {
-          line: {
-            x1: 5,
-            y1: y,
-            x2: 5 + scaledValue - circleRadius,
-            y2: y
-          },
-          circle: {
-            cx: 5 + scaledValue,
-            cy: y,
-            r: circleRadius
-          },
-          label: {
-            x: 5 + scaledValue + circleRadius + 2,
-            y: y,
-            text: `${item.category} (${item.value})`
-          },
-          category: item.category,
-          value: item.value
-        };
-      } else {
-        // For vertical lollipops
-        const x = 5 + (index * step * 0.95) + (step * 0.35); // Center in available slot
-        
-        return {
-          line: {
-            x1: x,
-            y1: 95,
-            x2: x,
-            y2: 95 - scaledValue + circleRadius
-          },
-          circle: {
-            cx: x,
-            cy: 95 - scaledValue,
-            r: circleRadius
-          },
-          label: {
-            x: x,
-            y: 97, 
-            text: item.category,
-            valueY: 95 - scaledValue - circleRadius - 2,
-            valueX: x
-          },
-          category: item.category,
-          value: item.value
+          line: { x1: plotX, y1: center, x2: plotX + Math.max(0, length - circleRadius), y2: center },
+          circle: { cx: plotX + length, cy: center, r: circleRadius },
+          center, label: labels[index], category: item.category, value: item.value, isOther: !!item.isOther
         };
       }
+      return {
+        line: { x1: center, y1: plotY + plotH, x2: center, y2: plotY + plotH - Math.max(0, length - circleRadius) },
+        circle: { cx: center, cy: plotY + plotH - length, r: circleRadius },
+        center, label: labels[index], category: item.category, value: item.value, isOther: !!item.isOther
+      };
     });
 
     return (
-      <div class="bar-chart-container">
-        <div class="visualization-container">
-          <svg 
-            width="100%" 
-            height="100%" 
-            viewBox={`0 0 ${viewBoxWidth} ${svgViewBoxHeight}`}
-            preserveAspectRatio="xMidYMin meet"
+      <div class="bar-chart-container" part="chart">
+        <div class="visualization-container" part="plot" ref={this.plotSize.attach}>
+          {W > 0 && H > 0 && (
+          <svg
+            width={W}
+            height={H}
+            viewBox={`0 0 ${W} ${H}`}
+            style={{ position: 'absolute', inset: '0' }}
             {...ChartThemeUtils.getSVGAttributes()}
           >
-            {/* Define gradients and filters for modern styling */}
             <defs>
               <radialGradient id="lollipopGradient" cx="50%" cy="30%" r="70%">
                 <stop offset="0%" stop-color={mainColor} stop-opacity="1"/>
@@ -269,44 +234,30 @@ export class LollipopChartVisualization {
                 <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
               </filter>
             </defs>
-            {this.config.showGrid && (
-              <g>
-                {/* Draw Y-axis grid lines only (PowerBI style) */}
-                {[0, 25, 50, 75, 100].map((pos, i) => (
-                  <line 
-                    key={i}
-                    x1="5" 
-                    y1={ChartThemeUtils.snapToPixel(pos)} 
-                    x2={viewBoxWidth - 5} 
-                    y2={ChartThemeUtils.snapToPixel(pos)} 
-                    stroke="var(--fl-chart-grid-color)" 
-                    stroke-width="1" 
-                    opacity={theme.gridlines.opacity}
-                  />
-                ))}
-              </g>
-            )}
-            
-            {/* Draw lollipops with modern styling */}
+            {renderValueAxis({
+              ticks: scale.ticks, labels: axis.labels, min: scale.min, max: scale.max,
+              plotX, plotY, plotW, plotH, fontSize, fontFamily: theme.fontFamily,
+              horizontal: isHorizontal, showGrid: !!this.config.showGrid, gridOpacity: theme.gridlines.opacity
+            })}
+
             {lollipops.map((lollipop, i) => (
-              <g 
+              <g
                 key={i}
-                style={{ 
+                style={{
                   cursor: 'pointer',
                   transition: ChartAnimations.getHoverTransition()
                 }}
                 onMouseMove={(e) => this.handleMouseMove(e, { category: lollipop.category, value: lollipop.value })}
                 onMouseLeave={() => this.handleMouseLeave()}
-                onClick={() => this.handleFilterClick(groupByField || '', lollipop.category)}
+                onClick={() => { if (!lollipop.isOther) this.handleFilterClick(groupByField || '', lollipop.category); }}
                 class="lollipop-animated"
               >
-                {/* Line part of lollipop */}
-                <line 
-                  x1={lollipop.line.x1} 
-                  y1={lollipop.line.y1} 
-                  x2={lollipop.line.x2} 
-                  y2={lollipop.line.y2} 
-                  stroke={mainColor} 
+                <line
+                  x1={lollipop.line.x1}
+                  y1={lollipop.line.y1}
+                  x2={lollipop.line.x2}
+                  y2={lollipop.line.y2}
+                  stroke={lollipop.isOther ? OTHER_COLOR : mainColor}
                   stroke-width={strokeWidth}
                   class="line-animated"
                   style={{
@@ -314,13 +265,11 @@ export class LollipopChartVisualization {
                     animationFillMode: 'both'
                   }}
                 />
-                
-                {/* Circle part of lollipop */}
-                <circle 
-                  cx={lollipop.circle.cx} 
-                  cy={lollipop.circle.cy} 
-                  r={lollipop.circle.r} 
-                  fill="url(#lollipopGradient)"
+                <circle
+                  cx={lollipop.circle.cx}
+                  cy={lollipop.circle.cy}
+                  r={lollipop.circle.r}
+                  fill={lollipop.isOther ? OTHER_COLOR : "url(#lollipopGradient)"}
                   class="point-animated point-glow"
                   style={{
                     animationDelay: `${ChartAnimations.getStaggerDelay(i) + 100}ms`,
@@ -330,138 +279,94 @@ export class LollipopChartVisualization {
                 />
               </g>
             ))}
-            
-            {/* X and Y axis with proper styling */}
-            <line 
-              x1="5" 
-              y1={ChartThemeUtils.snapToPixel(isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5)} 
-              x2={viewBoxWidth - 5} 
-              y2={ChartThemeUtils.snapToPixel(isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5)} 
-              stroke="var(--fl-chart-axis-color)" 
-              stroke-width="1" 
+
+            <line
+              x1={plotX} y1={ChartThemeUtils.snapToPixel(plotY + plotH)}
+              x2={plotX + plotW} y2={ChartThemeUtils.snapToPixel(plotY + plotH)}
+              stroke="var(--fl-chart-axis-color)" stroke-width="1"
             />
-            <line 
-              x1={ChartThemeUtils.snapToPixel(5)} 
-              y1="5" 
-              x2={ChartThemeUtils.snapToPixel(5)} 
-              y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} 
-              stroke="var(--fl-chart-axis-color)" 
-              stroke-width="1" 
+            <line
+              x1={ChartThemeUtils.snapToPixel(plotX)} y1={plotY}
+              x2={ChartThemeUtils.snapToPixel(plotX)} y2={plotY + plotH}
+              stroke="var(--fl-chart-axis-color)" stroke-width="1"
             />
-            
-            {/* Show values if enabled */}
-            {this.config.showLabels && (
+
+            {showValues && (
               <g>
-                {lollipops.map((lollipop, i) => (
-                  <text 
-                    key={`value-${i}`} 
-                    x={isHorizontal ? lollipop.circle.cx + circleRadius + 2 : lollipop.circle.cx} 
-                    y={isHorizontal ? lollipop.circle.cy : lollipop.circle.cy - circleRadius - 2} 
-                    font-size={fontSize * 0.8} 
-                    text-anchor="middle" 
+                {lollipops.map((lollipop, i) => i % valueStride === 0 && (
+                  <text
+                    key={`value-${i}`}
+                    x={isHorizontal ? lollipop.circle.cx + circleRadius + 4 : lollipop.circle.cx}
+                    y={isHorizontal ? lollipop.circle.cy : lollipop.circle.cy - circleRadius - 4}
+                    font-size={fontSize}
+                    text-anchor={isHorizontal ? 'start' : 'middle'}
+                    dominant-baseline={isHorizontal ? 'middle' : 'auto'}
                     fill="var(--fl-chart-text-color)"
                     font-family={theme.fontFamily}
                     font-weight="600"
-                    paint-order="stroke fill"
-                    stroke="rgba(0,0,0,0.1)"
-                    stroke-width="0.5"
                     class="text-animated"
                     style={{
                       animationDelay: `${ChartAnimations.getStaggerDelay(i) + 150}ms`,
                       animationFillMode: 'both'
                     }}
                   >
-                    {ChartThemeUtils.formatNumber(chartData[i].value)}
+                    {ChartThemeUtils.formatNumber(lollipop.value)}
                   </text>
                 ))}
               </g>
             )}
-            
-            {/* For vertical lollipops, show category labels below */}
-            {!isHorizontal && (
-              <g>
-                {lollipops.map((lollipop, i) => {
-                  // Get average text length in the dataset
-                  const avgTextLength = chartData.reduce((sum, item) => sum + item.category.length, 0) / chartData.length;
-                  
-                  // Further adjust font size if average text is long
-                  let adjustedFontSize = fontSize;
-                  if (avgTextLength > 8) {
-                    adjustedFontSize = Math.max(3, fontSize * 0.65);
-                  }
 
-                  // Truncate text based on available space
-                  const displayText = lollipop.label.text.length > maxTextLength 
-                    ? `${lollipop.label.text.substring(0, maxTextLength)}...` 
-                    : lollipop.label.text;
-                  
+            <g>
+              {showCategories && lollipops.map((lollipop, i) => {
+                if (i % labelStride !== 0) return null;
+                if (isHorizontal) {
                   return (
-                    <text 
-                      key={i} 
-                      x={lollipop.label.x} 
-                      y={105} 
-                      font-size={adjustedFontSize}
+                    <text
+                      key={i}
+                      x={plotX - 6}
+                      y={lollipop.center}
+                      font-size={fontSize}
                       text-anchor="end"
+                      dominant-baseline="middle"
                       fill="var(--fl-chart-text-color)"
                       font-family={theme.fontFamily}
                       font-weight="500"
-                      class="text-rotated-animated"
-                      style={{
-                        animationDelay: `${ChartAnimations.getStaggerDelay(i) + 150}ms`,
-                        animationFillMode: 'both',
-                        transformOrigin: `${lollipop.label.x}px 105px`
-                      }}
                     >
-                      {displayText}
+                      {lollipop.label}
                     </text>
                   );
-                })}
-              </g>
-            )}
-            
-            {/* For horizontal lollipops, show category labels at the end of each lollipop */}
-            {isHorizontal && (
-              <g>
-                {lollipops.map((lollipop, i) => {
-                  // Truncate text based on available space
-                  const displayText = lollipop.category.length > maxTextLength
-                    ? `${lollipop.category.substring(0, maxTextLength)}...`
-                    : lollipop.category;
-                  
-                  return (
-                    <text 
-                      key={i} 
-                      x={lollipop.circle.cx + circleRadius + 2} 
-                      y={lollipop.line.y1} 
-                      font-size={fontSize} 
-                      text-anchor="start"
-                      dominant-baseline="middle" 
-                      fill="var(--fl-chart-text-color)"
-                      font-family={theme.fontFamily}
-                      font-weight="500"
-                      class="text-animated"
-                      style={{
-                        animationDelay: `${ChartAnimations.getStaggerDelay(i) + 150}ms`,
-                        animationFillMode: 'both'
-                      }}
-                    >
-                      {displayText}
-                    </text>
-                  );
-                })}
-              </g>
-            )}
+                }
+                const ty = plotY + plotH + fontSize + 4;
+                return (
+                  <text
+                    key={i}
+                    x={lollipop.center}
+                    y={ty}
+                    font-size={fontSize}
+                    text-anchor={rotate ? 'end' : 'middle'}
+                    fill="var(--fl-chart-text-color)"
+                    font-family={theme.fontFamily}
+                    font-weight="500"
+                    class={rotate ? 'text-rotated-animated' : 'text-animated'}
+                    style={{
+                      animationDelay: `${ChartAnimations.getStaggerDelay(i) + 150}ms`,
+                      animationFillMode: 'both',
+                      transformOrigin: `${lollipop.center}px ${ty}px`
+                    }}
+                  >
+                    {lollipop.label}
+                  </text>
+                );
+              })}
+            </g>
           </svg>
-          
+          )}
+
           {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
-              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
-              style={{ 
-                left: `${this.tooltip.x}px`, 
-                top: `${this.tooltip.y}px`,
-                transform: 'translate(-50%, -100%)'
-              }}
+              part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
+              ref={(el) => placeTooltip(el, this.tooltip.x, this.tooltip.y)}
             >
               <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
                 {this.tooltip.text}
@@ -472,11 +377,11 @@ export class LollipopChartVisualization {
         
         {/* Legend with PowerBI-grade styling */}
         {(this.config.showLegend !== false) && (
-          <div class="chart-legend">
+          <div class="chart-legend" part="legend">
             <div class="legend-item">
               <div class="color-indicator" style={{ backgroundColor: mainColor }}></div>
               <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>
-                {valueField || 'Value'}
+                {valueField ? fieldLabel(this.data, valueField) : 'Value'}
               </span>
             </div>
           </div>
@@ -485,21 +390,4 @@ export class LollipopChartVisualization {
       </div>
     );
   }
-  
-  private calculateLabelProperties(chartData: ChartDataItem[]) {
-    // Base values
-    const baseFontSize = 5;
-    const baseMaxLength = 20;
-    
-    // Adjust for number of points
-    const pointCountAdjustment = chartData.length <= 4 ? 1.1 : 
-                               chartData.length <= 6 ? 1 :
-                               chartData.length <= 8 ? 0.8 : 0.6;
-    
-    // Calculate final values
-    const fontSize = Math.max(4, Math.round(baseFontSize * pointCountAdjustment * 10) / 10);
-    const maxTextLength = Math.max(4, Math.round(baseMaxLength * pointCountAdjustment));
-    
-    return { fontSize, maxTextLength };
-  }
-} 
+}

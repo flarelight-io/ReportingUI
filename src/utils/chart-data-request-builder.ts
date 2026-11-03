@@ -1,4 +1,6 @@
-import { ChartDataRequest, ChartField, ChartFilter, ChartSort, DataSource, Filter, Pagination } from '../api/types/common';
+import { AggregationSpec, ChartDataRequest, ChartField, ChartFilter, ChartSort, DataSource, Filter, Pagination } from '../api/types/common';
+import { toChartFilter } from './filters';
+import { resolveAggregation } from './aggregation';
 
 export interface ChartDataRequestBuilderOptions {
   reportId: string;
@@ -38,7 +40,9 @@ export class ChartDataRequestBuilder {
       fields?: string[];
       groupByField?: string;
       labelField?: string;
-      aggregation?: string;
+      aggregation?: AggregationSpec;
+      aggregations?: Record<string, AggregationSpec>;
+      seriesField?: string;
       columns?: Array<{ field: string }>;
       xField?: string;
       yField?: string;
@@ -56,59 +60,39 @@ export class ChartDataRequestBuilder {
     let groupByFields: ChartField[] = [];
     const labelFields: ChartField[] = [];
     
-    const aggregation: "sum" | "avg" | "min" | "max" | "count" | "countDistinct" | "stdDev" | "stdDevPop" | undefined = 
-      (config.aggregation === 'none' || !config.aggregation) 
-        ? undefined 
-        : config.aggregation as "sum" | "avg" | "min" | "max" | "count" | "countDistinct" | "stdDev" | "stdDevPop";
+    // Aggregation for a value field: the widget-level one, overridden per field by `aggregations`; any name is allowed
+    const agg = (fieldName: string) => resolveAggregation(config.aggregation, config.aggregations, fieldName);
     
     // Handle different visualization types
     if (widgetType === 'stacked-bar' || widgetType === 'stacked-hbar' ||
         widgetType === 'clustered-bar' || widgetType === 'clustered-hbar') {
       // Multi-series charts
-      if (config.valueFields && config.valueFields.length > 0) {
-        valueFields.push(...config.valueFields.map(field => ({
-          fieldName: field,
-          aggregation
-        })));
+      if (config.seriesField && config.valueField) {
+        // A dimension is pivoted into series: one value field, grouped by category and by the series field
+        valueFields.push({ fieldName: config.valueField, ...agg(config.valueField) });
+      } else if (config.valueFields && config.valueFields.length > 0) {
+        valueFields.push(...config.valueFields.map(field => ({ fieldName: field, ...agg(field) })));
       } else if (config.valueField) {
         // Fallback to single valueField if valueFields array is not provided
-        valueFields.push({
-          fieldName: config.valueField,
-          aggregation
-        });
+        valueFields.push({ fieldName: config.valueField, ...agg(config.valueField) });
       }
       else if (config.fields && config.fields.length > 0) {
-        valueFields.push(...config.fields.map(field => ({
-          fieldName: field,
-          aggregation
-        })));
+        valueFields.push(...config.fields.map(field => ({ fieldName: field, ...agg(field) })));
       }
     } else if (widgetType === 'table') {
       // Table visualization
       if (config.columns && config.columns.length > 0) {
-        valueFields.push(...config.columns.map(column => ({
-          fieldName: column.field,
-          aggregation
-        })));
+        valueFields.push(...config.columns.map(column => ({ fieldName: column.field, ...agg(column.field) })));
       } else if (config.valueFields && config.valueFields.length > 0) {
-        valueFields.push(...config.valueFields.map(field => ({
-          fieldName: field,
-          aggregation
-        })));
+        valueFields.push(...config.valueFields.map(field => ({ fieldName: field, ...agg(field) })));
       } else if (config.fields && config.fields.length > 0) {
         // Fallback to fields if columns not configured
-        valueFields.push(...config.fields.map(field => ({
-          fieldName: field,
-          aggregation
-        })));
+        valueFields.push(...config.fields.map(field => ({ fieldName: field, ...agg(field) })));
       }
     } else if (widgetType === 'heatmap') {
       // Heatmap visualization
       if (config.valueField) {
-        valueFields.push({
-          fieldName: config.valueField,
-          aggregation
-        });
+        valueFields.push({ fieldName: config.valueField, ...agg(config.valueField) });
       }
       if (config.xField && config.yField) {
         labelFields.push(
@@ -119,33 +103,21 @@ export class ChartDataRequestBuilder {
     } else if (widgetType === 'filter') {
       // Filter visualization - value fields become group by fields
       if (config.valueField) {
-        valueFields.push({
-          fieldName: config.valueField,
-          aggregation
-        });
+        valueFields.push({ fieldName: config.valueField, ...agg(config.valueField) });
       }
       // For filter visualization, groupByFields should match valueFields (set below after valueFields are determined)
     } else if (widgetType === 'kpi') {
       // KPI visualization
       if (config.valueField) {
-        valueFields.push({
-          fieldName: config.valueField,
-          aggregation
-        });
+        valueFields.push({ fieldName: config.valueField, ...agg(config.valueField) });
       }
       if (config.previousValueField) {
-        valueFields.push({
-          fieldName: config.previousValueField,
-          aggregation
-        });
+        valueFields.push({ fieldName: config.previousValueField, ...agg(config.previousValueField) });
       }
     } else {
       // Standard charts - single value field
       if (config.valueField) {
-        valueFields.push({
-          fieldName: config.valueField,
-          aggregation
-        });
+        valueFields.push({ fieldName: config.valueField, ...agg(config.valueField) });
       }
     }
     
@@ -155,6 +127,11 @@ export class ChartDataRequestBuilder {
       groupByFields = valueFields.map(vf => ({ fieldName: vf.fieldName }));
     } else if (config.groupByField) {
       groupByFields.push({ fieldName: config.groupByField });
+      // Series dimension: the backend returns one row per category/series pair and the chart pivots them
+      const multiSeries = ['stacked-bar', 'stacked-hbar', 'clustered-bar', 'clustered-hbar'].includes(widgetType);
+      if (multiSeries && config.seriesField && config.valueField) {
+        groupByFields.push({ fieldName: config.seriesField });
+      }
     }
     
     // Label field
@@ -166,11 +143,7 @@ export class ChartDataRequestBuilder {
     // For filter visualization, always use empty filters array
     const filters: ChartFilter[] = widgetType === 'filter' 
       ? [] 
-      : sourceFilters.map(filter => ({
-          fieldName: filter.field,
-          operation: 'eq' as const,
-          value: filter.value
-        }));
+      : sourceFilters.map(toChartFilter);
     
     const sorts: ChartSort[] = config.sortField
       ? [{ fieldName: config.sortField, direction: config.sortDirection || 'Ascending' }]

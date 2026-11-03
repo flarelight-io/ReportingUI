@@ -209,7 +209,7 @@ export class WelchAnovaWidget {
     if (this.loading) {
       return (
         <Host>
-          <base-widget
+          <base-widget exportparts="card,header,title,body"
             widgetId={this.widgetId}
             widgetTitle={this.widgetTitle || "Welch's ANOVA"}
             width={this.width}
@@ -227,7 +227,7 @@ export class WelchAnovaWidget {
     if (!this.config.analysisId && !this.analysisSourceId) {
       return (
         <Host>
-          <base-widget
+          <base-widget exportparts="card,header,title,body"
             widgetId={this.widgetId}
             widgetTitle={this.widgetTitle || "Welch's ANOVA"}
             width={this.width}
@@ -248,7 +248,7 @@ export class WelchAnovaWidget {
     // When we have the analysis data source ID, render a DataWidget with table visualization
     return (
       <Host>
-        <base-widget
+        <base-widget exportparts="card,header,title,body"
           widgetId={this.widgetId}
           widgetTitle={this.widgetTitle || this.config.analysisName || "Welch's ANOVA"}
           width={this.width}

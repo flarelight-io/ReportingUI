@@ -90,6 +90,22 @@ export class MyWidget {
 - `npm run build` → `/dist` (ESM, CJS, hydrate, custom-elements, type definitions)
 - `npm run bundle:esbuild` → `flarelight-reporting-esbuild.js` single-file IIFE bundle, includes `createElement()`, `createChart()`, `renderReport()` helpers; patches `document.baseURI` for PuppeteerSharp compatibility
 
+## Field display names
+
+`sources[].fields[]` can carry a `displayName` next to the raw column `name`. Wherever a chart shows a field name
+(legend entries, tooltips, table headers, filter titles) it shows the display name when the source defines one that
+differs from the name, so the backend controls the wording. Matching is by field name, case-insensitively, so it also
+works when the backend returns a different casing in the rows.
+
+```json
+{ "sources": [{ "id": "sales", "name": "Sales", "type": "table",
+    "fields": [{ "name": "rev_usd", "displayName": "Revenue (USD)", "type": "number" }] }] }
+```
+
+A table column's explicit `header` in the widget configuration still wins over the display name.
+`data-widget` builds the lookup (`VisualizationData.fieldLabels`) and visualizations use `fieldLabel(data, name)`
+from `base-visualization.ts`; use the same helper in new visualizations.
+
 ## Adding a New Widget
 
 1. Run `npm run generate` and follow the Stencil scaffold prompts.

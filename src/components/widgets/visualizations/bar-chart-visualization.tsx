@@ -2,10 +2,15 @@ import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
+import { placeTooltip } from '../../../utils/tooltip';
+import { PlotSizeTracker, computeBarFrame, clipLabel } from '../../../utils/bar-layout';
+import { applyTopN, topNOptions, OTHER_COLOR } from '../../../utils/top-n';
+import { renderValueAxis, buildAxis } from '../../../utils/chart-axes';
 
 interface ChartDataItem {
   category: string;
   value: number;
+  isOther?: boolean;
 }
 
 interface TooltipState {
@@ -28,12 +33,22 @@ export class BarChartVisualization {
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0;
   @State() legendFontSize: number = 10;
+  @State() plotWidth: number = 0;
+  @State() plotHeight: number = 0;
 
   @Element() el: HTMLElement;
 
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
   private adjustingFont: boolean = false;
+  private plotSize = new PlotSizeTracker(({ width, height }) => {
+    if (width !== this.plotWidth) this.plotWidth = width;
+    if (height !== this.plotHeight) this.plotHeight = height;
+  });
+
+  disconnectedCallback() {
+    this.plotSize.detach();
+  }
 
   componentWillLoad() {
     ChartThemeUtils.onThemeChange(() => {
@@ -69,7 +84,7 @@ export class BarChartVisualization {
   }
 
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     return theme.series;
   }
 
@@ -127,8 +142,8 @@ export class BarChartVisualization {
       this.tooltip = {
         visible: true,
         text: `${truncatedCategory}\n${formattedValue}`,
-        x: event.clientX - svgRect.left,
-        y: event.clientY - svgRect.top
+        x: event.clientX,
+        y: event.clientY
       };
     }
   }
@@ -149,7 +164,8 @@ export class BarChartVisualization {
     // Extract config properties for use in render
     const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
     
-    const chartData = this.processData();
+    // Optionally keep the N largest categories and combine the rest into "Other"
+    const chartData = applyTopN(this.processData(), topNOptions(this.config));
     
     if (chartData.length === 0) {
       return <div class="empty-data">No data available</div>;
@@ -158,119 +174,55 @@ export class BarChartVisualization {
     // Determine if this is a horizontal bar chart
     const isHorizontal = this.config.visualizationType === 'hbar';
     const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
-    // Find the maximum value for scaling
-    const maxValue = Math.max(...chartData.map(item => item.value)) * 1.1; // Add 10% padding
-    
-    const viewBoxWidth = isHorizontal ? 200 : 200;
-    const viewBoxHeight = isHorizontal ? 300 : 100;
-    // Vertical bars: rotated labels sit at y=105 and extend to ~y=125; expand the rendered viewBox
-    const svgViewBoxHeight = isHorizontal ? 300 : 130;
-    const step = Math.floor(viewBoxWidth / chartData.length);
-    
-    // Calculate positions and dimensions for bars
-    const bars = chartData.map((item, index) => {
-      const scaledValue = (item.value / maxValue) * 90; // Max bar height/width is 90% of the available space
-      const colorIndex = index % colors.length; // Get the correct color index
-      
-      if (isHorizontal) {
-        // For horizontal bars
-        const totalRows = chartData.length;
-        const barHeight = step * 0.8; // Bar height is 80% of available slot
-        const verticalSpace = viewBoxHeight - 35; // Significantly increase padding at bottom
-        const requiredSpace = totalRows * step * 1.45;
-        
-        // Adjust the vertical position calculation if there are many bars
-        let y;
-        if (requiredSpace > verticalSpace) {
-          // Compress the bars to fit the available space
-          const adjustedStep = verticalSpace / totalRows;
-          y = viewBoxHeight - 35 - (index * adjustedStep); // Start much higher
-        } else {
-          // Regular spacing, ensure the last bar stays inside the chart area
-          y = viewBoxHeight - 35 - (index * step * 1.45); // Start much higher
-          // Ensure the bottom bar doesn't extend beyond the chart
-          if (index === totalRows - 1) {
-            y = Math.min(y, viewBoxHeight - 35 - barHeight);
-          }
-        }
-        
-        return {
-          x: 5, // Horizontal bars should be glued to Y-axis (left edge)
-          y,
-          width: scaledValue,
-          height: barHeight,
-          color: colors[colorIndex],
-          colorIndex: colorIndex,
-          label: {
-            x: 5 + scaledValue + 2, // Label position matches bar position
-            y: y + barHeight / 2,
-            text: `${item.category} (${ChartThemeUtils.formatNumber(item.value)})`
-          },
-          category: item.category,
-          value: item.value
-        };
-      } else {
-        // For vertical bars - add small spacing from X-axis (bottom edge)
-        const x = 8 + (index * step * 0.95);
-        const width = step * 0.7; // Bar width is 70% of available slot
-        
-        return {
-          x,
-          y: 95 - scaledValue,
-          width,
-          height: scaledValue,
-          color: colors[colorIndex],
-          colorIndex: colorIndex,
-          label: {
-            x: x + width / 2,
-            y: 97, 
-            text: item.category,
-            valueY: 95 - scaledValue - 2,
-            valueX: x + width / 2
-          },
-          category: item.category,
-          value: item.value
-        };
-      }
+    const axis = buildAxis(0, Math.max(...chartData.map(item => item.value), 0), this.config, { length: (isHorizontal ? this.plotWidth : this.plotHeight), fontSize: Math.max(10, (theme.fontSize || 12) - 1), horizontal: isHorizontal });
+    const scale = axis.scale;
+    const maxValue = scale.max || 1;
+
+    // Lay out in real pixels so text keeps a constant, readable size at any container size
+    const W = this.plotWidth;
+    const H = this.plotHeight;
+    const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
+    const rawLabels = chartData.map(item => clipLabel(item.category, 28));
+    // In a small cell the legend already names every category, so skip axis labels rather than cram them
+    const wantCategories = !(this.config.showLegend !== false && H < 140);
+    const frame = computeBarFrame({
+      width: W, height: H, horizontal: isHorizontal, labels: rawLabels, fontSize,
+      valueLabels: !!this.config.showLabels, showCategories: wantCategories,
+      tickLabels: axis.labels
     });
-    
-    // Calculate optimal label properties based on chart properties
-    const calculateLabelProperties = () => {
-      // Base values
-      const baseFontSize = 5;
-      const baseMaxLength = 20;
-      
-      // Use fixed values for widget size since we don't have access to width
-      const widthAdjustment = 1;
-      
-      // Adjust for number of bars
-      const barCountAdjustment = chartData.length <= 4 ? 1.1 : 
-                                chartData.length <= 6 ? 1 :
-                                chartData.length <= 8 ? 0.8 : 0.6;
-      
-      // Calculate final values
-      const fontSize = Math.max(4, Math.round(baseFontSize * widthAdjustment * barCountAdjustment * 10) / 10);
-      const maxTextLength = Math.max(4, Math.round(baseMaxLength * widthAdjustment * barCountAdjustment));
-      
-      return { fontSize, maxTextLength };
-    };
-    
-    // Get calculated properties
-    const { fontSize, maxTextLength } = calculateLabelProperties();
+    const { plotX, plotY, plotW, plotH, rotate, slot: slotSize, labelStride, charWidth } = frame;
+    const labels = frame.labels;
+    const showCategories = frame.showCategories;
+    const valueStride = isHorizontal
+      ? Math.max(1, Math.ceil((fontSize * 1.3) / slotSize))
+      : Math.max(1, Math.ceil((charWidth * 4) / slotSize));
+
+    const bars = chartData.map((item, index) => {
+      const colorIndex = index % colors.length;
+      const length = Math.min(isHorizontal ? plotW : plotH, Math.max(0, (item.value / maxValue) * (isHorizontal ? plotW : plotH)));
+      const thickness = Math.max(1, slotSize * 0.7);
+      const gapOffset = (slotSize - thickness) / 2;
+      if (isHorizontal) {
+        // First category sits at the bottom, matching the previous layout
+        const y = plotY + plotH - (index + 1) * slotSize + gapOffset;
+        return { x: plotX, y, width: length, height: thickness, color: item.isOther ? OTHER_COLOR : colors[colorIndex], colorIndex, isOther: !!item.isOther, label: labels[index], category: item.category, value: item.value };
+      }
+      return { x: plotX + index * slotSize + gapOffset, y: plotY + plotH - length, width: thickness, height: length, color: item.isOther ? OTHER_COLOR : colors[colorIndex], colorIndex, isOther: !!item.isOther, label: labels[index], category: item.category, value: item.value };
+    });
 
     return (
-      <div class="bar-chart-container">
-        <div class="visualization-container">
-          <svg 
-            width="100%" 
-            height="100%" 
-            viewBox={`0 0 ${viewBoxWidth} ${svgViewBoxHeight}`}
-            preserveAspectRatio="xMidYMin meet"
+      <div class="bar-chart-container" part="chart">
+        <div class="visualization-container" part="plot" ref={this.plotSize.attach}>
+          {W > 0 && H > 0 && (
+          <svg
+            width={W}
+            height={H}
+            viewBox={`0 0 ${W} ${H}`}
+            style={{ position: 'absolute', inset: '0' }}
             {...ChartThemeUtils.getSVGAttributes()}
           >
-            {/* Define gradients and filters for modern styling */}
             <defs>
               {colors.map((color, index) => (
                 <linearGradient key={`gradient-${index}`} id={`barGradient-${index}`} x1="0%" y1="0%" x2="0%" y2="100%">
@@ -283,166 +235,124 @@ export class BarChartVisualization {
               </filter>
             </defs>
 
-            {this.config.showGrid && (
-              <g>
-                {/* Draw Y-axis grid lines only (PowerBI style) */}
-                {[0, 25, 50, 75, 100].map((pos, i) => (
-                  <line 
-                    key={i}
-                    x1="5" 
-                    y1={ChartThemeUtils.snapToPixel(pos)} 
-                    x2={viewBoxWidth - 5} 
-                    y2={ChartThemeUtils.snapToPixel(pos)} 
-                    stroke="var(--fl-chart-grid-color)" 
-                    stroke-width="1" 
-                    opacity={theme.gridlines.opacity}
-                  />
-                ))}
-              </g>
-            )}
-            
-            {/* Draw bars with modern styling */}
+            {renderValueAxis({
+              ticks: scale.ticks, labels: axis.labels, min: scale.min, max: scale.max,
+              plotX, plotY, plotW, plotH, fontSize, fontFamily: theme.fontFamily,
+              horizontal: isHorizontal, showGrid: !!this.config.showGrid, gridOpacity: theme.gridlines.opacity
+            })}
+
             {bars.map((bar, i) => (
               <g key={i}>
-                <rect 
-                  x={bar.x} 
-                  y={bar.y} 
-                  width={bar.width} 
-                  height={bar.height} 
-                  fill={`url(#barGradient-${bar.colorIndex})`}
+                <rect
+                  x={bar.x}
+                  y={bar.y}
+                  rx={2}
+                  width={bar.width}
+                  height={bar.height}
+                  fill={bar.isOther ? OTHER_COLOR : `url(#barGradient-${bar.colorIndex})`}
                   class="bar-animated bar-glow"
-                  style={{ 
-                    cursor: 'pointer',
+                  style={{
+                    cursor: bar.isOther ? 'default' : 'pointer',
                     transition: ChartAnimations.getHoverTransition(),
                     animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
                     animationFillMode: 'both'
                   }}
                   onMouseMove={(e) => this.handleMouseMove(e, bar.category, bar.value)}
                   onMouseLeave={() => this.handleMouseLeave()}
-                  onClick={() => this.handleFilterClick(groupByField || '', bar.category)}
+                  onClick={() => { if (!bar.isOther) this.handleFilterClick(groupByField || '', bar.category); }}
                   filter="url(#softShadow)"
                 />
               </g>
             ))}
-            
-            {/* X and Y axis with proper styling */}
-            <line 
-              x1="5" 
-              y1={ChartThemeUtils.snapToPixel(isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5)} 
-              x2={viewBoxWidth - 5} 
-              y2={ChartThemeUtils.snapToPixel(isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5)} 
-              stroke="var(--fl-chart-axis-color)" 
-              stroke-width="1" 
+
+            <line
+              x1={plotX} y1={ChartThemeUtils.snapToPixel(plotY + plotH)}
+              x2={plotX + plotW} y2={ChartThemeUtils.snapToPixel(plotY + plotH)}
+              stroke="var(--fl-chart-axis-color)" stroke-width="1"
             />
-            <line 
-              x1={ChartThemeUtils.snapToPixel(5)} 
-              y1="5" 
-              x2={ChartThemeUtils.snapToPixel(5)} 
-              y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} 
-              stroke="var(--fl-chart-axis-color)" 
-              stroke-width="1" 
+            <line
+              x1={ChartThemeUtils.snapToPixel(plotX)} y1={plotY}
+              x2={ChartThemeUtils.snapToPixel(plotX)} y2={plotY + plotH}
+              stroke="var(--fl-chart-axis-color)" stroke-width="1"
             />
-            
-            {/* Show values on the bars if enabled */}
+
             {this.config.showLabels && (
               <g>
-                {bars.map((bar, i) => (
-                  <text 
-                    key={`value-${i}`} 
-                    x={bar.label.valueX} 
-                    y={bar.label.valueY} 
-                    font-size={fontSize} 
-                    text-anchor="middle" 
+                {bars.map((bar, i) => i % valueStride === 0 && (
+                  <text
+                    key={`value-${i}`}
+                    x={isHorizontal ? bar.x + bar.width + 4 : bar.x + bar.width / 2}
+                    y={isHorizontal ? bar.y + bar.height / 2 : bar.y - 4}
+                    font-size={fontSize}
+                    text-anchor={isHorizontal ? 'start' : 'middle'}
+                    dominant-baseline={isHorizontal ? 'middle' : 'auto'}
                     fill="var(--fl-chart-text-color)"
                     font-weight="600"
                     font-family={theme.fontFamily}
-                    paint-order="stroke fill"
-                    stroke="rgba(0,0,0,0.1)"
-                    stroke-width="0.5"
                     class="text-animated"
                     style={{
                       animationDelay: `${ChartAnimations.getStaggerDelay(i) + 100}ms`,
                       animationFillMode: 'both'
                     }}
                   >
-                    {ChartThemeUtils.formatNumber(chartData[i].value)}
+                    {ChartThemeUtils.formatNumber(bar.value)}
                   </text>
                 ))}
               </g>
             )}
-            
-            {/* For horizontal bar charts, show labels on the bars */}
-            {isHorizontal && (
-              <g>
-                {bars.map((bar, i) => (
-                  <text 
-                    key={i} 
-                    x={bar.label.x} 
-                    y={bar.label.y} 
-                    font-size={fontSize} 
-                    dominant-baseline="middle" 
-                    fill="var(--fl-chart-text-color)"
-                    font-family={theme.fontFamily}
-                    font-weight="500"
-                  >
-                    {bar.label.text.length > 15 ? `${bar.label.text.substring(0, 15)}...` : bar.label.text}
-                  </text>
-                ))}
-              </g>
-            )}
-            
-            {/* Category labels for vertical bar charts */}
-            {!isHorizontal && (
-              <g>
-                {bars.map((bar, i) => {
-                  // Get average text length in the dataset
-                  const avgTextLength = chartData.reduce((sum, item) => sum + item.category.length, 0) / chartData.length;
-                  
-                  // Further adjust font size if average text is long
-                  let adjustedFontSize = fontSize;
-                  if (avgTextLength > 8) {
-                    adjustedFontSize = Math.max(3, fontSize * 0.65);
-                  }
 
-                  // Truncate text based on available space
-                  const displayText = bar.label.text.length > maxTextLength 
-                    ? `${bar.label.text.substring(0, maxTextLength)}...` 
-                    : bar.label.text;
-                  
+            <g>
+              {showCategories && bars.map((bar, i) => {
+                if (i % labelStride !== 0) return null;
+                if (isHorizontal) {
                   return (
-                    <text 
-                      key={i} 
-                      x={bar.label.x} 
-                      y={105} 
-                      font-size={adjustedFontSize}
+                    <text
+                      key={i}
+                      x={plotX - 6}
+                      y={bar.y + bar.height / 2}
+                      font-size={fontSize}
                       text-anchor="end"
+                      dominant-baseline="middle"
                       fill="var(--fl-chart-text-color)"
                       font-family={theme.fontFamily}
                       font-weight="500"
-                      class="text-rotated-animated"
-                      style={{
-                        animationDelay: `${ChartAnimations.getStaggerDelay(i) + 150}ms`,
-                        animationFillMode: 'both',
-                        transformOrigin: `${bar.label.x}px 105px`
-                      }}
                     >
-                      {displayText}
+                      {bar.label}
                     </text>
                   );
-                })}
-              </g>
-            )}
+                }
+                const cx = bar.x + bar.width / 2;
+                const ty = plotY + plotH + fontSize + 4;
+                return (
+                  <text
+                    key={i}
+                    x={cx}
+                    y={ty}
+                    font-size={fontSize}
+                    text-anchor={rotate ? 'end' : 'middle'}
+                    fill="var(--fl-chart-text-color)"
+                    font-family={theme.fontFamily}
+                    font-weight="500"
+                    class={rotate ? 'text-rotated-animated' : 'text-animated'}
+                    style={{
+                      animationDelay: `${ChartAnimations.getStaggerDelay(i) + 150}ms`,
+                      animationFillMode: 'both',
+                      transformOrigin: `${cx}px ${ty}px`
+                    }}
+                  >
+                    {bar.label}
+                  </text>
+                );
+              })}
+            </g>
           </svg>
-          
+          )}
+
           {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
-              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
-              style={{ 
-                left: `${this.tooltip.x}px`, 
-                top: `${this.tooltip.y}px`,
-                transform: 'translate(-50%, -100%)'
-              }}
+              part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
+              ref={(el) => placeTooltip(el, this.tooltip.x, this.tooltip.y)}
             >
               <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
                 {this.tooltip.text}
@@ -452,7 +362,7 @@ export class BarChartVisualization {
         </div>
         
         {(this.config.showLegend !== false) && (
-          <div class="chart-legend">
+          <div class="chart-legend" part="legend">
             {bars.map((bar, i) => (
               <div key={i} class="legend-item">
                 <div class="color-indicator" style={{ backgroundColor: bar.color }}></div>

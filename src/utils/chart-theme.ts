@@ -1,12 +1,29 @@
 export type ChartMode = "light" | "dark";
-export type ColorTheme = "brand" | "rainbow" | "blue" | "grayscale" | "rainbow-alt";
+export type BuiltInColorTheme = "brand" | "rainbow" | "blue" | "grayscale" | "rainbow-alt";
+// Any registered theme name is valid; the `string & {}` keeps autocomplete for the built-ins.
+export type ColorTheme = BuiltInColorTheme | (string & {});
+
+export interface ColorThemeDefinition {
+  /** Series colors used in light mode (cycled when there are more series than colors). */
+  light: string[];
+  /** Series colors used in dark mode. Falls back to `light` when omitted. */
+  dark?: string[];
+  /** Optional 5-color diverging scale [strong-, moderate-, neutral, moderate+, strong+] per mode. */
+  distinct?: { light: string[]; dark?: string[] };
+}
+
+/** Optional overrides for the non-palette theme tokens (fonts, surfaces, strokes...). */
+export interface ChartThemeOverrides {
+  light?: Record<string, any>;
+  dark?: Record<string, any>;
+}
 
 function alpha(hex: string, a: number) {
   return `${hex}${Math.round(a * 255).toString(16).padStart(2, "0")}`;
 }
 
 // Color theme definitions
-const colorThemes: Record<ColorTheme, { light: string[], dark: string[] }> = {
+const builtInColorThemes: Record<BuiltInColorTheme, { light: string[], dark: string[] }> = {
   brand: {
     light: [
       "#4d19a2", // primary brand color
@@ -119,10 +136,33 @@ const colorThemes: Record<ColorTheme, { light: string[], dark: string[] }> = {
   }
 };
 
+const customColorThemes: Record<string, ColorThemeDefinition> = {};
+let themeOverrides: ChartThemeOverrides = {};
+
+function getPalette(colorTheme: ColorTheme, mode: ChartMode): string[] {
+  const custom = customColorThemes[colorTheme];
+  if (custom) {
+    const palette = custom[mode] && custom[mode].length ? custom[mode] : custom.light;
+    return palette;
+  }
+  const builtIn = builtInColorThemes[colorTheme as BuiltInColorTheme] || builtInColorThemes.brand;
+  return builtIn[mode];
+}
+
 // Helper function to get distinct colors for correlation analysis
 // Returns 5 colors: [strong-, moderate-, neutral, moderate+, strong+]
 function getDistinctColors(colorTheme: ColorTheme, mode: ChartMode): string[] {
   const isLight = mode === "light";
+
+  const custom = customColorThemes[colorTheme];
+  if (custom) {
+    const explicit = custom.distinct && (custom.distinct[mode] || custom.distinct.light);
+    if (explicit && explicit.length === 5) return explicit;
+    // Derive a scale from the palette: ends and middle of the series colors
+    const palette = getPalette(colorTheme, mode);
+    const at = (f: number) => palette[Math.min(palette.length - 1, Math.round(f * (palette.length - 1)))];
+    return [at(0), at(0.25), at(0.5), at(0.75), at(1)];
+  }
   
   switch (colorTheme) {
     case 'brand':
@@ -209,12 +249,92 @@ function getDistinctColors(colorTheme: ColorTheme, mode: ChartMode): string[] {
   }
 }
 
+/** Reads --prefix1, --prefix2, ... (consecutive, non-empty) from a style declaration. */
+export function readCssList(style: { getPropertyValue(name: string): string }, prefix: string, max = 24): string[] {
+  const out: string[] = [];
+  for (let i = 1; i <= max; i++) {
+    const value = (style.getPropertyValue(`${prefix}${i}`) || '').trim();
+    if (!value) break;
+    out.push(value);
+  }
+  return out;
+}
+
+/** Parses #rgb, #rrggbb, #rrggbbaa, rgb() and rgba() into [r, g, b]; null when not understood. */
+export function parseColor(input: string): [number, number, number] | null {
+  const value = (input || '').trim().toLowerCase();
+  let m = /^#([0-9a-f]{3})$/.exec(value);
+  if (m) return [...m[1]].map(c => parseInt(c + c, 16)) as [number, number, number];
+  m = /^#([0-9a-f]{6})(?:[0-9a-f]{2})?$/.exec(value);
+  if (m) return [parseInt(m[1].slice(0, 2), 16), parseInt(m[1].slice(2, 4), 16), parseInt(m[1].slice(4, 6), 16)];
+  m = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/.exec(value);
+  if (m) return [Math.round(+m[1]), Math.round(+m[2]), Math.round(+m[3])];
+  return null;
+}
+
+/** Blends across color stops (low to high) at position t in [0, 1]; falls back to the nearest stop for unparsable colors. */
+export function interpolateColor(stops: string[], t: number): string {
+  if (stops.length === 0) return '';
+  const clamped = Math.min(1, Math.max(0, isFinite(t) ? t : 0));
+  const position = clamped * (stops.length - 1);
+  const i = Math.min(stops.length - 2, Math.floor(position));
+  if (stops.length === 1) return stops[0];
+  const a = parseColor(stops[i]);
+  const b = parseColor(stops[i + 1]);
+  if (!a || !b) return stops[Math.round(position)];
+  const f = position - i;
+  const channel = (k: number) => Math.round(a[k] + (b[k] - a[k]) * f);
+  return `rgb(${channel(0)}, ${channel(1)}, ${channel(2)})`;
+}
+
+/**
+ * Applies CSS custom properties found on `host` over the generated theme, so apps can restyle charts
+ * from CSS: series (--fl-chart-series-N), correlation scale, heatmap scale, surfaces, text and font.
+ * Anything not defined keeps its JS value.
+ */
+function applyCssTokens(theme: any, host: Element): void {
+  if (typeof getComputedStyle !== 'function') return;
+  let style: CSSStyleDeclaration;
+  try {
+    style = getComputedStyle(host);
+  } catch {
+    return;
+  }
+  const get = (name: string) => (style.getPropertyValue(name) || '').trim();
+
+  const series = readCssList(style, '--fl-chart-series-');
+  if (series.length > 0) theme.series = series;
+
+  const correlation = [
+    '--fl-correlation-negative-strong', '--fl-correlation-negative-moderate', '--fl-correlation-neutral',
+    '--fl-correlation-positive-moderate', '--fl-correlation-positive-strong'
+  ].map(get);
+  if (correlation.every(Boolean)) theme.distinct = correlation;
+
+  const heatmap = readCssList(style, '--fl-heatmap-color-');
+  theme.heatmap = heatmap.length >= 2 ? heatmap : null;
+
+  const tokens: [string, string][] = [
+    ['--fl-chart-text-color', 'labelColor'], ['--fl-chart-panel', 'panel'], ['--fl-chart-background', 'bg'],
+    ['--fl-chart-border', 'border'], ['--fl-chart-axis-color', 'axisColor'], ['--fl-chart-grid-color', 'gridColor'],
+    ['--fl-chart-font-family', 'fontFamily']
+  ];
+  tokens.forEach(([cssName, key]) => {
+    const value = get(cssName);
+    if (value) theme[key] = value;
+  });
+  const fontSize = parseFloat(get('--fl-chart-font-size'));
+  if (isFinite(fontSize) && fontSize > 0) theme.fontSize = fontSize;
+  const titleSize = parseFloat(get('--fl-chart-title-size'));
+  if (isFinite(titleSize) && titleSize > 0) theme.titleSize = titleSize;
+}
+
 // Helper function to create theme with color palette
-function createTheme(mode: ChartMode, colorTheme: ColorTheme = "brand") {
-  const colors = colorThemes[colorTheme][mode];
+function createTheme(mode: ChartMode, colorTheme: ColorTheme = "brand", host?: Element | null) {
+  const colors = getPalette(colorTheme, mode);
   const isLight = mode === "light";
   
-  return {
+  const theme = {
     mode,
     // layout
     grid: 8,
@@ -235,6 +355,8 @@ function createTheme(mode: ChartMode, colorTheme: ColorTheme = "brand") {
     series: colors,
     // distinct colors for correlation analysis (5 colors: strong-, moderate-, neutral, moderate+, strong+)
     distinct: getDistinctColors(colorTheme, mode),
+    // heatmap color scale from --fl-heatmap-color-N (null = derive from the series palette)
+    heatmap: null as string[] | null,
     // analytical elements (regression lines, trend indicators, etc.)
     regressionColor: isLight ? "#0D9488" : "#22d3ee",
     // effects
@@ -249,6 +371,12 @@ function createTheme(mode: ChartMode, colorTheme: ColorTheme = "brand") {
     dimOpacity: isLight ? 0.35 : 0.4,
     focusStrokeDarken: isLight ? 0.12 : 0.1,
   };
+
+  const overrides = themeOverrides[mode];
+  const result: any = overrides ? { ...theme, ...overrides } : theme;
+  // CSS variables are scoped (per viewer / per ancestor), so they win over the global JS defaults
+  if (host) applyCssTokens(result, host);
+  return result;
 }
 
 export const chartTheme: Record<ChartMode, any> = {
@@ -302,6 +430,43 @@ export class ChartThemeUtils {
 
   static setTheme(mode: ChartMode): void {
     this._currentMode = mode;
+    this.notifyThemeChange();
+  }
+
+  /**
+   * Register (or replace) a named color theme. It can then be selected with
+   * `colorTheme: "<name>"` in the report configuration or via `setColorTheme`.
+   */
+  static registerColorTheme(name: string, definition: ColorThemeDefinition): void {
+    if (!definition || !Array.isArray(definition.light) || definition.light.length === 0) {
+      throw new Error(`registerColorTheme("${name}"): "light" must be a non-empty array of colors`);
+    }
+    customColorThemes[name] = definition;
+    if (this._currentColorTheme === name) {
+      this.updateCSSColorTheme(name);
+    }
+    this.notifyThemeChange();
+  }
+
+  static unregisterColorTheme(name: string): void {
+    delete customColorThemes[name];
+    this.notifyThemeChange();
+  }
+
+  static getColorThemeNames(): string[] {
+    return [...Object.keys(builtInColorThemes), ...Object.keys(customColorThemes)];
+  }
+
+  static hasColorTheme(name: string): boolean {
+    return name in builtInColorThemes || name in customColorThemes;
+  }
+
+  /**
+   * Override individual theme tokens (fontFamily, fontSize, bg, panel, labelColor, gridColor,
+   * regressionColor, lineStrokeWidth, ...) for one or both modes. Merged over the generated theme.
+   */
+  static setThemeOverrides(overrides: ChartThemeOverrides): void {
+    themeOverrides = overrides || {};
     this.notifyThemeChange();
   }
 
@@ -360,14 +525,35 @@ export class ChartThemeUtils {
     }
   }
 
-  static getTheme(colorTheme?: ColorTheme): any {
-    const mode = this._currentMode || this.getCurrentMode();
-    const theme = colorTheme || this._currentColorTheme;
-    return createTheme(mode, theme);
+  /**
+   * Resolves light/dark for an element: the nearest ancestor (crossing shadow roots) with
+   * data-theme="light|dark" wins, e.g. a <report-viewer theme="dark">. Falls back to the
+   * page-level detection (document attribute / class / system preference).
+   */
+  static resolveMode(host?: Element | null): ChartMode {
+    let node: Element | null | undefined = host;
+    while (node) {
+      const value = node.getAttribute && node.getAttribute('data-theme');
+      if (value === 'dark' || value === 'light') return value;
+      const parent: Element | null = node.parentElement;
+      if (parent) {
+        node = parent;
+      } else {
+        const root = node.getRootNode && node.getRootNode();
+        node = root && (root as ShadowRoot).host ? (root as ShadowRoot).host : null;
+      }
+    }
+    return this._currentMode || this.getCurrentMode();
   }
 
-  static getSeriesColor(index: number, colorTheme?: ColorTheme): string {
-    const theme = this.getTheme(colorTheme);
+  static getTheme(colorTheme?: ColorTheme, host?: Element | null): any {
+    const mode = host ? this.resolveMode(host) : (this._currentMode || this.getCurrentMode());
+    const theme = colorTheme || this._currentColorTheme;
+    return createTheme(mode, theme, host);
+  }
+
+  static getSeriesColor(index: number, colorTheme?: ColorTheme, host?: Element | null): string {
+    const theme = this.getTheme(colorTheme, host);
     return theme.series[index % theme.series.length];
   }
 
@@ -386,11 +572,10 @@ export class ChartThemeUtils {
     const theme = this.getTheme();
     const darkenAmount = theme.focusStrokeDarken;
     
-    // Simple darkening by reducing RGB values
-    const hex = baseColor.replace('#', '');
-    const r = parseInt(hex.substr(0, 2), 16);
-    const g = parseInt(hex.substr(2, 2), 16);
-    const b = parseInt(hex.substr(4, 2), 16);
+    // Simple darkening by reducing RGB values (colors that can't be parsed are returned unchanged)
+    const rgb = parseColor(baseColor);
+    if (!rgb) return baseColor;
+    const [r, g, b] = rgb;
     
     const newR = Math.max(0, Math.floor(r * (1 - darkenAmount)));
     const newG = Math.max(0, Math.floor(g * (1 - darkenAmount)));

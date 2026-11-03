@@ -578,8 +578,28 @@ export namespace Components {
     interface ReportDemo {
     }
     interface ReportViewer {
+        /**
+          * Filters applied to the report. Providing this property (even `[]`) makes the filters **managed**: the viewer never changes them itself. When the user clicks a chart element it emits `filtersChange` with the proposed list, and the app decides by setting this property again. Leave it undefined for **unmanaged** use, where the viewer keeps the filters itself (and still emits `filtersChange` so the app can observe them).
+         */
+        "activeFilters"?: Filter[];
+        /**
+          * Removes all filters (same managed/unmanaged rules as `setFilters`).
+         */
+        "clearFilters": () => Promise<void>;
         "configuration": any;
+        /**
+          * Filters to start with in unmanaged mode. Read once on load; ignored when `activeFilters` is provided.
+         */
+        "defaultFilters"?: Filter[];
         "fetchChartData": Function;
+        /**
+          * Gap between widgets in pixels (0 or more). Defaults to 15. Takes precedence over `gap` in the report configuration and over the `--fl-grid-gap` CSS variable.
+         */
+        "gap"?: number;
+        /**
+          * The filters currently in effect (managed or not).
+         */
+        "getFilters": () => Promise<Filter[]>;
         /**
           * @default 'auto'
          */
@@ -594,9 +614,26 @@ export namespace Components {
         "isViewer": boolean;
         "reportId": string;
         /**
+          * Column width divided by row height (heightMode="auto" only): 1 gives square rows (the default), 2 gives rows half as tall as a column is wide. Ignored when `rowHeight` is set.
+         */
+        "rowAspectRatio"?: number;
+        /**
+          * Row height in pixels (heightMode="auto" only). Takes precedence over `rowAspectRatio` and over `rowHeight` in the report configuration.
+         */
+        "rowHeight"?: number;
+        /**
+          * Replaces all filters. In managed mode this only emits `filtersChange`; the app applies it via `activeFilters`.
+         */
+        "setFilters": (filters: Filter[]) => Promise<void>;
+        /**
           * @default true
          */
         "showPlaceholder": boolean;
+        /**
+          * Light or dark appearance for this report. `auto` (default) follows the page: a `data-theme` attribute or `dark`/`light` class on <html>, otherwise the system preference. `light`/`dark` forces it for this viewer only, so apps can drive it from their own toggle.
+          * @default 'auto'
+         */
+        "theme": 'light' | 'dark' | 'auto';
     }
     interface ScatterChartVisualization {
         /**
@@ -802,6 +839,10 @@ export interface LollipopChartVisualizationCustomEvent<T> extends CustomEvent<T>
 export interface PieChartVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLPieChartVisualizationElement;
+}
+export interface ReportViewerCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLReportViewerElement;
 }
 export interface ScatterChartVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -1114,7 +1155,18 @@ declare global {
         prototype: HTMLReportDemoElement;
         new (): HTMLReportDemoElement;
     };
+    interface HTMLReportViewerElementEventMap {
+        "filtersChange": Filter[];
+    }
     interface HTMLReportViewerElement extends Components.ReportViewer, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLReportViewerElementEventMap>(type: K, listener: (this: HTMLReportViewerElement, ev: ReportViewerCustomEvent<HTMLReportViewerElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLReportViewerElementEventMap>(type: K, listener: (this: HTMLReportViewerElement, ev: ReportViewerCustomEvent<HTMLReportViewerElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLReportViewerElement: {
         prototype: HTMLReportViewerElement;
@@ -1797,8 +1849,20 @@ declare namespace LocalJSX {
     interface ReportDemo {
     }
     interface ReportViewer {
+        /**
+          * Filters applied to the report. Providing this property (even `[]`) makes the filters **managed**: the viewer never changes them itself. When the user clicks a chart element it emits `filtersChange` with the proposed list, and the app decides by setting this property again. Leave it undefined for **unmanaged** use, where the viewer keeps the filters itself (and still emits `filtersChange` so the app can observe them).
+         */
+        "activeFilters"?: Filter[];
         "configuration"?: any;
+        /**
+          * Filters to start with in unmanaged mode. Read once on load; ignored when `activeFilters` is provided.
+         */
+        "defaultFilters"?: Filter[];
         "fetchChartData"?: Function;
+        /**
+          * Gap between widgets in pixels (0 or more). Defaults to 15. Takes precedence over `gap` in the report configuration and over the `--fl-grid-gap` CSS variable.
+         */
+        "gap"?: number;
         /**
           * @default 'auto'
          */
@@ -1811,11 +1875,28 @@ declare namespace LocalJSX {
           * @default false
          */
         "isViewer"?: boolean;
+        /**
+          * The full filter list after a user interaction. In unmanaged mode the viewer has already applied it; in managed mode it is a request: set `activeFilters` to apply it.
+         */
+        "onFiltersChange"?: (event: ReportViewerCustomEvent<Filter[]>) => void;
         "reportId"?: string;
+        /**
+          * Column width divided by row height (heightMode="auto" only): 1 gives square rows (the default), 2 gives rows half as tall as a column is wide. Ignored when `rowHeight` is set.
+         */
+        "rowAspectRatio"?: number;
+        /**
+          * Row height in pixels (heightMode="auto" only). Takes precedence over `rowAspectRatio` and over `rowHeight` in the report configuration.
+         */
+        "rowHeight"?: number;
         /**
           * @default true
          */
         "showPlaceholder"?: boolean;
+        /**
+          * Light or dark appearance for this report. `auto` (default) follows the page: a `data-theme` attribute or `dark`/`light` class on <html>, otherwise the system preference. `light`/`dark` forces it for this viewer only, so apps can drive it from their own toggle.
+          * @default 'auto'
+         */
+        "theme"?: 'light' | 'dark' | 'auto';
     }
     interface ScatterChartVisualization {
         /**

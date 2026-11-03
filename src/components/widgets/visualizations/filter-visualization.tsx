@@ -1,5 +1,5 @@
-import { Component, Prop, h, Event, EventEmitter, State, Watch } from '@stencil/core';
-import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
+import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
+import { FilterChangeEventDetail, VisualizationData, fieldLabel } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ColorTheme, ChartThemeUtils } from '../../../utils/chart-theme';
 import { Filter } from '../../../api/types/common';
@@ -10,6 +10,8 @@ import { Filter } from '../../../api/types/common';
   shadow: true
 })
 export class FilterVisualization {
+  @Element() el: HTMLElement;
+
   @Prop() config: DataWidgetConfig;
   @Prop() data: VisualizationData;
   @Prop() colorTheme: ColorTheme = "brand";
@@ -19,8 +21,13 @@ export class FilterVisualization {
 
   @State() selectedValues: string[] = [];
   @State() uniqueValues: string[] = [];
+  @State() themeVersion: number = 0;
 
   componentWillLoad() {
+    // Re-render when the light/dark mode, color theme or CSS color variables change
+    ChartThemeUtils.onThemeChange(() => {
+      this.themeVersion++;
+    });
     this.extractUniqueValues();
     this.updateSelectedValuesFromActiveFilters();
   }
@@ -45,8 +52,10 @@ export class FilterVisualization {
     }
 
     // Find filters for this specific source and field
+    // Only plain equality/membership filters map onto the selection; custom operations (between, ...) are left alone
     const relevantFilters = this.activeFilters.filter(filter => 
-      filter.sourceId === sourceId && filter.field === valueField
+      filter.sourceId === sourceId && filter.field === valueField &&
+      (!filter.operation || filter.operation === 'eq' || filter.operation === 'in')
     );
 
     if (relevantFilters.length > 0) {
@@ -55,7 +64,7 @@ export class FilterVisualization {
       relevantFilters.forEach(filter => {
         if (Array.isArray(filter.value)) {
           values.push(...filter.value);
-        } else if (filter.value !== null && filter.value !== undefined) {
+        } else if (filter.value !== null && filter.value !== undefined && typeof filter.value !== 'object') {
           values.push(String(filter.value));
         }
       });
@@ -157,7 +166,7 @@ export class FilterVisualization {
   }
 
   private getButtonColor(index: number): string {
-    return ChartThemeUtils.getSeriesColor(index, this.colorTheme);
+    return ChartThemeUtils.getSeriesColor(index, this.colorTheme, this.el);
   }
 
   private renderButtons() {
@@ -269,7 +278,7 @@ export class FilterVisualization {
     return (
       <div class="filter-container">
         <div class="filter-header">
-          <h4 class="filter-title">Filter by {valueField}</h4>
+          <h4 class="filter-title">Filter by {fieldLabel(this.data, valueField)}</h4>
           {multiSelect && (
             <span class="filter-mode">Multi-select</span>
           )}

@@ -2,11 +2,15 @@ import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
+import { PlotSizeTracker, clipLabel } from '../../../utils/bar-layout';
+import { applyTopN, topNOptions, OTHER_COLOR } from '../../../utils/top-n';
+import { placeTooltip } from '../../../utils/tooltip';
 
 interface PieChartDataItem {
   category: string;
   value: number;
   percentage?: number;
+  isOther?: boolean;
 }
 
 interface TooltipState {
@@ -29,12 +33,22 @@ export class PieChartVisualization {
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0; // Force re-render when theme changes
   @State() legendFontSize: number = 10;
+  @State() plotWidth: number = 0;
+  @State() plotHeight: number = 0;
 
   @Element() el: HTMLElement;
 
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
   private adjustingFont: boolean = false;
+  private plotSize = new PlotSizeTracker(({ width, height }) => {
+    if (width !== this.plotWidth) this.plotWidth = width;
+    if (height !== this.plotHeight) this.plotHeight = height;
+  });
+
+  disconnectedCallback() {
+    this.plotSize.detach();
+  }
 
   componentWillLoad() {
     ChartThemeUtils.onThemeChange(() => {
@@ -88,8 +102,8 @@ export class PieChartVisualization {
       this.tooltip = {
         visible: true,
         text: `${truncatedCategory}\n${formattedValue} (${percentage.toFixed(1)}%)`,
-        x: event.clientX - svgRect.left,
-        y: event.clientY - svgRect.top
+        x: event.clientX,
+        y: event.clientY
       };
     }
   }
@@ -161,7 +175,8 @@ export class PieChartVisualization {
     // Extract config properties for use in render
     const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
     
-    const chartData = this.processData();
+    // Optionally keep the N largest categories and combine the rest into "Other"
+    const chartData = applyTopN(this.processData(), topNOptions(this.config));
     
     if (chartData.length === 0) {
       return <div class="empty-data">No data available</div>;
@@ -170,12 +185,22 @@ export class PieChartVisualization {
     const dataWithPercentages = this.calculatePercentages(chartData);
     const total = dataWithPercentages.reduce((sum, item) => sum + item.value, 0);
     const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
-    const centerX = 50;
-    const centerY = 50;
-    const radius = 44;
-    const innerRadius = this.config.visualizationType === 'donut' ? 24 : 0;
+    // Lay out in real pixels so text keeps a constant, readable size at any container size
+    const W = this.plotWidth;
+    const H = this.plotHeight;
+    const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
+    const charWidth = fontSize * 0.58;
+    // Outside labels need room on both sides; in small cells the legend and tooltip carry the names
+    const showOuterLabels = W >= 260 && H >= 180;
+    const labelChars = 14;
+    const sideMargin = showOuterLabels ? labelChars * charWidth + 22 : 8;
+    const vertMargin = showOuterLabels ? fontSize + 14 : 8;
+    const centerX = W / 2;
+    const centerY = H / 2;
+    const radius = Math.max(0, Math.min((W - sideMargin * 2) / 2, (H - vertMargin * 2) / 2));
+    const innerRadius = this.config.visualizationType === 'donut' ? radius * 0.55 : 0;
 
     // Special case handling for single data point
     if (dataWithPercentages.length === 1) {
@@ -223,13 +248,14 @@ export class PieChartVisualization {
       }
       
       return (
-        <div class="pie-chart-container">
-          <div class="visualization-container">
-            <svg
-              width="100%"
-              height="100%"
-              viewBox="-25 -10 150 120"
-              preserveAspectRatio="xMidYMid meet"
+        <div class="pie-chart-container" part="chart">
+          <div class="visualization-container" part="plot" ref={this.plotSize.attach}>
+            {W > 0 && H > 0 && (
+<svg
+              width={W}
+              height={H}
+              viewBox={`0 0 ${W} ${H}`}
+              style={{ position: 'absolute', inset: '0' }}
               {...ChartThemeUtils.getSVGAttributes()}
             >
               {/* Define gradients and filters for modern styling */}
@@ -266,7 +292,7 @@ export class PieChartVisualization {
                   text-anchor="middle" 
                   dominant-baseline="middle"
                   fill="white"
-                  font-size="6"
+                  font-size={fontSize + 2}
                   font-weight="600"
                   font-family={theme.fontFamily}
                   paint-order="stroke fill"
@@ -282,7 +308,7 @@ export class PieChartVisualization {
                   x1={centerX}
                   y1={centerY - radius}
                   x2={centerX}
-                  y2={centerY - radius - 5}
+                  y2={centerY - radius - 10}
                   stroke="var(--fl-chart-axis-color, #555)"
                   stroke-width="0.5"
                   stroke-dasharray="1,1"
@@ -290,10 +316,10 @@ export class PieChartVisualization {
                 
                 <text
                   x={centerX}
-                  y={centerY - radius - 7}
+                  y={centerY - radius - 18}
                   text-anchor="middle"
                   dominant-baseline="middle"
-                  font-size="4"
+                  font-size={fontSize}
                   fill="var(--fl-chart-text-color, #333)"
                   font-weight="bold"
                 >
@@ -301,16 +327,14 @@ export class PieChartVisualization {
                 </text>
               </g>
             </svg>
+)}
+            
             
             {/* Tooltip */}
             {this.tooltip.visible && (
               <div 
-                class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
-                style={{ 
-                  left: `${this.tooltip.x}px`, 
-                  top: `${this.tooltip.y}px`,
-                  transform: 'translate(-50%, -100%)'
-                }}
+                part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
+                ref={(el) => placeTooltip(el, this.tooltip.x, this.tooltip.y)}
               >
                 <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
                   {this.tooltip.text}
@@ -320,7 +344,7 @@ export class PieChartVisualization {
           </div>
           
           {(this.config.showLegend !== false) && (
-            <div class="chart-legend">
+            <div class="chart-legend" part="legend">
               <div class="legend-item">
                 <div class="color-indicator" style={{ backgroundColor: colors[0] }}></div>
                 <span class="legend-text">{singleItem.category}: {singleItem.value} (100%)</span>
@@ -380,14 +404,13 @@ export class PieChartVisualization {
       
       // Calculate position for internal percentage label
       const midAngleRadians = (startAngle + angle / 2 - 90) * Math.PI / 180;
-      const labelRadius = radius * 0.75; // Position label at 75% of the radius
+      const labelRadius = innerRadius ? (radius + innerRadius) / 2 : radius * 0.7;
       const labelX = centerX + labelRadius * Math.cos(midAngleRadians);
       const labelY = centerY + labelRadius * Math.sin(midAngleRadians);
       
       // Calculate position for external category labels - keep within viewBox
-      const maxLabelDistance = 1.15; // Labels sit just outside the pie edge
-      const outerLabelRadius = radius * maxLabelDistance;
-      const outerConnectorRadius = radius * 1.02; // Connector end just outside the pie
+      const outerLabelRadius = radius + 14; // Labels sit just outside the pie edge
+      const outerConnectorRadius = radius + 2; // Connector end just outside the pie
       const outerLabelX = centerX + outerLabelRadius * Math.cos(midAngleRadians);
       const outerLabelY = centerY + outerLabelRadius * Math.sin(midAngleRadians);
       const connectorX = centerX + outerConnectorRadius * Math.cos(midAngleRadians);
@@ -401,7 +424,8 @@ export class PieChartVisualization {
       
       return {
         path,
-        color: colors[index % colors.length],
+        color: item.isOther ? OTHER_COLOR : colors[index % colors.length],
+        isOther: !!item.isOther,
         colorIndex: index % colors.length,
         percentage,
         labelX,
@@ -418,18 +442,17 @@ export class PieChartVisualization {
       };
     });
     
-    // Calculate optimal label properties based on chart properties and segment count
-    const fontSize = this.calculateFontSize(segments.length);
-    const maxTextLength = this.calculateMaxTextLength(segments.length);
+
     
     return (
-      <div class="pie-chart-container">
-        <div class="visualization-container">
-          <svg
-            width="100%"
-            height="100%"
-            viewBox="-25 -10 150 120"
-            preserveAspectRatio="xMidYMid meet"
+      <div class="pie-chart-container" part="chart">
+        <div class="visualization-container" part="plot" ref={this.plotSize.attach}>
+          {W > 0 && H > 0 && (
+<svg
+            width={W}
+            height={H}
+            viewBox={`0 0 ${W} ${H}`}
+            style={{ position: 'absolute', inset: '0' }}
             {...ChartThemeUtils.getSVGAttributes()}
           >
             {/* Define gradients for each color */}
@@ -450,7 +473,7 @@ export class PieChartVisualization {
               <path 
                 key={i} 
                 d={segment.path} 
-                fill={`url(#pieGradient-${segment.colorIndex})`}
+                fill={segment.isOther ? OTHER_COLOR : `url(#pieGradient-${segment.colorIndex})`}
                 class="pie-segment-animated pie-segment-hover"
                 style={{ 
                   cursor: 'pointer',
@@ -458,7 +481,7 @@ export class PieChartVisualization {
                   animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
                   animationFillMode: 'both'
                 }}
-                onClick={() => this.handleFilterClick(groupByField || '', segment.category)}
+                onClick={() => { if (!segment.isOther) this.handleFilterClick(groupByField || '', segment.category); }}
                 onMouseMove={(event) => this.handleMouseMove(event, segment.category, segment.value, segment.displayPercentage)}
                 onMouseLeave={() => this.handleMouseLeave()}
                 filter="url(#softShadow)"
@@ -467,7 +490,7 @@ export class PieChartVisualization {
             
             {/* Add percentage labels inside segments if they're big enough */}
             {this.config.showLabels && segments.some(segment => segment.angle >= 15) && (
-              segments.filter(segment => segment.angle >= 15).map((segment, i) => (
+              segments.filter(segment => segment.angle >= 15 && radius * 0.7 * (segment.angle * Math.PI / 180) >= charWidth * 4).map((segment, i) => (
                 <text 
                   key={i} 
                   x={segment.labelX} 
@@ -475,7 +498,7 @@ export class PieChartVisualization {
                   text-anchor="middle" 
                   dominant-baseline="middle"
                   fill="white"
-                  font-size="3"
+                  font-size={fontSize}
                   font-weight="bold"
                 >
                   {segment.percentage >= 0.08 ? Math.round(segment.percentage * 100) + '%' : ''}
@@ -488,11 +511,11 @@ export class PieChartVisualization {
               <g>
                 <text 
                   x={centerX} 
-                  y={centerY - 2} 
-                  text-anchor="middle" 
+                  y={centerY - fontSize * 0.5}
+                  text-anchor="middle"
                   dominant-baseline="middle"
                   fill="var(--fl-chart-text-color)"
-                  font-size="6"
+                  font-size={fontSize + 4}
                   font-weight="700"
                   font-family={theme.fontFamily}
                   class="text-animated"
@@ -505,11 +528,11 @@ export class PieChartVisualization {
                 </text>
                 <text 
                   x={centerX} 
-                  y={centerY + 3} 
-                  text-anchor="middle" 
+                  y={centerY + fontSize}
+                  text-anchor="middle"
                   dominant-baseline="middle"
                   fill="var(--fl-chart-text-secondary)"
-                  font-size="3"
+                  font-size={fontSize - 1}
                   font-weight="500"
                   font-family={theme.fontFamily}
                   class="text-animated"
@@ -523,66 +546,51 @@ export class PieChartVisualization {
               </g>
             )}
             
-            {/* Add category name labels around the outside of the chart - limited to segments larger than 10 degrees */}
-            {segments
-              .filter(segment => segment.angle >= 10)
-              .map((segment, i) => {
-                // Calculate the average text length 
-                const avgTextLength = dataWithPercentages.reduce((sum, item) => sum + item.category.length, 0) / dataWithPercentages.length;
-                
-                // Further adjust font size based on segment count and text length,
-                // capped at 3.5 SVG units so text width stays predictable within the viewBox
-                let adjustedFontSize = fontSize;
-                if (avgTextLength > 8 || segments.length > 6) {
-                  adjustedFontSize = Math.max(2.5, fontSize * 0.65);
-                }
-                adjustedFontSize = Math.min(3.5, adjustedFontSize);
-
-                // Truncate text to maxTextLength (scales down as segment count increases)
-                const maxLength = maxTextLength;
-                const displayText = segment.category.length > maxLength 
-                  ? `${segment.category.substring(0, maxLength)}...` 
-                  : segment.category;
-
-                return (
-                  <g key={`label-${i}`}>
-                    {/* Connector line from segment to label */}
-                    <line 
-                      x1={segment.connectorX}
-                      y1={segment.connectorY}
-                      x2={segment.outerLabelX}
-                      y2={segment.outerLabelY}
-                      stroke="var(--fl-chart-axis-color, #555)"
-                      stroke-width="0.5"
-                      stroke-dasharray="1,1"
-                    />
-                    
-                    {/* Category label */}
-                    <text
-                      x={segment.outerLabelX}
-                      y={segment.outerLabelY}
-                      text-anchor={segment.textAnchor}
-                      dominant-baseline="middle"
-                      font-size={adjustedFontSize}
-                      fill="var(--fl-chart-text-color, #333)"
-                      font-weight="bold"
-                    >
-                      {displayText}
-                    </text>
-                  </g>
-                );
-            })}
+            {/* Category names around the outside, skipping any that would overlap a neighbour */}
+            {showOuterLabels && (() => {
+              const lastY: Record<string, number> = {};
+              return segments
+                .filter(segment => segment.angle >= 10)
+                .map((segment, i) => {
+                  const side = segment.textAnchor;
+                  if (lastY[side] !== undefined && Math.abs(segment.outerLabelY - lastY[side]) < fontSize * 1.2) return null;
+                  lastY[side] = segment.outerLabelY;
+                  return (
+                    <g key={`label-${i}`}>
+                      <line
+                        x1={segment.connectorX}
+                        y1={segment.connectorY}
+                        x2={segment.outerLabelX}
+                        y2={segment.outerLabelY}
+                        stroke="var(--fl-chart-axis-color, #555)"
+                        stroke-width="1"
+                        stroke-dasharray="3,3"
+                      />
+                      <text
+                        x={segment.outerLabelX + (side === 'end' ? -4 : 4)}
+                        y={segment.outerLabelY}
+                        text-anchor={side}
+                        dominant-baseline="middle"
+                        font-size={fontSize}
+                        fill="var(--fl-chart-text-color, #333)"
+                        font-family={theme.fontFamily}
+                        font-weight="bold"
+                      >
+                        {clipLabel(segment.category, labelChars)}
+                      </text>
+                    </g>
+                  );
+                });
+            })()}
           </svg>
+)}
+          
           
           {/* Tooltip */}
           {this.tooltip.visible && (
             <div 
-              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
-              style={{ 
-                left: `${this.tooltip.x}px`, 
-                top: `${this.tooltip.y}px`,
-                transform: 'translate(-50%, -100%)'
-              }}
+              part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
+              ref={(el) => placeTooltip(el, this.tooltip.x, this.tooltip.y)}
             >
               <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
                 {this.tooltip.text}
@@ -592,7 +600,7 @@ export class PieChartVisualization {
         </div>
         
         {(this.config.showLegend !== false) && (
-          <div class="chart-legend">
+          <div class="chart-legend" part="legend">
             {segments.map((segment, i) => (
               <div key={i} class="legend-item">
                 <div class="color-indicator" style={{ backgroundColor: segment.color }}></div>
@@ -609,33 +617,7 @@ export class PieChartVisualization {
   }
 
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     return theme.series;
   }
-  
-  private calculateFontSize(itemCount: number): number {
-    // Base values
-    const baseFontSize = 6;
-    
-    // Adjust based on number of segments
-    const segmentCountAdjustment = itemCount <= 4 ? 1.1 : 
-                                itemCount <= 6 ? 1 :
-                                itemCount <= 8 ? 0.8 : 0.6;
-    
-    // Calculate final value
-    return Math.max(4, Math.round(baseFontSize * segmentCountAdjustment * 10) / 10);
-  }
-  
-  private calculateMaxTextLength(itemCount: number): number {
-    // Base value
-    const baseMaxLength = 20;
-    
-    // Adjust based on number of segments
-    const segmentCountAdjustment = itemCount <= 4 ? 1.1 : 
-                                itemCount <= 6 ? 1 :
-                                itemCount <= 8 ? 0.8 : 0.6;
-    
-    // Calculate final value
-    return Math.max(4, Math.round(baseMaxLength * segmentCountAdjustment));
-  }
-} 
+}

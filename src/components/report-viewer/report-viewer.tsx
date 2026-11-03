@@ -1,8 +1,9 @@
-import { Component, Prop, h, State, Watch, Element, Listen } from '@stencil/core';
+import { Component, Prop, h, State, Watch, Element, Listen, Event, EventEmitter, Method } from '@stencil/core';
 import { DataSource, Filter, ChartDataRequest } from '../../api/types/common';
 import { WidgetData } from '../widgets/base-widget';
-import { ColorTheme } from '../../utils/chart-theme';
+import { ColorTheme, ChartThemeUtils } from '../../utils/chart-theme';
 import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
+import { filtersCacheKey, filterIdentity, stableStringify } from '../../utils/filters';
 
 interface WidgetDataCache {
   [widgetId: string]: any;
@@ -23,12 +24,51 @@ export class ReportViewer {
   @Prop() isFullscreen: boolean = false;
   @Prop() fetchChartData: Function;
   @Prop() heightMode: 'auto' | 'fixed' = 'auto';
+  /**
+   * Row height in pixels (heightMode="auto" only). Takes precedence over `rowAspectRatio`
+   * and over `rowHeight` in the report configuration.
+   */
+  @Prop() rowHeight?: number;
+  /**
+   * Column width divided by row height (heightMode="auto" only): 1 gives square rows (the default),
+   * 2 gives rows half as tall as a column is wide. Ignored when `rowHeight` is set.
+   */
+  @Prop() rowAspectRatio?: number;
+  /**
+   * Gap between widgets in pixels (0 or more). Defaults to 15. Takes precedence over `gap` in the
+   * report configuration and over the `--fl-grid-gap` CSS variable.
+   */
+  @Prop() gap?: number;
+  /**
+   * Light or dark appearance for this report. `auto` (default) follows the page: a `data-theme` attribute or
+   * `dark`/`light` class on <html>, otherwise the system preference. `light`/`dark` forces it for this viewer
+   * only, so apps can drive it from their own toggle.
+   */
+  @Prop() theme: 'light' | 'dark' | 'auto' = 'auto';
+  /**
+   * Filters applied to the report. Providing this property (even `[]`) makes the filters **managed**: the viewer
+   * never changes them itself. When the user clicks a chart element it emits `filtersChange` with the proposed
+   * list, and the app decides by setting this property again. Leave it undefined for **unmanaged** use, where the
+   * viewer keeps the filters itself (and still emits `filtersChange` so the app can observe them).
+   */
+  @Prop() activeFilters?: Filter[];
+  /** Filters to start with in unmanaged mode. Read once on load; ignored when `activeFilters` is provided. */
+  @Prop() defaultFilters?: Filter[];
+  /**
+   * The full filter list after a user interaction. In unmanaged mode the viewer has already applied it; in managed
+   * mode it is a request: set `activeFilters` to apply it.
+   */
+  @Event() filtersChange: EventEmitter<Filter[]>;
   
   @State() widgets: WidgetData[] = [];
   @State() dataSources: DataSource[] = [];
-  @State() activeFilters: Filter[] = [];
+  @State() internalFilters: Filter[] = [];
   @State() widgetData: WidgetDataCache = {};
   @State() colorTheme: ColorTheme = "brand";
+  // Row sizing read from the report configuration (props take precedence)
+  @State() configRowHeight?: number;
+  @State() configRowAspectRatio?: number;
+  @State() configGap?: number;
   
   private gridContainer?: HTMLElement;
   private dataFetchPromises: { [widgetId: string]: Promise<any> } = {};
@@ -36,6 +76,7 @@ export class ReportViewer {
   private resizeObserver: ResizeObserver | null = null;
   private configurationPollingInterval?: number;
   private lastConfiguration?: any;
+  private lastDataConfigKey?: string;
   private handleResize = () => {
     if (this.isMounted && this.gridContainer) {
       this.setEqualGridDimensions();
@@ -79,11 +120,8 @@ export class ReportViewer {
     }
     
     if (parsedConfig) {
-      this.parseConfiguration(parsedConfig);
-      // Reset widget data cache when configuration changes
-      this.widgetData = {};
-      // Rerender widgets when configuration changes
-      this.renderWidgets();
+      this.lastConfiguration = newValue;
+      this.applyConfiguration(parsedConfig);
     }
   }
   
@@ -106,6 +144,117 @@ export class ReportViewer {
     }
   }
   
+  /** True when the app owns the filters through the `activeFilters` property. */
+  private get isFiltersManaged(): boolean {
+    return Array.isArray(this.activeFilters);
+  }
+
+  /** The filters in effect: the property when managed, otherwise the viewer's own state. */
+  private get currentFilters(): Filter[] {
+    return this.isFiltersManaged ? this.activeFilters : this.internalFilters;
+  }
+
+  private appliedFiltersKey = 'nofilters';
+
+  /** Order-independent identity of a filter list (objects, arrays and extra properties included). */
+  private filtersKey(filters: Filter[]): string {
+    return filtersCacheKey(filters || []);
+  }
+
+  @Watch('activeFilters')
+  onActiveFiltersChange() {
+    // Managed mode: the app changed the filters. Skip no-op updates (e.g. a re-created identical array).
+    const key = this.filtersKey(this.currentFilters);
+    if (key === this.appliedFiltersKey) return;
+    this.appliedFiltersKey = key;
+    if (this.isMounted) this.refreshForFilters(this.currentFilters.length === 0);
+  }
+
+  /** The filters currently in effect (managed or not). */
+  @Method()
+  async getFilters(): Promise<Filter[]> {
+    return this.currentFilters.map(f => ({ ...f }));
+  }
+
+  /** Replaces all filters. In managed mode this only emits `filtersChange`; the app applies it via `activeFilters`. */
+  @Method()
+  async setFilters(filters: Filter[]): Promise<void> {
+    // Only sourceId and field are required: operation, value and extra properties belong to the app. A null value
+    // only means "no filter" when no operation is given (operations such as isnull legitimately have none).
+    this.commitFilters((filters || []).filter(f =>
+      f && f.sourceId && f.field && (f.operation || (f.value !== null && f.value !== undefined))
+    ));
+  }
+
+  /** Removes all filters (same managed/unmanaged rules as `setFilters`). */
+  @Method()
+  async clearFilters(): Promise<void> {
+    this.commitFilters([]);
+  }
+
+  /**
+   * Single exit for every filter change. Unmanaged: apply and refresh. Managed: only emit; the app applies it by
+   * setting `activeFilters`. `filtersChange` is emitted in both modes.
+   */
+  private commitFilters(next: Filter[]) {
+    // Nothing changed (e.g. a rebuilt widget re-reporting its selection): no event, no refetch
+    if (this.filtersKey(next) === this.filtersKey(this.currentFilters)) return;
+    this.filtersChange.emit(next.map(f => ({ ...f })));
+    if (this.isFiltersManaged) return;
+    this.internalFilters = next;
+    this.appliedFiltersKey = this.filtersKey(next);
+    this.refreshForFilters(next.length === 0);
+  }
+
+  /** Drops cached data and re-renders every widget for the new filters, then notifies widgets. */
+  private refreshForFilters(cleared: boolean) {
+    this.widgetData = {};
+    this.dataFetchPromises = {};
+    const finish = () => {
+      if (!this.gridContainer) return;
+      this.gridContainer.innerHTML = '';
+      this.renderWidgets();
+      const event = cleared
+        ? new CustomEvent('filters-cleared', { bubbles: true })
+        : new CustomEvent('filters-applied', { bubbles: true, detail: { filters: this.currentFilters } });
+      this.el.dispatchEvent(event);
+    };
+    if (this.widgets.length > 0 && this.fetchChartData) {
+      this.prefetchWidgetData().then(finish);
+    } else {
+      finish();
+    }
+  }
+
+  @Watch('theme')
+  onThemeModeChange() {
+    this.applyThemeMode();
+  }
+
+  private themeAttributeSet = false;
+
+  /** Scopes light/dark to this viewer via data-theme (CSS variables) and re-renders the charts. */
+  private applyThemeMode() {
+    if (this.theme === 'light' || this.theme === 'dark') {
+      this.el.setAttribute('data-theme', this.theme);
+      this.themeAttributeSet = true;
+    } else if (this.themeAttributeSet) {
+      // Only remove what this component set; an app-provided data-theme stays
+      this.el.removeAttribute('data-theme');
+      this.themeAttributeSet = false;
+    }
+    ChartThemeUtils.refreshTheme();
+  }
+
+  @Watch('rowHeight')
+  @Watch('rowAspectRatio')
+  @Watch('gap')
+  onRowSizeChange() {
+    if (this.isMounted && this.gridContainer) {
+      this.setEqualGridDimensions();
+    }
+  }
+
   @Watch('heightMode')
   onHeightModeChange() {
     // Recalculate grid dimensions when height mode changes
@@ -114,7 +263,15 @@ export class ReportViewer {
     }
   }
   
+  componentWillLoad() {
+    if (!this.isFiltersManaged && this.defaultFilters && this.defaultFilters.length > 0) {
+      this.internalFilters = this.defaultFilters.map(f => ({ ...f }));
+    }
+    this.appliedFiltersKey = this.filtersKey(this.currentFilters);
+  }
+
   connectedCallback() {
+    this.applyThemeMode();
     if (this.configuration) {
       let parsedConfig = this.configuration;
       if (typeof this.configuration === 'string') {
@@ -188,24 +345,8 @@ export class ReportViewer {
       // Set equal row height to column width
       this.setEqualGridDimensions();
       
-      // If we already have widget data pre-fetched, render widgets
-      if (Object.keys(this.widgetData).length > 0) {
-        this.renderWidgets();
-      } else if (this.widgets.length > 0 && this.fetchChartData) {
-        // If no data yet but widgets exist, fetch data first
-        this.prefetchWidgetData().then(() => {
-          if (this.gridContainer) {
-            this.renderWidgets();
-            // Call setEqualGridDimensions again after rendering in case container size changed
-            this.setEqualGridDimensions();
-          }
-        });
-      } else {
-        // Otherwise just render widgets (will show empty/loading state)
-        this.renderWidgets();
-        // Call setEqualGridDimensions again after rendering
-        this.setEqualGridDimensions();
-      }
+      // Wait for the (single) prefetch to finish so widgets render with data instead of fetching themselves
+      this.prefetchAndRender();
       
       // Add resize observer to update grid dimensions when window resizes
       if (typeof ResizeObserver !== 'undefined') {
@@ -219,6 +360,9 @@ export class ReportViewer {
       console.error('Could not find grid container element');
     }
     
+    // Configuration handled above is the baseline; polling only reacts to later changes
+    this.lastConfiguration = this.configuration;
+    this.lastDataConfigKey = this.dataConfigKey(this.configuration);
     // Add a polling mechanism to check for configuration changes
     this.startConfigurationPolling();
   }
@@ -244,6 +388,10 @@ export class ReportViewer {
   
   private parseConfiguration(config: any) {
     // Parse color theme first
+    this.configRowHeight = this.positiveNumber(config.rowHeight);
+    this.configRowAspectRatio = this.positiveNumber(config.rowAspectRatio);
+    this.configGap = this.nonNegativeNumber(config.gap);
+
     if (config.colorTheme && typeof config.colorTheme === 'string') {
       this.colorTheme = config.colorTheme as ColorTheme;
     } else {
@@ -334,6 +482,48 @@ export class ReportViewer {
     }));
   }
   
+  /** Identifies the parts of a configuration that determine fetched data (everything except presentation such as colorTheme). */
+  private dataConfigKey(config: any): string | undefined {
+    try {
+      const parsed = typeof config === 'string' ? JSON.parse(config) : config;
+      if (!parsed) return undefined;
+      const { colorTheme, ...rest } = parsed;
+      return JSON.stringify(rest);
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Applies a changed configuration. The data cache is only invalidated when something that affects the
+   * fetched data changed; presentation-only changes (such as the color theme) re-render with the cached data.
+   */
+  private applyConfiguration(parsedConfig: any) {
+    const key = this.dataConfigKey(parsedConfig);
+    if (key === undefined || key !== this.lastDataConfigKey || this.widgets.length === 0) {
+      this.widgetData = {};
+      this.dataFetchPromises = {};
+    }
+    this.lastDataConfigKey = key;
+    this.parseConfiguration(parsedConfig);
+    // Rerender once data is in (parseConfiguration started or reused the prefetch)
+    this.prefetchAndRender();
+  }
+
+  /**
+   * Waits for the prefetch (starting it if needed) and then renders once, so widgets are created
+   * with their data and never need to fetch it themselves. Without a fetch function it renders at once.
+   */
+  private async prefetchAndRender() {
+    if (this.widgets.length > 0 && this.fetchChartData) {
+      await this.prefetchWidgetData();
+    }
+    if (!this.gridContainer) return;
+    this.renderWidgets();
+    // Container size can change once content is rendered
+    this.setEqualGridDimensions();
+  }
+
   private async prefetchWidgetData() {
     // Create fetch promises for each widget that needs data
     this.widgets.forEach(widget => {
@@ -344,7 +534,8 @@ export class ReportViewer {
         const source = this.dataSources.find(s => s.id === sourceId);
         if (!source) return;
         
-        // Create the data fetch promise
+        // Reuse an in-flight (or finished) request; callers invalidate by resetting dataFetchPromises
+        if (this.dataFetchPromises[widget.id]) return;
         this.dataFetchPromises[widget.id] = this.fetchDataForWidget(widget, source);
       }
     });
@@ -368,17 +559,15 @@ export class ReportViewer {
       const sourceId = (widget.config?.analysisId || widget.config?.sourceId) as string;
       
       // Get relevant filters for this source
-      const sourceFilters = this.activeFilters.filter(f => f.sourceId === sourceId);
+      const sourceFilters = this.currentFilters.filter(f => f.sourceId === sourceId);
       
       // Create cache key based on source and filters
-      const filterKey = sourceFilters.length > 0 ? 
-        JSON.stringify(sourceFilters.map(f => `${f.field}:${f.value}`).sort()) : 
-        'nofilters';
+      const filterKey = filtersCacheKey(sourceFilters);
       
       const cacheKey = `${sourceId}:${filterKey}`;
       
       // Check if we already have this data in the cache
-      if (this.widgetData[widget.id] && !this.activeFilters.some(f => f.sourceId === sourceId)) {
+      if (this.widgetData[widget.id] && !this.currentFilters.some(f => f.sourceId === sourceId)) {
         return this.widgetData[widget.id];
       }
       
@@ -416,7 +605,7 @@ export class ReportViewer {
           widget.id,
           visualizationType,
           widget.config || {},
-          this.activeFilters,
+          this.currentFilters,
           this.isViewer
         );
       }
@@ -1452,7 +1641,7 @@ export class ReportViewer {
         // Set properties directly
         (element as any).config = dataConfig;
         (element as any).availableSources = this.dataSources || [];
-        (element as any).activeFilters = this.activeFilters || [];
+        (element as any).activeFilters = this.currentFilters;
         
         // Directly pass the data
         if (widgetDataCache) {
@@ -1515,118 +1704,56 @@ export class ReportViewer {
   }
   
   // Handle filter changes  
-  @Listen('filter-change', { target: 'window' })  
-  handleFilterChangeEvent(event: CustomEvent) {    
-    const { sourceId, field, value } = event.detail;    
-    this.handleFilterChange(sourceId, field, value);  
+  // Only filter changes from this viewer's own widgets (or dispatched on it) count; other viewers on the page are ignored
+  @Listen('filter-change')
+  handleFilterChangeEvent(event: CustomEvent) {
+    const { sourceId, field, value, ...extra } = event.detail || {};
+    this.handleFilterChange(sourceId, field, value, extra);
   }
   
-  // Track active filter changes to prevent duplicate processing
-  private filterUpdateInProgress = false;
+  // Track recent filter changes to ignore exact duplicates (a widget can report the same click twice)
+  private lastFilterChangeKey = '';
   private lastFilterTimestamp = 0;
 
-  handleFilterChange = (sourceId: string, field: string, value: any) => {
-    // Prevent excessive filter updates
+  /**
+   * Applies one filter change. `extra` may carry `operation`, `id` and any custom properties, which are stored on
+   * the filter. A filter is removed with `remove: true`, or (for plain filters without an operation) with a null value.
+   * Filters are identified by source + field + optional `id`, so several filters can share a field.
+   */
+  handleFilterChange = (sourceId: string, field: string, value: any, extra: Record<string, any> = {}) => {
+    // Ignore exact repeats within 300ms; different filters in quick succession (e.g. a date range) all count
     const now = Date.now();
-    if (now - this.lastFilterTimestamp < 300) {
+    const changeKey = stableStringify([sourceId, field, value, extra]);
+    if (changeKey === this.lastFilterChangeKey && now - this.lastFilterTimestamp < 300) {
       return;
     }
+    this.lastFilterChangeKey = changeKey;
     this.lastFilterTimestamp = now;
-    
-    // Prevent recursive filter processing
-    if (this.filterUpdateInProgress) {
+
+    // Wildcard clears everything
+    if (sourceId === '*' && field === '*' && (value === null || value === undefined)) {
+      this.commitFilters([]);
       return;
     }
-    
-    this.filterUpdateInProgress = true;
-    
-    try {
-      // Special case for wildcard clearing
-      if (sourceId === '*' && field === '*' && (value === null || value === undefined)) {
-        this.activeFilters = [];
-        
-        // Reset widget data cache
-        this.widgetData = {};
-        this.dataFetchPromises = {};
-        
-        // Force render with empty filters
-        const forceRender = async () => {
-          // First, force fetch all data with no filters
-          await this.prefetchWidgetData();
-          
-          // Then completely rebuild the widget grid
-          if (this.gridContainer) {
-            // Clear the container
-            this.gridContainer.innerHTML = '';
-            
-            // Rebuild all widgets from scratch
-            this.renderWidgets();
-            
-            // Dispatch an event that filter clearing is complete
-            const event = new CustomEvent('filters-cleared', {
-              bubbles: true
-            });
-            this.el.dispatchEvent(event);
-          }
-        };
-        
-        // Start the rendering process
-        forceRender();
-        return;
-      }
-      
-      // Update filters
-      const existingFilterIndex = this.activeFilters.findIndex(
-        filter => filter.sourceId === sourceId && filter.field === field
-      );
-      
-      const newFilters = [...this.activeFilters];
-      
-      if (existingFilterIndex >= 0) {
-        if (value === null || value === undefined) {
-          // Remove filter
-          newFilters.splice(existingFilterIndex, 1);
-        } else {
-          // Update filter
-          newFilters[existingFilterIndex] = { sourceId, field, value };
-        }
-      } else if (value !== null && value !== undefined) {
-        // Add new filter
-        newFilters.push({ sourceId, field, value });
-      }
-      
-      this.activeFilters = newFilters;
-      
-      // Reset cache and re-fetch data with new filters
-      this.widgetData = {};
-      this.dataFetchPromises = {};
-      
-      // Instead of trying to update existing widgets, completely recreate them
-      // First, prefetch data with the new filters
-      if (this.widgets.length > 0 && this.fetchChartData) {
-        this.prefetchWidgetData().then(() => {
-          if (this.gridContainer) {
-            // Clear the container
-            this.gridContainer.innerHTML = '';
-            
-            // Rebuild all widgets from scratch
-            this.renderWidgets();
-            
-            // Dispatch event to notify that filters have been applied
-            const event = new CustomEvent('filters-applied', {
-              bubbles: true,
-              detail: { filters: this.activeFilters }
-            });
-            this.el.dispatchEvent(event);
-          }
-        });
-      } else {
-        // If we can't fetch new data, just re-render with existing data
-        this.renderWidgets();
-      }
-    } finally {
-      this.filterUpdateInProgress = false;
+
+    const { remove, ...custom } = extra || {};
+    const target = { sourceId, field, id: custom.id };
+    const identity = filterIdentity(target);
+    const next = this.currentFilters.filter(f => filterIdentity(f) !== identity);
+    const removing = remove === true || (!custom.operation && (value === null || value === undefined));
+
+    if (!removing) {
+      next.push({ ...custom, sourceId, field, value } as Filter);
     }
+
+    // Keep the position of an updated filter stable
+    const existingIndex = this.currentFilters.findIndex(f => filterIdentity(f) === identity);
+    if (!removing && existingIndex >= 0) {
+      next.splice(next.length - 1, 1);
+      next.splice(existingIndex, 0, { ...custom, sourceId, field, value } as Filter);
+    }
+
+    this.commitFilters(next);
   }
   
   private setEqualGridDimensions() {
@@ -1645,7 +1772,12 @@ export class ReportViewer {
     
     // Calculate column width (account for gap)
     const numColumns = 12;
-    const gapSize = 15; // Should match the gap size in CSS
+    // An explicit gap (prop or configuration) wins; otherwise the CSS (--fl-grid-gap, default 15px) applies.
+    // The row-height math below reads the effective gap back from the computed style so both stay in sync.
+    const explicitGap = this.nonNegativeNumber(this.gap) ?? this.configGap;
+    this.gridContainer.style.gap = explicitGap !== undefined ? `${explicitGap}px` : '';
+    const cssGap = parseFloat(getComputedStyle(this.gridContainer).columnGap);
+    const gapSize = isNaN(cssGap) ? 15 : cssGap;
     const totalGapWidth = gapSize * (numColumns - 1);
     const columnWidth = (gridWidth - totalGapWidth) / numColumns;
     
@@ -1677,11 +1809,30 @@ export class ReportViewer {
         this.gridContainer.style.gridAutoRows = '20px';
       }
     } else {
-      // In auto mode, set the row height to match column width (original behavior)
-      const rowHeight = `${columnWidth}px`;
-      this.gridContainer.style.gridAutoRows = rowHeight;
+      this.gridContainer.style.gridAutoRows = `${this.resolveRowHeight(columnWidth)}px`;
       this.gridContainer.style.height = 'auto';
     }
+  }
+
+  private nonNegativeNumber(value: unknown): number | undefined {
+    const n = typeof value === 'string' ? parseFloat(value) : value;
+    return typeof n === 'number' && isFinite(n) && n >= 0 ? n : undefined;
+  }
+
+  private positiveNumber(value: unknown): number | undefined {
+    const n = typeof value === 'string' ? parseFloat(value) : value;
+    return typeof n === 'number' && isFinite(n) && n > 0 ? n : undefined;
+  }
+
+  /**
+   * Row height for heightMode="auto": an explicit pixel height wins, then an aspect ratio
+   * (column width / row height), otherwise rows are square (the original behavior).
+   */
+  private resolveRowHeight(columnWidth: number): number {
+    const explicit = this.positiveNumber(this.rowHeight) ?? this.configRowHeight;
+    if (explicit !== undefined) return explicit;
+    const ratio = this.positiveNumber(this.rowAspectRatio) ?? this.configRowAspectRatio ?? 1;
+    return columnWidth / ratio;
   }
   
   private startConfigurationPolling() {
@@ -1700,9 +1851,7 @@ export class ReportViewer {
           }
         }
         
-        this.parseConfiguration(parsedConfig);
-        this.widgetData = {};
-        this.renderWidgets();
+        this.applyConfiguration(parsedConfig);
       }
     }, 500);
     

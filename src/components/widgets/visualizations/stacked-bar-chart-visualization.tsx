@@ -1,7 +1,11 @@
 import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
-import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
+import { FilterChangeEventDetail, VisualizationData, fieldLabel } from './base-visualization';
+import { pivotSeries } from '../../../utils/pivot';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
+import { placeTooltip } from '../../../utils/tooltip';
+import { PlotSizeTracker, computeBarFrame, clipLabel } from '../../../utils/bar-layout';
+import { renderValueAxis, buildAxis } from '../../../utils/chart-axes';
 
 interface StackedChartItem {
   category: string;
@@ -32,12 +36,22 @@ export class StackedBarChartVisualization {
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0;
   @State() legendFontSize: number = 10;
+  @State() plotWidth: number = 0;
+  @State() plotHeight: number = 0;
 
   @Element() el: HTMLElement;
 
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
   private adjustingFont: boolean = false;
+  private plotSize = new PlotSizeTracker(({ width, height }) => {
+    if (width !== this.plotWidth) this.plotWidth = width;
+    if (height !== this.plotHeight) this.plotHeight = height;
+  });
+
+  disconnectedCallback() {
+    this.plotSize.detach();
+  }
 
   componentWillLoad() {
     ChartThemeUtils.onThemeChange(() => {
@@ -68,7 +82,7 @@ export class StackedBarChartVisualization {
   }
 
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     return theme.series;
   }
 
@@ -77,7 +91,19 @@ export class StackedBarChartVisualization {
     
     const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
     const fields = 'fields' in this.config ? this.config.fields : undefined;
-    
+    const seriesField = this.getSeriesField();
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+
+    // A dimension pivoted into series: rows are { category, series value, value }, one series per distinct value
+    if (seriesField && valueField && groupByField) {
+      if (rawData.length === 0) return [];
+      const pivot = pivotSeries(rawData, groupByField, seriesField, valueField);
+      return pivot.categories.map(category => {
+        const values = pivot.series.map(series => ({ field: series, value: pivot.value(category, series) }));
+        return { category, values, total: values.reduce((sum, v) => sum + v.value, 0) };
+      });
+    }
+
     if (rawData.length === 0 || !groupByField || !fields || fields.length === 0) {
       return [];
     }
@@ -115,6 +141,22 @@ export class StackedBarChartVisualization {
     return processed;
   }
 
+  private getSeriesField(): string | undefined {
+    return 'seriesField' in this.config ? (this.config as any).seriesField : undefined;
+  }
+
+  /** Series names: the distinct values of the pivoted dimension, or the configured fields. */
+  private getSeriesNames(chartData: { values: { field: string }[] }[]): string[] {
+    if (this.getSeriesField()) return chartData.length > 0 ? chartData[0].values.map(v => v.field) : [];
+    const fields = 'fields' in this.config ? this.config.fields : undefined;
+    return fields || [];
+  }
+
+  /** Pivoted series names are data values; configured fields get their display name. */
+  private seriesLabel(name: string): string {
+    return this.getSeriesField() ? name : fieldLabel(this.data, name);
+  }
+
   private handleMouseMove(event: MouseEvent, segment: { field: string, value: number }, category: string) {
     const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
     if (svgRect) {
@@ -127,9 +169,9 @@ export class StackedBarChartVisualization {
       
       this.tooltip = {
         visible: true,
-        text: `${truncatedCategory}\n${segment.field}: ${formattedValue}`,
-        x: event.clientX - svgRect.left,
-        y: event.clientY - svgRect.top
+        text: `${truncatedCategory}\n${this.seriesLabel(segment.field)}: ${formattedValue}`,
+        x: event.clientX,
+        y: event.clientY
       };
     }
   }
@@ -149,9 +191,9 @@ export class StackedBarChartVisualization {
     
     // Extract config properties for use in render
     const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
-    const fields = 'fields' in this.config ? this.config.fields : undefined;
     
     const chartData = this.processData();
+    const seriesNames = this.getSeriesNames(chartData);
     
     if (chartData.length === 0) {
       return <div class="empty-data">No data available</div>;
@@ -161,100 +203,52 @@ export class StackedBarChartVisualization {
     const visualizationType = this.config.visualizationType || '';
     const isHorizontal = visualizationType === 'stacked-hbar';
     const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
-    // Find the maximum total value for scaling
-    const maxValue = Math.max(...chartData.map(item => item.total)) * 1.1; // Add 10% padding
-    
-    // SVG dimensions
-    const viewBoxWidth = isHorizontal ? 200 : 200;
-    const viewBoxHeight = isHorizontal ? Math.max(200, chartData.length * 35) : 100;
-    const svgViewBoxHeight = isHorizontal ? viewBoxHeight : 130;
-    const step = Math.floor(viewBoxWidth / chartData.length);
-    
-    // Calculate available space
-    const availableWidth = viewBoxWidth - (isHorizontal ? 40 : 10);
-    const availableHeight = viewBoxHeight - 50;
-    
-    // Label properties
-    const { fontSize, maxTextLength } = this.calculateLabelProperties(chartData);
-    
-    // Calculate positions and dimensions for bars
+    const axis = buildAxis(0, Math.max(...chartData.map(item => item.total), 0), this.config, { length: (isHorizontal ? this.plotWidth : this.plotHeight), fontSize: Math.max(10, (theme.fontSize || 12) - 1), horizontal: isHorizontal });
+    const scale = axis.scale;
+    const maxValue = scale.max || 1;
+
+    // Lay out in real pixels so text keeps a constant, readable size at any container size
+    const W = this.plotWidth;
+    const H = this.plotHeight;
+    const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
+    const rawLabels = chartData.map(item => clipLabel(item.category, 28));
+    const frame = computeBarFrame({
+      width: W, height: H, horizontal: isHorizontal, labels: rawLabels, fontSize, valueLabels: false, showCategories: true,
+      tickLabels: axis.labels
+    });
+    const { plotX, plotY, plotW, plotH, rotate, slot, labelStride } = frame;
+    const labels = frame.labels;
+    const showCategories = frame.showCategories;
+    const thickness = Math.max(1, slot * 0.7);
+
     const bars = chartData.map((item, categoryIndex) => {
+      const offset = categoryIndex * slot + (slot - thickness) / 2;
+      let cumulative = 0;
       const segments = item.values.map((segment, segmentIndex) => {
-        const scaledValue = (segment.value / maxValue) * (isHorizontal ? availableWidth * 0.9 : 90); // Scale appropriately
-        
-        if (isHorizontal) {
-          // For horizontal bars
-          const categoryYPosition = 30 + (categoryIndex * (availableHeight / chartData.length));
-          const barHeight = (availableHeight / chartData.length) * 0.7;
-          
-          // Calculate starting position based on previous segments
-          const startPosition = item.values
-            .slice(0, segmentIndex)
-            .reduce((sum, prev) => sum + (prev.value / maxValue) * availableWidth * 0.9, 0);
-          
-          return {
-            x: 5 + startPosition,
-            y: categoryYPosition,
-            width: scaledValue,
-            height: barHeight,
-            color: colors[segmentIndex % colors.length],
-            field: segment.field,
-            value: segment.value
-          };
-        } else {
-          // For vertical bars
-          const x = 5 + (categoryIndex * step * 0.95);
-          const width = step * 0.7; // Bar width
-          
-          // Calculate starting position based on previous segments
-          const startHeight = item.values
-            .slice(0, segmentIndex)
-            .reduce((sum, prev) => sum + (prev.value / maxValue) * 90, 0);
-          
-          return {
-            x,
-            y: 95 - startHeight - scaledValue,
-            width,
-            height: scaledValue,
-            color: colors[segmentIndex % colors.length],
-            field: segment.field,
-            value: segment.value
-          };
-        }
+        const length = Math.max(0, Math.min((segment.value / maxValue) * (isHorizontal ? plotW : plotH), (isHorizontal ? plotW : plotH) - cumulative));
+        const color = colors[segmentIndex % colors.length];
+        const start = cumulative;
+        cumulative += length;
+        return isHorizontal
+          ? { x: plotX + start, y: plotY + offset, width: length, height: thickness, color, field: segment.field, value: segment.value }
+          : { x: plotX + offset, y: plotY + plotH - start - length, width: thickness, height: length, color, field: segment.field, value: segment.value };
       });
-      
-      // Calculate center point for category labels
-      let centerPoint;
-      if (isHorizontal) {
-        const categoryYPosition = 30 + (categoryIndex * (availableHeight / chartData.length));
-        const barHeight = (availableHeight / chartData.length) * 0.7;
-        centerPoint = categoryYPosition + barHeight / 2;
-      } else {
-        const x = 5 + (categoryIndex * step * 0.95) + (step * 0.7 / 2);
-        centerPoint = x;
-      }
-      
-      return {
-        category: item.category,
-        segments,
-        center: centerPoint,
-        total: item.total
-      };
+      return { category: item.category, label: labels[categoryIndex], segments, center: (isHorizontal ? plotY : plotX) + categoryIndex * slot + slot / 2, total: item.total };
     });
 
     return (
-      <div class="bar-chart-container">
-        <div class="visualization-container">
-          <svg 
-            width="100%" 
-            height="100%" 
-            viewBox={`0 0 ${viewBoxWidth} ${svgViewBoxHeight}`}
-            preserveAspectRatio="xMidYMin meet"
+      <div class="bar-chart-container" part="chart">
+        <div class="visualization-container" part="plot" ref={this.plotSize.attach}>
+          {W > 0 && H > 0 && (
+          <svg
+            width={W}
+            height={H}
+            viewBox={`0 0 ${W} ${H}`}
+            style={{ position: 'absolute', inset: '0' }}
             {...ChartThemeUtils.getSVGAttributes()}
           >
-            {/* Define gradients and filters for modern styling */}
             <defs>
               {colors.map((color, index) => (
                 <linearGradient key={`gradient-${index}`} id={`stackedGradient-${index}`} x1="0%" y1="0%" x2="0%" y2="100%">
@@ -266,37 +260,24 @@ export class StackedBarChartVisualization {
                 <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
               </filter>
             </defs>
-            {this.config.showGrid && (
-              <g>
-                {/* Draw Y-axis grid lines only (PowerBI style) */}
-                {[0, 25, 50, 75, 100].map((pos, i) => (
-                  <line 
-                    key={i}
-                    x1="5" 
-                    y1={ChartThemeUtils.snapToPixel(pos)} 
-                    x2={viewBoxWidth - 5} 
-                    y2={ChartThemeUtils.snapToPixel(pos)} 
-                    stroke="var(--fl-chart-grid-color)" 
-                    stroke-width="1" 
-                    opacity={theme.gridlines.opacity}
-                  />
-                ))}
-              </g>
-            )}
-            
-            {/* Draw stacked bars with modern styling */}
+            {renderValueAxis({
+              ticks: scale.ticks, labels: axis.labels, min: scale.min, max: scale.max,
+              plotX, plotY, plotW, plotH, fontSize, fontFamily: theme.fontFamily,
+              horizontal: isHorizontal, showGrid: !!this.config.showGrid, gridOpacity: theme.gridlines.opacity
+            })}
+
             {bars.map((bar, i) => (
               <g key={i}>
                 {bar.segments.map((segment, j) => (
-                  <rect 
-                    key={`${i}-${j}`} 
-                    x={segment.x} 
-                    y={segment.y} 
-                    width={segment.width} 
-                    height={segment.height} 
+                  <rect
+                    key={`${i}-${j}`}
+                    x={segment.x}
+                    y={segment.y}
+                    width={segment.width}
+                    height={segment.height}
                     fill={`url(#stackedGradient-${j % colors.length})`}
                     class="bar-animated bar-glow"
-                    style={{ 
+                    style={{
                       cursor: 'pointer',
                       transition: ChartAnimations.getHoverTransition(),
                       animationDelay: `${ChartAnimations.getStaggerDelay(i + j)}ms`,
@@ -310,113 +291,69 @@ export class StackedBarChartVisualization {
                 ))}
               </g>
             ))}
-            
-            {/* Category labels with modern styling */}
-            {!isHorizontal && (
-              <g>
-                {bars.map((bar, i) => {
-                  // Get average text length in the dataset
-                  const avgTextLength = chartData.reduce((sum, item) => sum + item.category.length, 0) / chartData.length;
-                  
-                  // Further adjust font size if average text is long
-                  let adjustedFontSize = fontSize;
-                  if (avgTextLength > 8) {
-                    adjustedFontSize = Math.max(3, fontSize * 0.65);
-                  }
 
-                  // Truncate text based on available space
-                  const displayText = bar.category.length > maxTextLength 
-                    ? `${bar.category.substring(0, maxTextLength)}...` 
-                    : bar.category;
-                  
+            <g>
+              {showCategories && bars.map((bar, i) => {
+                if (i % labelStride !== 0) return null;
+                if (isHorizontal) {
                   return (
-                    <text 
-                      key={i} 
-                      x={bar.center} 
-                      y={105} 
-                      font-size={adjustedFontSize}
+                    <text
+                      key={i}
+                      x={plotX - 6}
+                      y={bar.center}
+                      font-size={fontSize}
                       text-anchor="end"
+                      dominant-baseline="middle"
                       fill="var(--fl-chart-text-color)"
                       font-family={theme.fontFamily}
                       font-weight="500"
-                      class="text-rotated-animated"
-                      style={{
-                        animationDelay: `${ChartAnimations.getStaggerDelay(i) + 150}ms`,
-                        animationFillMode: 'both',
-                        transformOrigin: `${bar.center}px 105px`
-                      }}
                     >
-                      {displayText}
+                      {bar.label}
                     </text>
                   );
-                })}
-              </g>
-            )}
-            
-            {/* For horizontal bar charts, show labels at the end of each bar */}
-            {isHorizontal && (
-              <g>
-                {bars.map((bar, i) => {                
-                  // Calculate the total width of all segments for this bar
-                  const totalBarWidth = bar.segments.reduce((sum, segment) => sum + segment.width, 0);
-                  
-                  // Truncate text based on available space
-                  const displayText = bar.category.length > maxTextLength 
-                    ? `${bar.category.substring(0, maxTextLength)}...` 
-                    : bar.category;
-                  
-                  return (
-                    <text 
-                      key={i} 
-                      x={5 + totalBarWidth + 2} 
-                      y={bar.center} 
-                      font-size={fontSize} 
-                      text-anchor="start"
-                      dominant-baseline="middle" 
-                      fill="var(--fl-chart-text-color)"
-                      font-family={theme.fontFamily}
-                      font-weight="500"
-                      class="text-animated"
-                      style={{
-                        animationDelay: `${ChartAnimations.getStaggerDelay(i) + 150}ms`,
-                        animationFillMode: 'both'
-                      }}
-                    >
-                      {displayText}
-                    </text>
-                  );
-                })}
-              </g>
-            )}
-            
-            {/* X and Y axis with proper styling */}
-            <line 
-              x1="5" 
-              y1={ChartThemeUtils.snapToPixel(isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5)} 
-              x2={viewBoxWidth - 5} 
-              y2={ChartThemeUtils.snapToPixel(isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5)} 
-              stroke="var(--fl-chart-axis-color)" 
-              stroke-width="1" 
+                }
+                const ty = plotY + plotH + fontSize + 4;
+                return (
+                  <text
+                    key={i}
+                    x={bar.center}
+                    y={ty}
+                    font-size={fontSize}
+                    text-anchor={rotate ? 'end' : 'middle'}
+                    fill="var(--fl-chart-text-color)"
+                    font-family={theme.fontFamily}
+                    font-weight="500"
+                    class={rotate ? 'text-rotated-animated' : 'text-animated'}
+                    style={{
+                      animationDelay: `${ChartAnimations.getStaggerDelay(i) + 150}ms`,
+                      animationFillMode: 'both',
+                      transformOrigin: `${bar.center}px ${ty}px`
+                    }}
+                  >
+                    {bar.label}
+                  </text>
+                );
+              })}
+            </g>
+
+            <line
+              x1={plotX} y1={ChartThemeUtils.snapToPixel(plotY + plotH)}
+              x2={plotX + plotW} y2={ChartThemeUtils.snapToPixel(plotY + plotH)}
+              stroke="var(--fl-chart-axis-color)" stroke-width="1"
             />
-            <line 
-              x1={ChartThemeUtils.snapToPixel(5)} 
-              y1="5" 
-              x2={ChartThemeUtils.snapToPixel(5)} 
-              y2={isHorizontal ? viewBoxHeight - 2 : viewBoxHeight - 5} 
-              stroke="var(--fl-chart-axis-color)" 
-              stroke-width="1" 
+            <line
+              x1={ChartThemeUtils.snapToPixel(plotX)} y1={plotY}
+              x2={ChartThemeUtils.snapToPixel(plotX)} y2={plotY + plotH}
+              stroke="var(--fl-chart-axis-color)" stroke-width="1"
             />
           </svg>
-          
+          )}
+
           {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
-              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
-              style={{ 
-                left: `${this.tooltip.x}px`, 
-                top: `${this.tooltip.y}px`,
-                transform: 'translate(-50%, -100%)'
-              }}
+              part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
+              ref={(el) => placeTooltip(el, this.tooltip.x, this.tooltip.y)}
             >
               <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
                 {this.tooltip.text}
@@ -427,12 +364,12 @@ export class StackedBarChartVisualization {
         
         {/* Legend with PowerBI-grade styling */}
         {(this.config.showLegend !== false) && (
-          <div class="chart-legend">
-            {fields && fields.map((field, i) => (
+          <div class="chart-legend" part="legend">
+            {seriesNames.map((field, i) => (
               <div key={i} class="legend-item">
                 <div class="color-indicator" style={{ backgroundColor: colors[i % colors.length] }}></div>
                 <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>
-                  {field}
+                  {this.seriesLabel(field)}
                 </span>
               </div>
             ))}
@@ -441,21 +378,4 @@ export class StackedBarChartVisualization {
       </div>
     );
   }
-  
-  private calculateLabelProperties(chartData: StackedChartItem[]) {
-    // Base values
-    const baseFontSize = 5;
-    const baseMaxLength = 20;
-    
-    // Adjust for number of bars
-    const barCountAdjustment = chartData.length <= 4 ? 1.1 : 
-                              chartData.length <= 6 ? 1 :
-                              chartData.length <= 8 ? 0.8 : 0.6;
-    
-    // Calculate final values
-    const fontSize = Math.max(4, Math.round(baseFontSize * barCountAdjustment * 10) / 10);
-    const maxTextLength = Math.max(4, Math.round(baseMaxLength * barCountAdjustment));
-    
-    return { fontSize, maxTextLength };
-  }
-} 
+}

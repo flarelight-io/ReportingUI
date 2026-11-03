@@ -1,6 +1,7 @@
 import { Component, Prop, h, Host, State, Watch, Element, Listen } from '@stencil/core';
-import { FilterChangeEventDetail, VisualizationData } from './visualizations/base-visualization';
-import { Filter } from '../../api/types/common';
+import { FilterChangeEventDetail, VisualizationData, buildFieldLabels } from './visualizations/base-visualization';
+import { AggregationSpec, Filter } from '../../api/types/common';
+import { filtersCacheKey } from '../../utils/filters';
 import { ColorTheme } from '../../utils/chart-theme';
 import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
 
@@ -20,6 +21,22 @@ interface BaseDataWidgetConfig {
   colorTheme?: ColorTheme; // Widget-level color theme override
   sortField?: string;
   sortDirection?: 'Ascending' | 'Descending';
+  /** Aggregates every value field with this: any name your backend supports, or { type, ...options }. 'none' = raw rows. */
+  aggregation?: AggregationSpec;
+  /** Per-field overrides of `aggregation`, by field name. */
+  aggregations?: Record<string, AggregationSpec>;
+  /** Value axis (bar, clustered, stacked, lollipop and line charts): pin the lower end. */
+  axisMin?: number;
+  /** Value axis: pin the upper end, so the axis doesn't round up past it (data above it is clipped). */
+  axisMax?: number;
+  /** Value axis for percentages: pins 0-100 and labels ticks with %. axisMin/axisMax override the ends. */
+  percentAxis?: boolean;
+  /** Bar, horizontal bar, lollipop, pie and donut: keep the N largest categories and combine the rest into "Other". */
+  topN?: number;
+  /** Label of the combined bucket (default "Other"). */
+  otherLabel?: string;
+  /** Set to false to drop the remaining categories instead of combining them (default true). */
+  showOther?: boolean;
 }
 
 // Box-whisker chart specific configuration
@@ -91,7 +108,7 @@ export interface BarChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
 }
 
@@ -101,7 +118,7 @@ export interface LineChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
 }
 
@@ -111,7 +128,7 @@ export interface PieChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
 }
 
@@ -121,7 +138,7 @@ export interface DonutChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
   showTotal?: boolean;
 }
@@ -132,7 +149,7 @@ export interface HBarChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
 }
 
@@ -161,8 +178,10 @@ export interface StackedBarChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
+  /** Pivot this dimension into series (one per distinct value) instead of using a fixed `fields` list; needs `valueField`. */
+  seriesField?: string;
 }
 
 // Stacked horizontal bar chart specific configuration
@@ -171,8 +190,10 @@ export interface StackedHBarChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
+  /** Pivot this dimension into series (one per distinct value) instead of using a fixed `fields` list; needs `valueField`. */
+  seriesField?: string;
 }
 
 // Clustered bar chart specific configuration
@@ -181,8 +202,10 @@ export interface ClusteredBarChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
+  /** Pivot this dimension into series (one per distinct value) instead of using a fixed `fields` list; needs `valueField`. */
+  seriesField?: string;
 }
 
 // Clustered horizontal bar chart specific configuration
@@ -191,8 +214,10 @@ export interface ClusteredHBarChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
+  /** Pivot this dimension into series (one per distinct value) instead of using a fixed `fields` list; needs `valueField`. */
+  seriesField?: string;
 }
 
 // Lollipop chart specific configuration
@@ -201,7 +226,7 @@ export interface LollipopChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
 }
 
@@ -211,7 +236,7 @@ export interface LollipopHChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
 }
 
@@ -424,6 +449,7 @@ export class DataWidget {
     const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
     const labelField = 'labelField' in this.config ? this.config.labelField : undefined;
     const aggregation = 'aggregation' in this.config ? this.config.aggregation : undefined;
+    const aggregations = this.config.aggregations;
     const fields = 'fields' in this.config ? this.config.fields : undefined;
     const columns = 'columns' in this.config ? this.config.columns : undefined;
     const sortField = this.config.sortField;
@@ -458,7 +484,7 @@ export class DataWidget {
       const filterKey = visualizationType === 'filter' ? 
         `filter-${this.widgetId}-${now}` : 
         (sourceFilters.length > 0 ? 
-          JSON.stringify(sourceFilters.map(f => `${f.field}:${f.value}`).sort()) : 
+          filtersCacheKey(sourceFilters) : 
           'nofilters');
       
       // Prepare config object for the builder
@@ -470,6 +496,8 @@ export class DataWidget {
         groupByField,
         labelField,
         aggregation,
+        aggregations,
+        seriesField: 'seriesField' in this.config ? (this.config as any).seriesField : undefined,
         columns,
         previousValueField: 'previousValueField' in this.config ? (this.config as any).previousValueField : undefined,
         sortField,
@@ -528,8 +556,10 @@ export class DataWidget {
   }
   
   private renderVisualization() {
+    const source = (this.availableSources || []).find(s => s.id === this.config.sourceId);
     const visualizationData: VisualizationData = {
       rawData: this.internalData.length > 0 ? this.internalData : this.data,
+      fieldLabels: buildFieldLabels(source && source.fields),
       loading: this.loading,
       error: this.error
     };
@@ -542,7 +572,7 @@ export class DataWidget {
     switch (visualizationType) {
       case 'table':
         return (
-          <table-visualization 
+          <table-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -552,7 +582,7 @@ export class DataWidget {
       case 'bar':
       case 'hbar':
         return (
-          <bar-chart-visualization 
+          <bar-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -562,7 +592,7 @@ export class DataWidget {
       case 'stacked-bar':
       case 'stacked-hbar':
         return (
-          <stacked-bar-chart-visualization 
+          <stacked-bar-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -572,7 +602,7 @@ export class DataWidget {
       case 'clustered-bar':
       case 'clustered-hbar':
         return (
-          <clustered-bar-chart-visualization 
+          <clustered-bar-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -582,7 +612,7 @@ export class DataWidget {
       case 'lollipop':
       case 'lollipop-h':
         return (
-          <lollipop-chart-visualization 
+          <lollipop-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -591,7 +621,7 @@ export class DataWidget {
         
       case 'line':
         return (
-          <line-chart-visualization 
+          <line-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -601,7 +631,7 @@ export class DataWidget {
       case 'pie':
       case 'donut':
         return (
-          <pie-chart-visualization 
+          <pie-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -610,7 +640,7 @@ export class DataWidget {
       
       case 'kpi':
         return (
-          <kpi-visualization 
+          <kpi-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -619,7 +649,7 @@ export class DataWidget {
       
       case 'scatter':
         return (
-          <scatter-chart-visualization 
+          <scatter-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -628,7 +658,7 @@ export class DataWidget {
         
       case 'histogram':
         return (
-          <histogram-chart-visualization 
+          <histogram-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -637,7 +667,7 @@ export class DataWidget {
         
       case 'heatmap':
         return (
-          <heatmap-visualization 
+          <heatmap-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config as HeatmapConfig} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -646,7 +676,7 @@ export class DataWidget {
       
       case 'sunburst':
         return (
-          <sunburst-chart-visualization 
+          <sunburst-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -655,7 +685,7 @@ export class DataWidget {
       
       case 'bubble':
         return (
-          <bubble-chart-visualization 
+          <bubble-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -664,7 +694,7 @@ export class DataWidget {
       
       case 'box-whisker':
         return (
-          <box-whisker-chart-visualization 
+          <box-whisker-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -673,7 +703,7 @@ export class DataWidget {
       
       case 'filter':
         return (
-          <filter-visualization 
+          <filter-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -695,7 +725,7 @@ export class DataWidget {
   render() {
     return (
       <Host>
-        <base-widget
+        <base-widget exportparts="card,header,title,body"
           widgetId={this.widgetId}
           widgetTitle={this.widgetTitle}
           width={this.width}

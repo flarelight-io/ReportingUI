@@ -52,10 +52,27 @@
         }
       }
     },
+    "rowHeight": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Row height in pixels when the report grows with its content (heightMode auto). Overrides rowAspectRatio; the report-viewer rowHeight property takes precedence over this."
+    },
+    "gap": {
+      "type": "number",
+      "minimum": 0,
+      "default": 15,
+      "description": "Gap between widgets in pixels. The report-viewer gap property takes precedence over this."
+    },
+    "rowAspectRatio": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "default": 1,
+      "description": "Column width divided by row height when heightMode is auto: 1 = square rows (default), 2 = rows half as tall as a column is wide."
+    },
     "colorTheme": {
       "type": "string",
       "description": "Global color theme for the report",
-      "enum": ["brand", "rainbow", "blue", "grayscale", "rainbow-alt"],
+      "examples": ["brand", "rainbow", "blue", "grayscale", "rainbow-alt"],
       "default": "brand"
     }
   },
@@ -1643,6 +1660,19 @@
             "type": "string"
           }
         },
+        "axisMin": {
+          "type": "number",
+          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
+        },
+        "axisMax": {
+          "type": "number",
+          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
+        },
+        "percentAxis": {
+          "type": "boolean",
+          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
+          "default": false
+        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -1696,10 +1726,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "kpiFormatType": {
           "type": "string",
@@ -2319,6 +2361,21 @@
             "required": ["value", "color", "operator"]
           }
         },
+        "topN": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Keep the N largest categories (sorted by value, descending) and combine the rest into one 'Other' entry whose value is the sum of the rest. A single leftover category is kept as itself."
+        },
+        "otherLabel": {
+          "type": "string",
+          "description": "Label of the combined bucket when topN is set",
+          "default": "Other"
+        },
+        "showOther": {
+          "type": "boolean",
+          "description": "When topN is set: false drops the remaining categories instead of combining them",
+          "default": true
+        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -2373,10 +2430,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
@@ -2384,6 +2453,19 @@
           "items": {
             "type": "string"
           }
+        },
+        "axisMin": {
+          "type": "number",
+          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
+        },
+        "axisMax": {
+          "type": "number",
+          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
+        },
+        "percentAxis": {
+          "type": "boolean",
+          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
+          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -2438,10 +2520,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
@@ -2449,6 +2543,34 @@
           "items": {
             "type": "string"
           }
+        },
+        "axisMin": {
+          "type": "number",
+          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
+        },
+        "axisMax": {
+          "type": "number",
+          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
+        },
+        "percentAxis": {
+          "type": "boolean",
+          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
+          "default": false
+        },
+        "topN": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Keep the N largest categories (sorted by value, descending) and combine the rest into one 'Other' entry whose value is the sum of the rest. A single leftover category is kept as itself."
+        },
+        "otherLabel": {
+          "type": "string",
+          "description": "Label of the combined bucket when topN is set",
+          "default": "Other"
+        },
+        "showOther": {
+          "type": "boolean",
+          "description": "When topN is set: false drops the remaining categories instead of combining them",
+          "default": true
         },
         "hideTitle": {
           "type": "boolean",
@@ -2503,10 +2625,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
@@ -2514,6 +2648,34 @@
           "items": {
             "type": "string"
           }
+        },
+        "axisMin": {
+          "type": "number",
+          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
+        },
+        "axisMax": {
+          "type": "number",
+          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
+        },
+        "percentAxis": {
+          "type": "boolean",
+          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
+          "default": false
+        },
+        "topN": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Keep the N largest categories (sorted by value, descending) and combine the rest into one 'Other' entry whose value is the sum of the rest. A single leftover category is kept as itself."
+        },
+        "otherLabel": {
+          "type": "string",
+          "description": "Label of the combined bucket when topN is set",
+          "default": "Other"
+        },
+        "showOther": {
+          "type": "boolean",
+          "description": "When topN is set: false drops the remaining categories instead of combining them",
+          "default": true
         },
         "hideTitle": {
           "type": "boolean",
@@ -2568,10 +2730,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
@@ -2579,6 +2753,34 @@
           "items": {
             "type": "string"
           }
+        },
+        "axisMin": {
+          "type": "number",
+          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
+        },
+        "axisMax": {
+          "type": "number",
+          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
+        },
+        "percentAxis": {
+          "type": "boolean",
+          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
+          "default": false
+        },
+        "topN": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Keep the N largest categories (sorted by value, descending) and combine the rest into one 'Other' entry whose value is the sum of the rest. A single leftover category is kept as itself."
+        },
+        "otherLabel": {
+          "type": "string",
+          "description": "Label of the combined bucket when topN is set",
+          "default": "Other"
+        },
+        "showOther": {
+          "type": "boolean",
+          "description": "When topN is set: false drops the remaining categories instead of combining them",
+          "default": true
         },
         "hideTitle": {
           "type": "boolean",
@@ -2757,17 +2959,46 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
-          "description": "Fields to include in the visualization (required for stacked charts)",
+          "description": "Fields to include as fixed series (required for stacked and clustered charts unless seriesField is set)",
           "items": {
             "type": "string"
           }
+        },
+        "seriesField": {
+          "type": "string",
+          "description": "Pivot this dimension into series: one series per distinct value, instead of a fixed fields list. Requires valueField and groupByField; the backend is asked to group by both fields."
+        },
+        "axisMin": {
+          "type": "number",
+          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
+        },
+        "axisMax": {
+          "type": "number",
+          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
+        },
+        "percentAxis": {
+          "type": "boolean",
+          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
+          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -2822,17 +3053,46 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
-          "description": "Fields to include in the visualization (required for stacked charts)",
+          "description": "Fields to include as fixed series (required for stacked and clustered charts unless seriesField is set)",
           "items": {
             "type": "string"
           }
+        },
+        "seriesField": {
+          "type": "string",
+          "description": "Pivot this dimension into series: one series per distinct value, instead of a fixed fields list. Requires valueField and groupByField; the backend is asked to group by both fields."
+        },
+        "axisMin": {
+          "type": "number",
+          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
+        },
+        "axisMax": {
+          "type": "number",
+          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
+        },
+        "percentAxis": {
+          "type": "boolean",
+          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
+          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -2887,17 +3147,46 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
-          "description": "Fields to include in the visualization (required for clustered charts)",
+          "description": "Fields to include as fixed series (required for stacked and clustered charts unless seriesField is set)",
           "items": {
             "type": "string"
           }
+        },
+        "seriesField": {
+          "type": "string",
+          "description": "Pivot this dimension into series: one series per distinct value, instead of a fixed fields list. Requires valueField and groupByField; the backend is asked to group by both fields."
+        },
+        "axisMin": {
+          "type": "number",
+          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
+        },
+        "axisMax": {
+          "type": "number",
+          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
+        },
+        "percentAxis": {
+          "type": "boolean",
+          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
+          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -2952,17 +3241,46 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
-          "description": "Fields to include in the visualization (required for clustered charts)",
+          "description": "Fields to include as fixed series (required for stacked and clustered charts unless seriesField is set)",
           "items": {
             "type": "string"
           }
+        },
+        "seriesField": {
+          "type": "string",
+          "description": "Pivot this dimension into series: one series per distinct value, instead of a fixed fields list. Requires valueField and groupByField; the backend is asked to group by both fields."
+        },
+        "axisMin": {
+          "type": "number",
+          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
+        },
+        "axisMax": {
+          "type": "number",
+          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
+        },
+        "percentAxis": {
+          "type": "boolean",
+          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
+          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -3017,10 +3335,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
@@ -3028,6 +3358,34 @@
           "items": {
             "type": "string"
           }
+        },
+        "axisMin": {
+          "type": "number",
+          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
+        },
+        "axisMax": {
+          "type": "number",
+          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
+        },
+        "percentAxis": {
+          "type": "boolean",
+          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
+          "default": false
+        },
+        "topN": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Keep the N largest categories (sorted by value, descending) and combine the rest into one 'Other' entry whose value is the sum of the rest. A single leftover category is kept as itself."
+        },
+        "otherLabel": {
+          "type": "string",
+          "description": "Label of the combined bucket when topN is set",
+          "default": "Other"
+        },
+        "showOther": {
+          "type": "boolean",
+          "description": "When topN is set: false drops the remaining categories instead of combining them",
+          "default": true
         },
         "hideTitle": {
           "type": "boolean",
@@ -3082,10 +3440,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
@@ -3093,6 +3463,34 @@
           "items": {
             "type": "string"
           }
+        },
+        "axisMin": {
+          "type": "number",
+          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
+        },
+        "axisMax": {
+          "type": "number",
+          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
+        },
+        "percentAxis": {
+          "type": "boolean",
+          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
+          "default": false
+        },
+        "topN": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Keep the N largest categories (sorted by value, descending) and combine the rest into one 'Other' entry whose value is the sum of the rest. A single leftover category is kept as itself."
+        },
+        "otherLabel": {
+          "type": "string",
+          "description": "Label of the combined bucket when topN is set",
+          "default": "Other"
+        },
+        "showOther": {
+          "type": "boolean",
+          "description": "When topN is set: false drops the remaining categories instead of combining them",
+          "default": true
         },
         "hideTitle": {
           "type": "boolean",

@@ -145,7 +145,7 @@ export class DescriptiveAnalysisWidget {
     if (this.loading) {
       return (
         <Host>
-          <base-widget
+          <base-widget exportparts="card,header,title,body"
             widgetId={this.widgetId}
             widgetTitle={this.widgetTitle || "Descriptive Statistics"}
             width={this.width}
@@ -163,7 +163,7 @@ export class DescriptiveAnalysisWidget {
     if (!this.config.analysisId && !this.analysisSourceId) {
       return (
         <Host>
-          <base-widget
+          <base-widget exportparts="card,header,title,body"
             widgetId={this.widgetId}
             widgetTitle={this.widgetTitle || "Descriptive Statistics"}
             width={this.width}
