@@ -1,5 +1,7 @@
 import { Component, Prop, h, Host, State, Watch, Element, Event, EventEmitter } from '@stencil/core';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../utils/chart-theme';
+import { placeTooltip } from '../../utils/tooltip';
+import { PlotSizeTracker, clipLabel } from '../../utils/bar-layout';
 import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
 
 export interface CorrelationAnalysisWidgetConfig {
@@ -49,10 +51,15 @@ export class CorrelationAnalysisWidget {
   @State() isKpiMode: boolean = false;
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0; // Force re-render when theme changes
+  @State() plotWidth: number = 0;
+  @State() plotHeight: number = 0;
   
   @Event() filterChange: EventEmitter<{ sourceId: string; field: string; value: any }>;
   
-  private svgRef: SVGElement;
+  private plotSize = new PlotSizeTracker(({ width, height }) => {
+    if (width !== this.plotWidth) this.plotWidth = width;
+    if (height !== this.plotHeight) this.plotHeight = height;
+  });
 
   
   componentWillLoad() {
@@ -95,6 +102,7 @@ export class CorrelationAnalysisWidget {
   }
   
   disconnectedCallback() {
+    this.plotSize.detach();
     // Clean up event listeners
     this.el.removeEventListener('dataUpdate', null);
     this.el.removeEventListener('colorThemeChange', null);
@@ -205,15 +213,12 @@ export class CorrelationAnalysisWidget {
   
   // Handle mouse move for tooltip
   private handleMouseMove(e: MouseEvent, tooltipText: string) {
-    if (this.svgRef) {
-      const svgRect = this.svgRef.getBoundingClientRect();
-      this.tooltip = {
-        visible: true,
-        text: tooltipText,
-        x: e.clientX - svgRect.left,
-        y: e.clientY - svgRect.top
-      };
-    }
+    this.tooltip = {
+      visible: true,
+      text: tooltipText,
+      x: e.clientX,
+      y: e.clientY
+    };
   }
   
   // Handle mouse leave for tooltip
@@ -352,53 +357,47 @@ export class CorrelationAnalysisWidget {
     
     const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
-    // Calculate cell size based on available space and number of fields
-    const availableWidth = this.width || 400;
-    const availableHeight = this.height || 400;
-    const maxFields = Math.max(rowFields.length, this.fields.length);
-    
-    // Ensure minimum cell size but allow for more fields
-    const cellSize = Math.max(35, Math.floor(Math.min(availableWidth, availableHeight) / (maxFields + 2)));
-    const fontSize = Math.max(8, Math.min(12, cellSize * 0.35));
-    
-    // Calculate padding based on text length
-    const maxTextLength = Math.max(
-      ...rowFields.map(field => field.length),
-      ...this.fields.map(field => field.length)
-    );
-    const paddingLeft = Math.max(80, maxTextLength * fontSize * 0.6);
-    const paddingTop = Math.max(80, maxTextLength * fontSize * 0.4);
-    
-    // Calculate dimensions
-    const gridWidth = cellSize * this.fields.length;
-    const gridHeight = cellSize * rowFields.length;
-    const svgWidth = paddingLeft + gridWidth + 20; // Add some margin
-    const svgHeight = paddingTop + gridHeight + 20; // Add some margin
-    
+    // Lay out in real pixels so text keeps a constant, readable size at any container size
+    const W = this.plotWidth;
+    const H = this.plotHeight;
+    const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
+    const charWidth = fontSize * 0.58;
+    const pad = 8;
+    const rowLabels = rowFields.map(f => clipLabel(f, 24));
+    const colLabels = this.fields.map(f => clipLabel(f, 18));
+    const paddingLeft = pad + Math.min(W * 0.35, Math.max(...rowLabels.map(l => l.length), 1) * charWidth + 10);
+    const gridWidth = Math.max(0, W - paddingLeft - pad);
+    const cellWidth = gridWidth / Math.max(1, this.fields.length);
+    const longestColPx = Math.max(...colLabels.map(l => l.length), 1) * charWidth;
+    // Rotate column labels only when they don't fit side by side
+    const rotateCols = cellWidth < longestColPx + 6;
+    const paddingTop = pad + (rotateCols ? Math.min(longestColPx * Math.SQRT1_2 + fontSize + 8, H * 0.4) : fontSize + 10);
+    const gridHeight = Math.max(0, H - paddingTop - pad);
+    const cellHeight = gridHeight / Math.max(1, rowFields.length);
+    const rowStride = Math.max(1, Math.ceil((fontSize * 1.3) / Math.max(1, cellHeight)));
+    const colStride = Math.max(1, Math.ceil((rotateCols ? fontSize * 1.4 : longestColPx + 6) / Math.max(1, cellWidth)));
+
     return (
-      <div class="heatmap-container">
-        <div class="visualization-container">
-          <svg 
-            ref={(el) => this.svgRef = el}
-            width="100%" 
-            height="100%" 
-            viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-            preserveAspectRatio="xMidYMid meet"
+      <div class="heatmap-container" part="chart">
+        <div class="visualization-container" part="plot" ref={this.plotSize.attach}>
+          {W > 0 && H > 0 && (
+          <svg
+            width={W}
+            height={H}
+            viewBox={`0 0 ${W} ${H}`}
+            style={{ position: 'absolute', inset: '0' }}
             {...ChartThemeUtils.getSVGAttributes()}
           >
-            {/* Define gradients and filters for modern styling */}
             <defs>
-              
               <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
                 <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
               </filter>
             </defs>
-            {/* Y-axis labels (field names) */}
-            {rowFields.map((field, i) => (
+            {rowLabels.map((field, i) => i % rowStride === 0 && (
               <text
                 key={`y-${i}`}
-                x={paddingLeft - 5}
-                y={paddingTop + i * cellSize + cellSize / 2}
+                x={paddingLeft - 6}
+                y={paddingTop + i * cellHeight + cellHeight / 2}
                 text-anchor="end"
                 dominant-baseline="middle"
                 font-size={fontSize}
@@ -414,40 +413,43 @@ export class CorrelationAnalysisWidget {
                 {field}
               </text>
             ))}
-            
-            {/* X-axis labels (field names) - rotated for readability */}
-            {this.fields.map((field, i) => (
-              <text
-                key={`x-${i}`}
-                x={paddingLeft + (i * cellSize) + (cellSize / 2)}
-                y={paddingTop - field.length * fontSize * 0.1}
-                text-anchor="start"
-                dominant-baseline="middle"
-                font-size={fontSize}
-                font-family={theme.fontFamily}
-                font-weight="500"
-                fill={theme.labelColor}
-                transform={`rotate(-45, ${paddingLeft + i * cellSize + cellSize / 2}, ${paddingTop - field.length * fontSize * 0.1})`}
-                class="text-rotated-animated"
-                style={{
-                  animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
-                  animationFillMode: 'both',
-                  transformOrigin: `${paddingLeft + i * cellSize + cellSize / 2}px ${paddingTop - field.length * fontSize * 0.1}px`
-                }}
-              >
-                {field}
-              </text>
-            ))}
-            
-            {/* Correlation matrix cells */}
+
+            {colLabels.map((field, i) => {
+              if (i % colStride !== 0) return null;
+              const x = paddingLeft + i * cellWidth + cellWidth / 2;
+              const y = paddingTop - 6;
+              return (
+                <text
+                  key={`x-${i}`}
+                  x={x}
+                  y={y}
+                  text-anchor={rotateCols ? 'start' : 'middle'}
+                  font-size={fontSize}
+                  font-family={theme.fontFamily}
+                  font-weight="500"
+                  fill={theme.labelColor}
+                  transform={rotateCols ? `rotate(-45, ${x}, ${y})` : undefined}
+                  class={rotateCols ? 'text-rotated-animated' : 'text-animated'}
+                  style={{
+                    animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
+                    animationFillMode: 'both',
+                    transformOrigin: `${x}px ${y}px`
+                  }}
+                >
+                  {field}
+                </text>
+              );
+            })}
+
             {matrix.map((row, i) => (
               row.map((value, j) => {
                 const tooltipText = `${rowFields[i]} & ${this.fields[j]}: ${this.formatCorrelationValue(value)}`;
                 const cellIndex = i * row.length + j;
-                
-                
+                const valueText = this.config.showLabels ? this.formatCorrelationValue(value) : '';
+                const showValue = !!valueText && cellWidth >= valueText.length * charWidth + 4 && cellHeight >= fontSize + 2;
+
                 return (
-                  <g 
+                  <g
                     key={`cell-${i}-${j}-${this.themeVersion}`}
                     onMouseMove={(e) => this.handleMouseMove(e, tooltipText)}
                     onMouseLeave={() => this.handleMouseLeave()}
@@ -457,15 +459,15 @@ export class CorrelationAnalysisWidget {
                     )}
                   >
                     <rect
-                      x={paddingLeft + j * cellSize}
-                      y={paddingTop + i * cellSize}
-                      width={cellSize}
-                      height={cellSize}
+                      x={paddingLeft + j * cellWidth}
+                      y={paddingTop + i * cellHeight}
+                      width={cellWidth}
+                      height={cellHeight}
                       fill={this.getCorrelationColor(value)}
                       stroke={theme.border}
-                      stroke-width="0.5"
+                      stroke-width="1"
                       class="cell-animated cell-glow"
-                      style={{ 
+                      style={{
                         cursor: 'pointer',
                         transition: ChartAnimations.getHoverTransition(),
                         animationDelay: `${ChartAnimations.getStaggerDelay(cellIndex)}ms`,
@@ -473,12 +475,11 @@ export class CorrelationAnalysisWidget {
                         filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))'
                       }}
                     />
-                    
-                    {/* Show correlation values in cells if configured */}
-                    {this.config.showLabels && (
+
+                    {showValue && (
                       <text
-                        x={paddingLeft + j * cellSize + cellSize / 2}
-                        y={paddingTop + i * cellSize + cellSize / 2}
+                        x={paddingLeft + j * cellWidth + cellWidth / 2}
+                        y={paddingTop + i * cellHeight + cellHeight / 2}
                         text-anchor="middle"
                         dominant-baseline="middle"
                         font-size={fontSize}
@@ -491,7 +492,7 @@ export class CorrelationAnalysisWidget {
                           animationFillMode: 'both'
                         }}
                       >
-                        {this.formatCorrelationValue(value)}
+                        {valueText}
                       </text>
                     )}
                   </g>
@@ -499,16 +500,13 @@ export class CorrelationAnalysisWidget {
               })
             ))}
           </svg>
-          
+          )}
+
           {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
-            <div 
-              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
-              style={{ 
-                left: `${this.tooltip.x}px`, 
-                top: `${this.tooltip.y}px`,
-                transform: 'translate(-50%, -100%)'
-              }}
+            <div
+              part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
+              ref={(el) => placeTooltip(el, this.tooltip.x, this.tooltip.y)}
             >
               <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
                 {this.tooltip.text}
