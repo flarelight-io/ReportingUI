@@ -191,6 +191,7 @@ const configuration = {
 - [Pivoted series](docs/series.md) — turn a dimension into the series of a stacked/clustered chart
 - [Chart options](docs/chart-options.md) — top-N with Other, pinned/percent value axis, tick behavior
 - [Custom widget types](docs/custom-widgets.md) — register your own widget types in the viewer
+- [Report builder](docs/report-builder.md) — `<report-builder>`: move, resize, add and delete widgets
 - [React Integration](docs/react-integration.md) — detailed React setup and examples
 - [JavaScript Integration](docs/javascript-integration.md) — vanilla JS / CDN usage
 - [.NET Integration](docs/dotnet-integration.md) — PuppeteerSharp PDF generation

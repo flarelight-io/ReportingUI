@@ -1,0 +1,74 @@
+report-builder {
+  display: block;
+  width: 100%;
+}
+
+report-builder .builder-root {
+  position: relative;
+  outline: none;
+}
+
+// While editing, widgets are a picture: the overlay takes every pointer event
+report-builder .builder-root report-viewer .widget-grid {
+  pointer-events: none;
+  user-select: none;
+}
+
+report-builder .widget-item[data-interacting='outline'] {
+  --fl-widget-body-display: none;
+}
+
+report-builder .builder-overlay {
+  position: absolute;
+  z-index: 5;
+  pointer-events: auto;
+}
+
+report-builder .builder-frame {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px dashed transparent;
+  border-radius: var(--fl-widget-radius, 6px);
+  cursor: move;
+  touch-action: none;
+  transition: border-color 100ms ease, background-color 100ms ease;
+
+  &:hover {
+    border-color: var(--fl-chart-primary, #4d19a2);
+  }
+
+  &.selected {
+    border: 2px solid var(--fl-chart-primary, #4d19a2);
+    background-color: rgba(77, 25, 162, 0.05);
+  }
+
+  &.interacting {
+    border-style: solid;
+    background-color: rgba(77, 25, 162, 0.1);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  }
+
+  &.locked {
+    cursor: not-allowed;
+  }
+}
+
+report-builder .builder-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  background: #fff;
+  border: 2px solid var(--fl-chart-primary, #4d19a2);
+  border-radius: 2px;
+  touch-action: none;
+
+  &.handle-n { top: -6px; left: calc(50% - 5px); cursor: ns-resize; }
+  &.handle-s { bottom: -6px; left: calc(50% - 5px); cursor: ns-resize; }
+  &.handle-e { right: -6px; top: calc(50% - 5px); cursor: ew-resize; }
+  &.handle-w { left: -6px; top: calc(50% - 5px); cursor: ew-resize; }
+  &.handle-ne { top: -6px; right: -6px; cursor: nesw-resize; }
+  &.handle-sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
+  &.handle-nw { top: -6px; left: -6px; cursor: nwse-resize; }
+  &.handle-se { bottom: -6px; right: -6px; cursor: nwse-resize; }
+}

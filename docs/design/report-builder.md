@@ -376,13 +376,27 @@ sources and filters are compared by content in the signature so an app that pass
 doesn't rebuild everything. Known leftover: a `colorTheme` change still recreates every widget (the theme is part of
 every signature); it could be passed to widgets in place if that ever matters.
 
-### Phase 1 (next after Phase 0)
+### Phase 1: editable canvas (done)
 
-Start `<report-builder>` per the design above: controlled `configuration` / `configurationChange`, an edit overlay
-(selection frames, drag and resize handles, ghost placeholder) over the keyed renderer, using `moveItem`,
-`resizeItem`, `addItem` and `removeItems` from the layout engine, `addWidget` / `removeWidgets` / `select` methods and
-`widgetSelect`. Widgets get `pointer-events: none` in edit mode. Reuse the registry for creating widget elements.
-Implement the interaction preview above (CSS variable on the grid cell while dragging or resizing).
-Add puppeteer e2e tests for drag, resize, add and delete (the repo has no e2e tests yet). The decisions at the top of
-this document apply (own layout engine, headless, sources from the app, same format with configurable columns,
-separate component, configuration hook on add).
+ is implemented (, user docs in ): controlled
+ / , an overlay with selection frames and eight resize handles over the unmodified
+viewer, move and resize through  /  with a live preview configuration that is committed on
+release, Delete, Escape (cancel / clear selection) and Shift/Ctrl-click multi-select,  /  /
+ /  methods, ,  for sizes and defaults, , and the interaction preview ( hides the body of the widget being dragged via ).
+
+Verified in the browser on the 50-widget demo with synthetic pointer events: frames coincide with the rendered widgets,
+move (0 to 6 columns) and southeast resize commit one  each and push neighbours down, Escape
+cancels without an event, Delete and  update the configuration, and the body is hidden only while
+interacting. 108 unit tests pass.
+
+Lessons: the viewer owns each cell's inline style, so the outline flag is a  attribute plus a
+stylesheet rule, not an inline variable; the viewer builds its grid after the builder renders, so the builder observes
+its own root to measure once the grid exists.
+
+Not done in Phase 1: puppeteer e2e tests (the repo has none yet), touch-specific tuning, keyboard moves, a visible
+placeholder for the drop target,  formats other than the first breakpoint (only verified in unit tests).
+
+### Phase 2 (next)
+
+Configuration hook:  /  so apps open their own UI when a widget is added or edited,
+and  to apply the result (the method already exists).

@@ -23,6 +23,7 @@ import { OneSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/on
 import { OneWayAnovaWidgetConfig } from "./components/widgets/one-way-anova-widget";
 import { PairedTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/paired-two-sample-hypothesis-test-widget";
 import { PairedTwoSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/paired-two-sample-wilcoxon-signed-rank-widget";
+import { WidgetTypeDefinition } from "./utils/widget-catalog";
 import { ShapiroWilkTestWidgetConfig } from "./components/widgets/shapiro-wilk-test-widget";
 import { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 import { TextWidgetConfig } from "./components/widgets/text-widget";
@@ -46,6 +47,7 @@ export { OneSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/on
 export { OneWayAnovaWidgetConfig } from "./components/widgets/one-way-anova-widget";
 export { PairedTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/paired-two-sample-hypothesis-test-widget";
 export { PairedTwoSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/paired-two-sample-wilcoxon-signed-rank-widget";
+export { WidgetTypeDefinition } from "./utils/widget-catalog";
 export { ShapiroWilkTestWidgetConfig } from "./components/widgets/shapiro-wilk-test-widget";
 export { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 export { TextWidgetConfig } from "./components/widgets/text-widget";
@@ -575,6 +577,78 @@ export namespace Components {
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
+    /**
+     * Edit layer for a report: select, move, resize, add and delete widgets on the grid. The configuration is
+     * controlled: it is passed in, and every user change is emitted as `configurationChange` with the full next
+     * configuration for the app to apply (and save). Widgets render with the regular `<report-viewer>`, so what you
+     * edit is what the viewer shows. The builder has no toolbar or palette: apps build their own around `addWidget`,
+     * `removeWidgets`, `updateWidget` and `select`.
+     */
+    interface ReportBuilder {
+        /**
+          * Adds a widget of the given type (at the first free spot, or at `x`/`y`) and selects it. Resolves with its id, or null when it couldn't be placed (for example `compact: 'none'` and no room at the requested position).
+         */
+        "addWidget": (type: string, options?: { id?: string; title?: string; x?: number; y?: number; w?: number; h?: number; config?: Record<string, any>; }) => Promise<string | null>;
+        /**
+          * Presentation, passed to the viewer (see `<report-viewer>`).
+         */
+        "columns"?: number;
+        /**
+          * `vertical` (default): colliding widgets are pushed down and gaps close upwards. `none`: widgets stay where they are put and moves that would overlap are rejected.
+          * @default 'vertical'
+         */
+        "compact": 'vertical' | 'none';
+        /**
+          * The report configuration. Controlled: apply `configurationChange` by setting this again.
+         */
+        "configuration": any;
+        /**
+          * Same data function the viewer takes, so widgets show real data while editing.
+         */
+        "fetchChartData": Function;
+        "gap"?: number;
+        /**
+          * The ids of the selected widgets.
+         */
+        "getSelection": () => Promise<string[]>;
+        /**
+          * What a widget shows while it is dragged or resized: `outline` (default) hides its content and keeps the frame and title, which is cheaper and a clearer drop target; `live` keeps the content visible.
+          * @default 'outline'
+         */
+        "interactionPreview": 'outline' | 'live';
+        /**
+          * Turns the editing layer off: the report just renders.
+          * @default false
+         */
+        "readOnly": boolean;
+        /**
+          * Removes widgets and closes the gaps they leave (unless `compact` is `none`).
+         */
+        "removeWidgets": (ids: string[]) => Promise<void>;
+        "reportId"?: string;
+        "rowAspectRatio"?: number;
+        "rowHeight"?: number;
+        /**
+          * Selects widgets by id (an empty list clears the selection).
+         */
+        "select": (ids: string[]) => Promise<void>;
+        /**
+          * Sources available in the report (overrides `configuration.sources`).
+         */
+        "sources"?: DataSource[];
+        /**
+          * @default 'auto'
+         */
+        "theme": 'light' | 'dark' | 'auto';
+        /**
+          * Merges a patch into a widget (title, config, position, anything). This is how an app applies its own configuration UI. A position change is run through the layout engine so other widgets make room.
+         */
+        "updateWidget": (id: string, patch: Record<string, any>) => Promise<void>;
+        /**
+          * Describes the widget types users can add: sizes, limits, default config. Types not listed use built-in defaults.
+         */
+        "widgetCatalog"?: WidgetTypeDefinition[];
+    }
     interface ReportDemo {
     }
     interface ReportViewer {
@@ -847,6 +921,10 @@ export interface LollipopChartVisualizationCustomEvent<T> extends CustomEvent<T>
 export interface PieChartVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLPieChartVisualizationElement;
+}
+export interface ReportBuilderCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLReportBuilderElement;
 }
 export interface ReportViewerCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -1157,6 +1235,31 @@ declare global {
         prototype: HTMLPieChartVisualizationElement;
         new (): HTMLPieChartVisualizationElement;
     };
+    interface HTMLReportBuilderElementEventMap {
+        "configurationChange": any;
+        "widgetSelect": { ids: string[] };
+    }
+    /**
+     * Edit layer for a report: select, move, resize, add and delete widgets on the grid. The configuration is
+     * controlled: it is passed in, and every user change is emitted as `configurationChange` with the full next
+     * configuration for the app to apply (and save). Widgets render with the regular `<report-viewer>`, so what you
+     * edit is what the viewer shows. The builder has no toolbar or palette: apps build their own around `addWidget`,
+     * `removeWidgets`, `updateWidget` and `select`.
+     */
+    interface HTMLReportBuilderElement extends Components.ReportBuilder, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLReportBuilderElementEventMap>(type: K, listener: (this: HTMLReportBuilderElement, ev: ReportBuilderCustomEvent<HTMLReportBuilderElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLReportBuilderElementEventMap>(type: K, listener: (this: HTMLReportBuilderElement, ev: ReportBuilderCustomEvent<HTMLReportBuilderElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLReportBuilderElement: {
+        prototype: HTMLReportBuilderElement;
+        new (): HTMLReportBuilderElement;
+    };
     interface HTMLReportDemoElement extends Components.ReportDemo, HTMLStencilElement {
     }
     var HTMLReportDemoElement: {
@@ -1305,6 +1408,7 @@ declare global {
         "paired-two-sample-hypothesis-test-widget": HTMLPairedTwoSampleHypothesisTestWidgetElement;
         "paired-two-sample-wilcoxon-signed-rank-widget": HTMLPairedTwoSampleWilcoxonSignedRankWidgetElement;
         "pie-chart-visualization": HTMLPieChartVisualizationElement;
+        "report-builder": HTMLReportBuilderElement;
         "report-demo": HTMLReportDemoElement;
         "report-viewer": HTMLReportViewerElement;
         "scatter-chart-visualization": HTMLScatterChartVisualizationElement;
@@ -1854,6 +1958,66 @@ declare namespace LocalJSX {
         "data"?: VisualizationData;
         "onFilterChange"?: (event: PieChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
+    /**
+     * Edit layer for a report: select, move, resize, add and delete widgets on the grid. The configuration is
+     * controlled: it is passed in, and every user change is emitted as `configurationChange` with the full next
+     * configuration for the app to apply (and save). Widgets render with the regular `<report-viewer>`, so what you
+     * edit is what the viewer shows. The builder has no toolbar or palette: apps build their own around `addWidget`,
+     * `removeWidgets`, `updateWidget` and `select`.
+     */
+    interface ReportBuilder {
+        /**
+          * Presentation, passed to the viewer (see `<report-viewer>`).
+         */
+        "columns"?: number;
+        /**
+          * `vertical` (default): colliding widgets are pushed down and gaps close upwards. `none`: widgets stay where they are put and moves that would overlap are rejected.
+          * @default 'vertical'
+         */
+        "compact"?: 'vertical' | 'none';
+        /**
+          * The report configuration. Controlled: apply `configurationChange` by setting this again.
+         */
+        "configuration"?: any;
+        /**
+          * Same data function the viewer takes, so widgets show real data while editing.
+         */
+        "fetchChartData"?: Function;
+        "gap"?: number;
+        /**
+          * What a widget shows while it is dragged or resized: `outline` (default) hides its content and keeps the frame and title, which is cheaper and a clearer drop target; `live` keeps the content visible.
+          * @default 'outline'
+         */
+        "interactionPreview"?: 'outline' | 'live';
+        /**
+          * The full next configuration, whenever the user changes the layout or the app calls a method.
+         */
+        "onConfigurationChange"?: (event: ReportBuilderCustomEvent<any>) => void;
+        /**
+          * The selection changed.
+         */
+        "onWidgetSelect"?: (event: ReportBuilderCustomEvent<{ ids: string[] }>) => void;
+        /**
+          * Turns the editing layer off: the report just renders.
+          * @default false
+         */
+        "readOnly"?: boolean;
+        "reportId"?: string;
+        "rowAspectRatio"?: number;
+        "rowHeight"?: number;
+        /**
+          * Sources available in the report (overrides `configuration.sources`).
+         */
+        "sources"?: DataSource[];
+        /**
+          * @default 'auto'
+         */
+        "theme"?: 'light' | 'dark' | 'auto';
+        /**
+          * Describes the widget types users can add: sizes, limits, default config. Types not listed use built-in defaults.
+         */
+        "widgetCatalog"?: WidgetTypeDefinition[];
+    }
     interface ReportDemo {
     }
     interface ReportViewer {
@@ -2101,6 +2265,7 @@ declare namespace LocalJSX {
         "paired-two-sample-hypothesis-test-widget": PairedTwoSampleHypothesisTestWidget;
         "paired-two-sample-wilcoxon-signed-rank-widget": PairedTwoSampleWilcoxonSignedRankWidget;
         "pie-chart-visualization": PieChartVisualization;
+        "report-builder": ReportBuilder;
         "report-demo": ReportDemo;
         "report-viewer": ReportViewer;
         "scatter-chart-visualization": ScatterChartVisualization;
@@ -2144,6 +2309,14 @@ declare module "@stencil/core" {
             "paired-two-sample-hypothesis-test-widget": LocalJSX.PairedTwoSampleHypothesisTestWidget & JSXBase.HTMLAttributes<HTMLPairedTwoSampleHypothesisTestWidgetElement>;
             "paired-two-sample-wilcoxon-signed-rank-widget": LocalJSX.PairedTwoSampleWilcoxonSignedRankWidget & JSXBase.HTMLAttributes<HTMLPairedTwoSampleWilcoxonSignedRankWidgetElement>;
             "pie-chart-visualization": LocalJSX.PieChartVisualization & JSXBase.HTMLAttributes<HTMLPieChartVisualizationElement>;
+            /**
+             * Edit layer for a report: select, move, resize, add and delete widgets on the grid. The configuration is
+             * controlled: it is passed in, and every user change is emitted as `configurationChange` with the full next
+             * configuration for the app to apply (and save). Widgets render with the regular `<report-viewer>`, so what you
+             * edit is what the viewer shows. The builder has no toolbar or palette: apps build their own around `addWidget`,
+             * `removeWidgets`, `updateWidget` and `select`.
+             */
+            "report-builder": LocalJSX.ReportBuilder & JSXBase.HTMLAttributes<HTMLReportBuilderElement>;
             "report-demo": LocalJSX.ReportDemo & JSXBase.HTMLAttributes<HTMLReportDemoElement>;
             "report-viewer": LocalJSX.ReportViewer & JSXBase.HTMLAttributes<HTMLReportViewerElement>;
             "scatter-chart-visualization": LocalJSX.ScatterChartVisualization & JSXBase.HTMLAttributes<HTMLScatterChartVisualizationElement>;

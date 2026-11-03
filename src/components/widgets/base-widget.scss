@@ -97,6 +97,8 @@
 .widget-body {
   flex: 1;
   overflow: auto;
+  // The report builder sets this to none on a widget while it is dragged or resized, leaving just the frame and title
+  display: var(--fl-widget-body-display, block);
   color: var(--fl-text-color-primary);
   
   // In fixed height mode the body never scrolls; charts measure it and size themselves.

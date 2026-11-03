@@ -105,6 +105,7 @@ Type: `Promise<void>`
 
 ### Used by
 
+ - [report-builder](../report-builder)
  - [report-demo](../report-demo)
 
 ### Depends on
@@ -134,6 +135,7 @@ graph TD;
   data-widget --> box-whisker-chart-visualization
   data-widget --> filter-visualization
   data-widget --> base-widget
+  report-builder --> report-viewer
   report-demo --> report-viewer
   style report-viewer fill:#f9f,stroke:#333,stroke-width:4px
 ```
