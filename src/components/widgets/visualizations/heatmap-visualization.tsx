@@ -1,5 +1,5 @@
 import { Component, Prop, h, State, Event, EventEmitter, Element, Watch } from '@stencil/core';
-import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
+import { FilterChangeEventDetail, VisualizationData, fieldLabel } from './base-visualization';
 import { HeatmapConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme, interpolateColor } from '../../../utils/chart-theme';
 import { PlotSizeTracker, clipLabel, fitRotatedLabels, fitCellFontSize } from '../../../utils/bar-layout';
@@ -113,7 +113,8 @@ export class HeatmapVisualization {
       
       return {
         rowLabels,
-        colLabels,
+        // Columns are source fields: show their display names (values were looked up by raw name above)
+        colLabels: colLabels.map(col => fieldLabel(this.data, col)),
         data: matrix,
         minValue,
         maxValue

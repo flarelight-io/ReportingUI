@@ -1,5 +1,5 @@
 import { Component, Prop, h, Host, State, Watch, Element, Listen } from '@stencil/core';
-import { FilterChangeEventDetail, VisualizationData } from './visualizations/base-visualization';
+import { FilterChangeEventDetail, VisualizationData, buildFieldLabels } from './visualizations/base-visualization';
 import { Filter } from '../../api/types/common';
 import { ColorTheme } from '../../utils/chart-theme';
 import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
@@ -528,8 +528,10 @@ export class DataWidget {
   }
   
   private renderVisualization() {
+    const source = (this.availableSources || []).find(s => s.id === this.config.sourceId);
     const visualizationData: VisualizationData = {
       rawData: this.internalData.length > 0 ? this.internalData : this.data,
+      fieldLabels: buildFieldLabels(source && source.fields),
       loading: this.loading,
       error: this.error
     };

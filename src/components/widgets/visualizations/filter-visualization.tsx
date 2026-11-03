@@ -1,5 +1,5 @@
 import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
-import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
+import { FilterChangeEventDetail, VisualizationData, fieldLabel } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ColorTheme, ChartThemeUtils } from '../../../utils/chart-theme';
 import { Filter } from '../../../api/types/common';
@@ -276,7 +276,7 @@ export class FilterVisualization {
     return (
       <div class="filter-container">
         <div class="filter-header">
-          <h4 class="filter-title">Filter by {valueField}</h4>
+          <h4 class="filter-title">Filter by {fieldLabel(this.data, valueField)}</h4>
           {multiSelect && (
             <span class="filter-mode">Multi-select</span>
           )}

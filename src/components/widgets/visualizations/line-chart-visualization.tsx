@@ -1,5 +1,5 @@
 import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
-import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
+import { FilterChangeEventDetail, VisualizationData, fieldLabel } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { PlotSizeTracker, clipLabel } from '../../../utils/bar-layout';
@@ -372,7 +372,7 @@ export class LineChartVisualization {
           <div class="chart-legend" part="legend">
             <div class="legend-item">
               <div class="color-indicator" style={{ backgroundColor: colors[0] }}></div>
-              <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>{valueField || "Value"}</span>
+              <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>{valueField ? fieldLabel(this.data, valueField) : "Value"}</span>
             </div>
           </div>
         )}

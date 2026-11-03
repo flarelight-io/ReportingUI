@@ -1,5 +1,5 @@
 import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
-import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
+import { FilterChangeEventDetail, VisualizationData, fieldLabel } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { placeTooltip } from '../../../utils/tooltip';
@@ -142,7 +142,7 @@ export class ClusteredBarChartVisualization {
       
       this.tooltip = {
         visible: true,
-        text: `${truncatedCategory}\n${segment.field}: ${formattedValue}`,
+        text: `${truncatedCategory}\n${fieldLabel(this.data, segment.field)}: ${formattedValue}`,
         x: event.clientX,
         y: event.clientY
       };
@@ -377,7 +377,7 @@ export class ClusteredBarChartVisualization {
               <div key={i} class="legend-item">
                 <div class="color-indicator" style={{ backgroundColor: colors[i % colors.length] }}></div>
                 <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>
-                  {field}
+                  {fieldLabel(this.data, field)}
                 </span>
               </div>
             ))}

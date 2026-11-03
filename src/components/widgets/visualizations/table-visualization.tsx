@@ -1,5 +1,5 @@
 import { Component, Prop, h, Event, EventEmitter } from '@stencil/core';
-import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
+import { FilterChangeEventDetail, VisualizationData, fieldLabel } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ColorTheme } from '../../../utils/chart-theme';
 
@@ -42,7 +42,7 @@ export class TableVisualization {
           <thead>
             <tr>
               {columns.map(column => (
-                <th key={column.field}>{column.header}</th>
+                <th key={column.field}>{column.header && column.header !== column.field ? column.header : fieldLabel(this.data, column.field)}</th>
               ))}
             </tr>
           </thead>

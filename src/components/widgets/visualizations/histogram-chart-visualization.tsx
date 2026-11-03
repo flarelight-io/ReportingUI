@@ -1,5 +1,5 @@
 import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
-import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
+import { FilterChangeEventDetail, VisualizationData, fieldLabel } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { PlotSizeTracker, computeBarFrame, clipLabel } from '../../../utils/bar-layout';
@@ -348,7 +348,7 @@ export class HistogramChartVisualization {
             <div class="legend-item">
               <div class="color-indicator" style={{ backgroundColor: colors[0] }}></div>
               <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>
-                {valueField || "Count"}
+                {valueField ? fieldLabel(this.data, valueField) : "Count"}
               </span>
             </div>
           </div>
