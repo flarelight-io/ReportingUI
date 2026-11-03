@@ -5,6 +5,7 @@ import { ColorTheme, ChartThemeUtils } from '../../utils/chart-theme';
 import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
 import { filtersCacheKey, filterIdentity, stableStringify } from '../../utils/filters';
 import { resolveRect } from '../../utils/layout';
+import { globalDataKey, widgetDataKeys, staleWidgetIds } from '../../utils/config-keys';
 import { getWidgetType } from '../../utils/widget-registry';
 
 interface WidgetDataCache {
@@ -91,6 +92,7 @@ export class ReportViewer {
   private configurationPollingInterval?: number;
   private lastConfiguration?: any;
   private lastDataConfigKey?: string;
+  private widgetDataKeys = new Map<string, string>();
   private handleResize = () => {
     if (this.isMounted && this.gridContainer) {
       this.setEqualGridDimensions();
@@ -226,7 +228,6 @@ export class ReportViewer {
     this.dataFetchPromises = {};
     const finish = () => {
       if (!this.gridContainer) return;
-      this.gridContainer.innerHTML = '';
       this.renderWidgets();
       const event = cleared
         ? new CustomEvent('filters-cleared', { bubbles: true })
@@ -304,9 +305,10 @@ export class ReportViewer {
 
   @Watch('heightMode')
   onHeightModeChange() {
-    // Recalculate grid dimensions when height mode changes
+    // Recalculate grid dimensions when height mode changes, and refresh the widgets' height-mode attribute
     if (this.isMounted && this.gridContainer) {
       this.setEqualGridDimensions();
+      this.renderWidgets();
     }
   }
   
@@ -409,7 +411,8 @@ export class ReportViewer {
     
     // Configuration handled above is the baseline; polling only reacts to later changes
     this.lastConfiguration = this.configuration;
-    this.lastDataConfigKey = this.dataConfigKey(this.configuration);
+    this.lastDataConfigKey = globalDataKey(this.configuration);
+    this.widgetDataKeys = widgetDataKeys(this.configuration);
     // Add a polling mechanism to check for configuration changes
     this.startConfigurationPolling();
   }
@@ -531,29 +534,29 @@ export class ReportViewer {
     }));
   }
   
-  /** Identifies the parts of a configuration that determine fetched data (everything except presentation such as colorTheme). */
-  private dataConfigKey(config: any): string | undefined {
-    try {
-      const parsed = typeof config === 'string' ? JSON.parse(config) : config;
-      if (!parsed) return undefined;
-      const { colorTheme, ...rest } = parsed;
-      return JSON.stringify(rest);
-    } catch {
-      return undefined;
-    }
-  }
-
   /**
-   * Applies a changed configuration. The data cache is only invalidated when something that affects the
-   * fetched data changed; presentation-only changes (such as the color theme) re-render with the cached data.
+   * Applies a changed configuration. Cached data is only dropped where it can be stale: everything when a global
+   * part changed (such as the sources), otherwise just the widgets whose type or config changed, new ones and removed
+   * ones. Moving, resizing, retitling or re-theming widgets keeps their data, so nothing is refetched.
    */
   private applyConfiguration(parsedConfig: any) {
-    const key = this.dataConfigKey(parsedConfig);
+    const key = globalDataKey(parsedConfig);
+    const nextKeys = widgetDataKeys(parsedConfig);
     if (key === undefined || key !== this.lastDataConfigKey || this.widgets.length === 0) {
       this.widgetData = {};
       this.dataFetchPromises = {};
+    } else {
+      const widgetData = { ...this.widgetData };
+      const promises = { ...this.dataFetchPromises };
+      staleWidgetIds(this.widgetDataKeys, nextKeys).forEach(id => {
+        delete widgetData[id];
+        delete promises[id];
+      });
+      this.widgetData = widgetData;
+      this.dataFetchPromises = promises;
     }
     this.lastDataConfigKey = key;
+    this.widgetDataKeys = nextKeys;
     this.parseConfiguration(parsedConfig);
     // Rerender once data is in (parseConfiguration started or reused the prefetch)
     this.prefetchAndRender();
@@ -686,56 +689,134 @@ export class ReportViewer {
     return !!(registration && registration.fetchesData);
   }
   
+  // What is currently on the grid, by widget key, so a render only touches what changed
+  private widgetNodes = new Map<string, { container: HTMLElement; element: HTMLElement; signature: string }>();
+  private identityTokens = new WeakMap<object, number>();
+  private identityCounter = 0;
+
+  /** A short stable token for an object or function, so "same instance" can be part of a signature. */
+  private identityToken(value: any): string {
+    if (value === null || value === undefined) return 'none';
+    if (typeof value !== 'object' && typeof value !== 'function') return String(value);
+    let token = this.identityTokens.get(value);
+    if (token === undefined) {
+      token = ++this.identityCounter;
+      this.identityTokens.set(value, token);
+    }
+    return `#${token}`;
+  }
+
+  /**
+   * Everything that makes a widget's element different. When it is unchanged between renders the existing element
+   * is kept (so layout-only changes never recreate widgets); when it changes, only that element is replaced.
+   */
+  private widgetSignature(widget: WidgetData, shared: { sources: string; filters: string; fetch: string }): string {
+    const cached = this.widgetData[widget.id] || null;
+    return JSON.stringify([
+      widget.type,
+      widget.title === undefined ? null : widget.title,
+      widget.config === undefined ? null : widget.config,
+      this.identityToken(cached),
+      !!(this.dataFetchPromises[widget.id] && !cached),
+      this.colorTheme,
+      this.reportId === undefined ? null : this.reportId,
+      this.isViewer,
+      shared.sources,
+      shared.filters,
+      shared.fetch
+    ]);
+  }
+
   private renderWidgets() {
     if (!this.gridContainer) {
       console.error('Grid container not found, cannot render widgets');
       return;
     }
-    
-    // Clear existing content
-    this.gridContainer.innerHTML = '';
-    
+    const grid = this.gridContainer;
+
+    // Placeholder (if any) is rebuilt every time; it is cheap and never holds state
+    Array.from(grid.children).forEach(child => {
+      if ((child as HTMLElement).classList.contains('empty-report')) grid.removeChild(child);
+    });
+
     // No widgets? Show placeholder if needed
     if (!this.widgets || this.widgets.length === 0) {
+      this.widgetNodes.forEach(node => node.container.remove());
+      this.widgetNodes.clear();
       if (this.showPlaceholder) {
         const emptyElement = document.createElement('div');
         emptyElement.className = 'empty-report';
         emptyElement.innerHTML = '<p>No widgets in this report</p>';
-        this.gridContainer.appendChild(emptyElement);
+        grid.appendChild(emptyElement);
       }
       return;
     }
-    
-    // Create all widget elements
-    this.widgets.forEach((widget) => {
-      // Create the widget container
-      const widgetContainer = document.createElement('div');
-      widgetContainer.className = 'widget-item';
-      widgetContainer.setAttribute('data-id', widget.id);
-      
-      // Position the widget using grid properties
-      // Set both size (span) and position (start)
-      // Using zero-based coordinates (add 1 when applying to grid since CSS grid is 1-based)
-      // Defaults and clamping to the grid live in resolveRect so the report builder places widgets identically
-      const { x, y, w, h } = resolveRect(widget, this.effectiveColumns);
-      
-      // Set both size (span) and position (start)
-      // Add 1 to x and y because CSS grid is 1-based, but our coordinates are 0-based
-      const gridColumn = `${x + 1} / span ${w}`;
-      const gridRow = `${y + 1} / span ${h}`;
-      
-      widgetContainer.style.gridColumn = gridColumn;
-      widgetContainer.style.gridRow = gridRow;
-      
-      // Create the widget element
-      const widgetElement = this.createWidgetElement(widget);
-      
-      // Append the widget to the container
-      widgetContainer.appendChild(widgetElement);
-      
-      // Add to grid
-      this.gridContainer.appendChild(widgetContainer);
+
+    // Inputs shared by every widget, computed once per render. Sources and filters are compared by content (an app
+    // that passes a fresh but equal configuration must not rebuild everything); the data function by identity.
+    const shared = {
+      sources: stableStringify(this.dataSources),
+      filters: filtersCacheKey(this.currentFilters),
+      fetch: this.identityToken(this.fetchChartData)
+    };
+    // Key every widget first (two widgets with the same id still get their own node) and drop nodes that are gone
+    // before touching the order, so the ones that stay are never moved: moving an element reconnects it, which
+    // would re-run its connectedCallback (and refetch for widgets that load their data there).
+    const seen = new Set<string>();
+    const keys = this.widgets.map(widget => {
+      let key = widget.id;
+      for (let n = 2; seen.has(key); n++) key = `${widget.id}#${n}`;
+      seen.add(key);
+      return key;
     });
+    this.widgetNodes.forEach((node, key) => {
+      if (!seen.has(key)) {
+        node.container.remove();
+        this.widgetNodes.delete(key);
+      }
+    });
+
+    let previous: HTMLElement | null = null;
+
+    this.widgets.forEach((widget, index) => {
+      const key = keys[index];
+
+      let node = this.widgetNodes.get(key);
+      // The grid can be emptied from outside (e.g. innerHTML); a node that is no longer on it counts as missing
+      if (node && node.container.parentElement !== grid) node = undefined;
+
+      const signature = this.widgetSignature(widget, shared);
+      if (!node) {
+        const container = document.createElement('div');
+        container.className = 'widget-item';
+        container.setAttribute('data-id', widget.id);
+        const element = this.createWidgetElement(widget);
+        container.appendChild(element);
+        // Signature after creation: factories may fill in config defaults
+        node = { container, element, signature: this.widgetSignature(widget, shared) };
+        this.widgetNodes.set(key, node);
+      } else if (node.signature !== signature) {
+        // Only this widget changed: swap its element, keep its place on the grid
+        const element = this.createWidgetElement(widget);
+        node.container.replaceChild(element, node.element);
+        node.element = element;
+        node.signature = this.widgetSignature(widget, shared);
+      } else {
+        node.element.setAttribute('height-mode', this.heightMode);
+      }
+
+      // Position the widget on the grid. Coordinates are zero-based; CSS grid lines are one-based.
+      // Defaults and clamping to the grid live in resolveRect so the report builder places widgets identically.
+      const { x, y, w, h } = resolveRect(widget, this.effectiveColumns);
+      node.container.style.gridColumn = `${x + 1} / span ${w}`;
+      node.container.style.gridRow = `${y + 1} / span ${h}`;
+
+      // Keep the DOM in widget order
+      const expected: Element | null = previous ? previous.nextElementSibling : grid.firstElementChild;
+      if (node.container !== expected) grid.insertBefore(node.container, expected);
+      previous = node.container;
+    });
+
   }
   
   private createWidgetElement(widget: WidgetData): HTMLElement {
