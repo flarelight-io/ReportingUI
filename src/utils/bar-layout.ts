@@ -31,6 +31,8 @@ export interface BarFrameInput {
   valueLabels: boolean;
   /** Draw category labels on the axis. */
   showCategories: boolean;
+  /** Extra left margin in px, e.g. for value-axis tick labels. */
+  leftInset?: number;
 }
 
 export interface BarFrame {
@@ -72,6 +74,8 @@ export function computeBarFrame(input: BarFrameInput): BarFrame {
         : fontSize + 14;
     }
   }
+
+  left += input.leftInset || 0;
 
   const rightPad = pad + (horizontal && valueLabels ? 40 : 0);
   const plotW = Math.max(0, W - left - rightPad);
