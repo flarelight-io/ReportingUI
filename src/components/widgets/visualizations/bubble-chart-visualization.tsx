@@ -2,6 +2,7 @@ import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
+import { PlotSizeTracker } from '../../../utils/bar-layout';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface BubbleDataPoint {
@@ -32,12 +33,22 @@ export class BubbleChartVisualization {
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0; // Force re-render when theme changes
   @State() legendFontSize: number = 10;
+  @State() plotWidth: number = 0;
+  @State() plotHeight: number = 0;
 
   @Element() el: HTMLElement;
 
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
   private adjustingFont: boolean = false;
+  private plotSize = new PlotSizeTracker(({ width, height }) => {
+    if (width !== this.plotWidth) this.plotWidth = width;
+    if (height !== this.plotHeight) this.plotHeight = height;
+  });
+
+  disconnectedCallback() {
+    this.plotSize.detach();
+  }
 
   componentWillLoad() {
     // Listen for theme changes
@@ -230,69 +241,56 @@ export class BubbleChartVisualization {
     const sizeValues = bubbleData.map(d => d.size);
     const maxSize = Math.max(...sizeValues);
     
-    // Calculate optimal aspect ratio for the chart
-    const viewBoxWidth = 100;
-    const viewBoxHeight = 60;
-    
-    // Increase padding to account for bubble sizes and prevent overflow
-    const xPadding = 10 + maxSize / 2;
-    const yPadding = 5 + maxSize / 2;
-    
-    // Get unique categories for coloring
+    // Lay out in real pixels so text keeps a constant, readable size at any container size
+    const W = this.plotWidth;
+    const H = this.plotHeight;
+    const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
+    const charWidth = fontSize * 0.58;
+    const pad = 8;
+    const fmt = (v: number) => v.toFixed(3).replace(/\.?0+$/, '');
+    const yTicks = [0, 0.25, 0.5, 0.75, 1].map(ratio => fmt(minY + ratio * (maxY - minY)));
+    const xTicks = [0, 0.25, 0.5, 0.75, 1].map(ratio => fmt(minX + ratio * (maxX - minX)));
+    const axisLeft = pad + Math.max(...yTicks.map(t => t.length)) * charWidth + 6;
+    const axisBottom = H - (xValues.length > 0 ? fontSize + 12 : pad);
+    const axisTop = pad;
+    const axisRight = W - pad;
+    // Bubbles are scaled to the available area so they never spill out of the plot
+    const maxR = Math.max(4, Math.min(24, Math.min(axisRight - axisLeft, axisBottom - axisTop) * 0.1));
+    const xPadding = axisLeft + maxR;
+    const yPadding = axisTop + maxR;
+    const innerW = Math.max(0, axisRight - maxR - xPadding);
+    const innerH = Math.max(0, axisBottom - maxR - yPadding);
+
     const categories = this.getUniqueCategories(bubbleData);
-    
-    // Generate bubbles
+
     const bubbles = bubbleData.map((item, index) => {
       let x: number;
-      
-      // Handle different types of x values
       if (typeof item.x === 'number') {
-        // Scale numeric x values to view box
-        x = xPadding + ((item.x - minX) / (maxX - minX || 1)) * (viewBoxWidth - 2 * xPadding);
+        x = xPadding + ((item.x - minX) / (maxX - minX || 1)) * innerW;
       } else if (typeof item.x === 'string' && !isNaN(Number(item.x))) {
-        // Convert numeric strings to numbers
-        const numX = Number(item.x);
-        x = xPadding + ((numX - minX) / (maxX - minX || 1)) * (viewBoxWidth - 2 * xPadding);
+        x = xPadding + ((Number(item.x) - minX) / (maxX - minX || 1)) * innerW;
       } else {
-        // For non-numeric x values, space them evenly
-        x = xPadding + index * ((viewBoxWidth - 2 * xPadding) / (bubbleData.length - 1 || 1));
+        // Non-numeric x values are spaced evenly
+        x = xPadding + index * (innerW / (bubbleData.length - 1 || 1));
       }
-      
-      // Scale y value to view box (invert because SVG coordinates go from top to bottom)
-      const y = viewBoxHeight - yPadding - ((item.y - minY) / (maxY - minY || 1)) * (viewBoxHeight - 2 * yPadding);
-      
-      // Scale bubble size relative to max size (to avoid overly large bubbles)
-      // Reduce the maximum size of bubbles to ensure they fit within the chart area
-      const scaleFactor = Math.min(0.8, maxSize > 20 ? 20 / maxSize : 1);
-      const scaledSize = item.size * scaleFactor;
-      
-      // Get color based on category
+      const y = axisBottom - maxR - ((item.y - minY) / (maxY - minY || 1)) * innerH;
+      const r = Math.max(4, (item.size / (maxSize || 1)) * maxR);
       const color = this.getCategoryColor(item.category, categories);
-      
-      // Generate tooltip content
       const tooltipContent = `${item.x}: ${item.y} (Size: ${item.originalData[idField || valueField || '']})`;
-      
-      return {
-        x,
-        y,
-        r: scaledSize,
-        color,
-        data: item,
-        tooltip: tooltipContent
-      };
+      return { x, y, r, color, data: item, tooltip: tooltipContent };
     });
-    
+
     return (
       <div class="bubble-chart-container" part="chart">
-        <div class="visualization-container" part="plot">
-          <svg 
-            width="100%" 
-            height="100%" 
-            viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
-            preserveAspectRatio="xMidYMid meet"
+        <div class="visualization-container" part="plot" ref={this.plotSize.attach}>
+          {W > 0 && H > 0 && (
+          <svg
+            width={W}
+            height={H}
+            viewBox={`0 0 ${W} ${H}`}
+            style={{ position: 'absolute', inset: '0' }}
           >
             <defs>
-              {/* Gradient definitions for bubbles */}
               {bubbles.map((bubble, index) => {
                 const colorIndex = categories.indexOf(bubble.data.category);
                 return (
@@ -302,169 +300,147 @@ export class BubbleChartVisualization {
                   </linearGradient>
                 );
               })}
-              
-              {/* Soft shadow filter */}
               <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
                 <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.1)" flood-opacity="0.3"/>
               </filter>
             </defs>
             {this.config.showGrid && (
               <>
-                {/* Horizontal grid lines */}
                 {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const y = ChartThemeUtils.snapToPixel(viewBoxHeight - yPadding - ratio * (viewBoxHeight - 2 * yPadding));
+                  const y = ChartThemeUtils.snapToPixel(axisBottom - ratio * (axisBottom - axisTop));
                   return (
-                    <line 
+                    <line
                       key={`h-${i}`}
-                      x1={xPadding} 
-                      y1={y} 
-                      x2={viewBoxWidth - xPadding} 
-                      y2={y} 
-                      stroke="var(--fl-chart-grid-color)" 
-                      stroke-width="0.5"
-                      stroke-dasharray={i > 0 ? "1,1" : ""}
+                      x1={axisLeft}
+                      y1={y}
+                      x2={axisRight}
+                      y2={y}
+                      stroke="var(--fl-chart-grid-color)"
+                      stroke-width="1"
+                      stroke-dasharray={i > 0 ? "3,3" : ""}
                       opacity={theme.gridlines.opacity}
                     />
                   );
                 })}
-                
-                {/* Vertical grid lines */}
                 {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const x = ChartThemeUtils.snapToPixel(xPadding + ratio * (viewBoxWidth - 2 * xPadding));
+                  const x = ChartThemeUtils.snapToPixel(axisLeft + ratio * (axisRight - axisLeft));
                   return (
-                    <line 
+                    <line
                       key={`v-${i}`}
-                      x1={x} 
-                      y1={yPadding} 
-                      x2={x} 
-                      y2={viewBoxHeight - yPadding} 
-                      stroke="var(--fl-chart-grid-color)" 
-                      stroke-width="0.5"
-                      stroke-dasharray={i > 0 ? "1,1" : ""}
+                      x1={x}
+                      y1={axisTop}
+                      x2={x}
+                      y2={axisBottom}
+                      stroke="var(--fl-chart-grid-color)"
+                      stroke-width="1"
+                      stroke-dasharray={i > 0 ? "3,3" : ""}
                       opacity={theme.gridlines.opacity}
                     />
                   );
                 })}
               </>
             )}
-            
-            {/* Draw bubbles */}
+
             {bubbles.map((bubble, i) => {
               const colorIndex = categories.indexOf(bubble.data.category);
               return (
-                <g 
-                  key={i} 
+                <g
+                  key={i}
                   transform={`translate(${bubble.x}, ${bubble.y})`}
                   style={{ cursor: 'pointer' }}
                   onClick={() => this.handleFilterClick(groupByField || '', bubble.data.x)}
                   onMouseMove={(event) => this.handleMouseMove(event, bubble.data.x, bubble.data.y, bubble.data.size)}
                   onMouseLeave={() => this.handleMouseLeave()}
                 >
-                  <circle 
-                    cx="0" 
-                    cy="0" 
+                  <circle
+                    cx="0"
+                    cy="0"
                     r={bubble.r}
                     fill={`url(#bubbleGradient-${colorIndex})`}
                     class="bubble bubble-animated bubble-glow"
-                    style={{ 
+                    style={{
                       transition: ChartAnimations.getHoverTransition(),
                       animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`
                     }}
                     filter="url(#softShadow)"
                   />
-                  
+
                   {this.config.showLabels && (
-                    <text 
-                      key={`value-${i}`} 
-                      x="0" 
-                      y={-bubble.r - 2} 
-                      text-anchor="middle" 
-                      font-size="3" 
+                    <text
+                      key={`value-${i}`}
+                      x="0"
+                      y={-bubble.r - 4}
+                      text-anchor="middle"
+                      font-size={fontSize}
                       fill={theme.labelColor}
                       font-family={theme.fontFamily}
                       font-weight="500"
                       class="bubble-label text-animated"
                       style={{ animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms` }}
                     >
-                      {typeof bubble.data.x === 'string' && bubble.data.x.length > 10 
-                        ? bubble.data.x.substring(0, 10) + '...' 
+                      {typeof bubble.data.x === 'string' && bubble.data.x.length > 10
+                        ? bubble.data.x.substring(0, 10) + '…'
                         : bubble.data.x}
                     </text>
                   )}
                 </g>
               );
             })}
-            
-            {/* X and Y axis */}
-            <line 
-              x1={ChartThemeUtils.snapToPixel(xPadding)} 
-              y1={ChartThemeUtils.snapToPixel(viewBoxHeight - yPadding)} 
-              x2={ChartThemeUtils.snapToPixel(viewBoxWidth - xPadding)} 
-              y2={ChartThemeUtils.snapToPixel(viewBoxHeight - yPadding)} 
-              stroke="var(--fl-chart-axis-color)" 
-              stroke-width="1" 
+
+            <line
+              x1={ChartThemeUtils.snapToPixel(axisLeft)}
+              y1={ChartThemeUtils.snapToPixel(axisBottom)}
+              x2={ChartThemeUtils.snapToPixel(axisRight)}
+              y2={ChartThemeUtils.snapToPixel(axisBottom)}
+              stroke="var(--fl-chart-axis-color)"
+              stroke-width="1"
             />
-            <line 
-              x1={ChartThemeUtils.snapToPixel(xPadding)} 
-              y1={ChartThemeUtils.snapToPixel(yPadding)} 
-              x2={ChartThemeUtils.snapToPixel(xPadding)} 
-              y2={ChartThemeUtils.snapToPixel(viewBoxHeight - yPadding)} 
-              stroke="var(--fl-chart-axis-color)" 
-              stroke-width="1" 
+            <line
+              x1={ChartThemeUtils.snapToPixel(axisLeft)}
+              y1={ChartThemeUtils.snapToPixel(axisTop)}
+              x2={ChartThemeUtils.snapToPixel(axisLeft)}
+              y2={ChartThemeUtils.snapToPixel(axisBottom)}
+              stroke="var(--fl-chart-axis-color)"
+              stroke-width="1"
             />
-            
-            {/* Y-axis labels */}
-            {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-              const y = viewBoxHeight - yPadding - ratio * (viewBoxHeight - 2 * yPadding);
-              const value = minY + ratio * (maxY - minY);
-              
-              return (
-                <text 
-                  key={`y-label-${i}`} 
-                  x={xPadding - 1} 
-                  y={y} 
-                  font-size="3" 
-                  text-anchor="end" 
-                  dominant-baseline="middle" 
-                  fill={theme.labelColor}
-                  font-family={theme.fontFamily}
-                  font-weight="500"
-                  class="text-animated"
-                  style={{ animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms` }}
-                >
-                  {value.toFixed(3).replace(/\.?0+$/, '')}
-                </text>
-              );
-            })}
-            
-            {/* X-axis labels - only show if we have numeric x values */}
-            {xValues.length > 0 && [0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-              const x = xPadding + ratio * (viewBoxWidth - 2 * xPadding);
-              const value = minX + ratio * (maxX - minX);
-              
-              return (
-                <text 
-                  key={`x-label-${i}`} 
-                  x={x} 
-                  y={viewBoxHeight - yPadding + 3} 
-                  font-size="3" 
-                  text-anchor="middle" 
-                  fill={theme.labelColor}
-                  font-family={theme.fontFamily}
-                  font-weight="500"
-                  class="text-animated"
-                  style={{ animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms` }}
-                >
-                  {value.toFixed(3).replace(/\.?0+$/, '')}
-                </text>
-              );
-            })}
+
+            {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
+              <text
+                key={`y-label-${i}`}
+                x={axisLeft - 6}
+                y={axisBottom - ratio * (axisBottom - axisTop)}
+                font-size={fontSize}
+                text-anchor="end"
+                dominant-baseline="middle"
+                fill={theme.labelColor}
+                font-family={theme.fontFamily}
+                font-weight="500"
+              >
+                {yTicks[i]}
+              </text>
+            ))}
+
+            {xValues.length > 0 && [0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
+              <text
+                key={`x-label-${i}`}
+                x={axisLeft + ratio * (axisRight - axisLeft)}
+                y={axisBottom + fontSize + 4}
+                font-size={fontSize}
+                text-anchor={i === 0 ? 'start' : i === 4 ? 'end' : 'middle'}
+                fill={theme.labelColor}
+                font-family={theme.fontFamily}
+                font-weight="500"
+              >
+                {xTicks[i]}
+              </text>
+            ))}
           </svg>
-          
+          )}
+
           {/* Tooltip */}
           {this.tooltip.visible && (
             <div 
-              class="chart-tooltip visible"
+              part="tooltip" class="chart-tooltip visible"
               ref={(el) => placeTooltip(el, this.tooltip.x, this.tooltip.y)}
             >
               <div>{this.tooltip.text}</div>
