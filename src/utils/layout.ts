@@ -135,6 +135,23 @@ export function resizeItem(items: LayoutItem[], id: string, w: number, h: number
   return place(items, resized, options) || items;
 }
 
+/**
+ * Sets an item's whole rectangle at once (for example resizing from the left or top edge, which changes the position
+ * as well as the size). Clamped to the grid and the item's limits; colliding items are pushed down or the change is
+ * rejected with `compact: 'none'`.
+ */
+export function setItemRect(
+  items: LayoutItem[],
+  id: string,
+  rect: { x: number; y: number; w: number; h: number },
+  options?: LayoutOptions
+): LayoutItem[] {
+  const current = items.find(i => i.id === id);
+  if (!current || current.locked) return items;
+  const changed = clampItem({ ...current, ...rect }, options);
+  return place(items, changed, options) || items;
+}
+
 /** First position (scanning rows top to bottom, columns left to right) where a w x h item fits without overlap. */
 export function findFreePosition(items: LayoutItem[], w: number, h: number, options?: LayoutOptions): { x: number; y: number } {
   const columns = columnsOf(options);

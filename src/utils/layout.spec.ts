@@ -1,6 +1,6 @@
 import {
   LayoutItem, addItem, clampItem, collides, compactVertical, findFreePosition, hasOverlap, moveItem, normalizeLayout,
-  removeItems, resizeItem, resolveRect, sameLayout
+  removeItems, resizeItem, resolveRect, sameLayout, setItemRect
 } from './layout';
 
 const item = (id: string, x: number, y: number, w: number, h: number, extra: Partial<LayoutItem> = {}): LayoutItem => ({ id, x, y, w, h, ...extra });
@@ -165,5 +165,22 @@ describe('compactVertical and sameLayout', () => {
   it('compares layouts by position and size only', () => {
     expect(sameLayout([item('a', 0, 0, 1, 1)], [item('a', 0, 0, 1, 1, { locked: true })])).toBe(true);
     expect(sameLayout([item('a', 0, 0, 1, 1)], [item('a', 1, 0, 1, 1)])).toBe(false);
+  });
+});
+
+describe('setItemRect', () => {
+  it('changes position and size together (resizing from the left edge)', () => {
+    const items = [item('a', 4, 0, 4, 2), item('b', 0, 0, 4, 2)];
+    const r = setItemRect(items, 'a', { x: 2, y: 0, w: 6, h: 2 });
+    expect(pos(r, 'a')).toEqual([2, 0, 6, 2]);
+    expect(pos(r, 'b')).toEqual([0, 2, 4, 2]);
+  });
+
+  it('clamps to the grid and limits, and rejects locked or overlapping (compact: none) changes', () => {
+    expect(pos(setItemRect([item('a', 0, 0, 4, 2, { minW: 3 })], 'a', { x: -5, y: 0, w: 1, h: 2 }), 'a')).toEqual([0, 0, 3, 2]);
+    const locked = [item('a', 0, 0, 4, 2, { locked: true })];
+    expect(setItemRect(locked, 'a', { x: 1, y: 1, w: 2, h: 2 })).toBe(locked);
+    const two = [item('a', 0, 0, 4, 2), item('b', 4, 0, 4, 2)];
+    expect(setItemRect(two, 'b', { x: 2, y: 0, w: 6, h: 2 }, { compact: 'none' })).toBe(two);
   });
 });
