@@ -184,6 +184,7 @@ const configuration = {
 ## Documentation
 
 - [Development Guide](docs/development.md) — architecture, patterns, how to add components
+- [Theming and styling](docs/theming.md) — CSS variables, shadow parts, custom color themes
 - [React Integration](docs/react-integration.md) — detailed React setup and examples
 - [JavaScript Integration](docs/javascript-integration.md) — vanilla JS / CDN usage
 - [.NET Integration](docs/dotnet-integration.md) — PuppeteerSharp PDF generation
