@@ -2853,10 +2853,14 @@
         },
         "fields": {
           "type": "array",
-          "description": "Fields to include in the visualization (required for stacked charts)",
+          "description": "Fields to include as fixed series (required for stacked and clustered charts unless seriesField is set)",
           "items": {
             "type": "string"
           }
+        },
+        "seriesField": {
+          "type": "string",
+          "description": "Pivot this dimension into series: one series per distinct value, instead of a fixed fields list. Requires valueField and groupByField; the backend is asked to group by both fields."
         },
         "hideTitle": {
           "type": "boolean",
@@ -2930,10 +2934,14 @@
         },
         "fields": {
           "type": "array",
-          "description": "Fields to include in the visualization (required for stacked charts)",
+          "description": "Fields to include as fixed series (required for stacked and clustered charts unless seriesField is set)",
           "items": {
             "type": "string"
           }
+        },
+        "seriesField": {
+          "type": "string",
+          "description": "Pivot this dimension into series: one series per distinct value, instead of a fixed fields list. Requires valueField and groupByField; the backend is asked to group by both fields."
         },
         "hideTitle": {
           "type": "boolean",
@@ -3007,10 +3015,14 @@
         },
         "fields": {
           "type": "array",
-          "description": "Fields to include in the visualization (required for clustered charts)",
+          "description": "Fields to include as fixed series (required for stacked and clustered charts unless seriesField is set)",
           "items": {
             "type": "string"
           }
+        },
+        "seriesField": {
+          "type": "string",
+          "description": "Pivot this dimension into series: one series per distinct value, instead of a fixed fields list. Requires valueField and groupByField; the backend is asked to group by both fields."
         },
         "hideTitle": {
           "type": "boolean",
@@ -3084,10 +3096,14 @@
         },
         "fields": {
           "type": "array",
-          "description": "Fields to include in the visualization (required for clustered charts)",
+          "description": "Fields to include as fixed series (required for stacked and clustered charts unless seriesField is set)",
           "items": {
             "type": "string"
           }
+        },
+        "seriesField": {
+          "type": "string",
+          "description": "Pivot this dimension into series: one series per distinct value, instead of a fixed fields list. Requires valueField and groupByField; the backend is asked to group by both fields."
         },
         "hideTitle": {
           "type": "boolean",

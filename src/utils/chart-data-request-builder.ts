@@ -42,6 +42,7 @@ export class ChartDataRequestBuilder {
       labelField?: string;
       aggregation?: AggregationSpec;
       aggregations?: Record<string, AggregationSpec>;
+      seriesField?: string;
       columns?: Array<{ field: string }>;
       xField?: string;
       yField?: string;
@@ -66,7 +67,10 @@ export class ChartDataRequestBuilder {
     if (widgetType === 'stacked-bar' || widgetType === 'stacked-hbar' ||
         widgetType === 'clustered-bar' || widgetType === 'clustered-hbar') {
       // Multi-series charts
-      if (config.valueFields && config.valueFields.length > 0) {
+      if (config.seriesField && config.valueField) {
+        // A dimension is pivoted into series: one value field, grouped by category and by the series field
+        valueFields.push({ fieldName: config.valueField, ...agg(config.valueField) });
+      } else if (config.valueFields && config.valueFields.length > 0) {
         valueFields.push(...config.valueFields.map(field => ({ fieldName: field, ...agg(field) })));
       } else if (config.valueField) {
         // Fallback to single valueField if valueFields array is not provided
@@ -123,6 +127,11 @@ export class ChartDataRequestBuilder {
       groupByFields = valueFields.map(vf => ({ fieldName: vf.fieldName }));
     } else if (config.groupByField) {
       groupByFields.push({ fieldName: config.groupByField });
+      // Series dimension: the backend returns one row per category/series pair and the chart pivots them
+      const multiSeries = ['stacked-bar', 'stacked-hbar', 'clustered-bar', 'clustered-hbar'].includes(widgetType);
+      if (multiSeries && config.seriesField && config.valueField) {
+        groupByFields.push({ fieldName: config.seriesField });
+      }
     }
     
     // Label field

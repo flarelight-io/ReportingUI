@@ -1,5 +1,6 @@
 import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData, fieldLabel } from './base-visualization';
+import { pivotSeries } from '../../../utils/pivot';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { placeTooltip } from '../../../utils/tooltip';
@@ -91,7 +92,19 @@ export class ClusteredBarChartVisualization {
     
     const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
     const fields = 'fields' in this.config ? this.config.fields : undefined;
-    
+    const seriesField = this.getSeriesField();
+    const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
+
+    // A dimension pivoted into series: rows are { category, series value, value }, one series per distinct value
+    if (seriesField && valueField && groupByField) {
+      if (rawData.length === 0) return [];
+      const pivot = pivotSeries(rawData, groupByField, seriesField, valueField);
+      return pivot.categories.map(category => {
+        const values = pivot.series.map(series => ({ field: series, value: pivot.value(category, series) }));
+        return { category, values, maxValue: Math.max(0, ...values.map(v => v.value)) };
+      });
+    }
+
     if (rawData.length === 0 || !groupByField || !fields || fields.length === 0) {
       return [];
     }
@@ -130,6 +143,22 @@ export class ClusteredBarChartVisualization {
     return processed;
   }
 
+  private getSeriesField(): string | undefined {
+    return 'seriesField' in this.config ? (this.config as any).seriesField : undefined;
+  }
+
+  /** Series names: the distinct values of the pivoted dimension, or the configured fields. */
+  private getSeriesNames(chartData: { values: { field: string }[] }[]): string[] {
+    if (this.getSeriesField()) return chartData.length > 0 ? chartData[0].values.map(v => v.field) : [];
+    const fields = 'fields' in this.config ? this.config.fields : undefined;
+    return fields || [];
+  }
+
+  /** Pivoted series names are data values; configured fields get their display name. */
+  private seriesLabel(name: string): string {
+    return this.getSeriesField() ? name : fieldLabel(this.data, name);
+  }
+
   private handleMouseMove(event: MouseEvent, segment: { field: string, value: number }, category: string) {
     const svgRect = (event.currentTarget as SVGElement).ownerSVGElement?.getBoundingClientRect();
     if (svgRect) {
@@ -142,7 +171,7 @@ export class ClusteredBarChartVisualization {
       
       this.tooltip = {
         visible: true,
-        text: `${truncatedCategory}\n${fieldLabel(this.data, segment.field)}: ${formattedValue}`,
+        text: `${truncatedCategory}\n${this.seriesLabel(segment.field)}: ${formattedValue}`,
         x: event.clientX,
         y: event.clientY
       };
@@ -164,9 +193,9 @@ export class ClusteredBarChartVisualization {
     
     // Extract config properties for use in render
     const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
-    const fields = 'fields' in this.config ? this.config.fields : undefined;
     
     const chartData = this.processData();
+    const seriesNames = this.getSeriesNames(chartData);
     
     if (chartData.length === 0) {
       return <div class="empty-data">No data available</div>;
@@ -179,7 +208,7 @@ export class ClusteredBarChartVisualization {
     
     const scale = niceScale(0, Math.max(...chartData.map(item => item.maxValue), 0));
     const maxValue = scale.max || 1;
-    const fieldCount = fields?.length || 1;
+    const fieldCount = seriesNames.length || 1;
 
     // Lay out in real pixels so text keeps a constant, readable size at any container size
     const W = this.plotWidth;
@@ -373,11 +402,11 @@ export class ClusteredBarChartVisualization {
         {/* Legend with PowerBI-grade styling */}
         {(this.config.showLegend !== false) && (
           <div class="chart-legend" part="legend">
-            {fields && fields.map((field, i) => (
+            {seriesNames.map((field, i) => (
               <div key={i} class="legend-item">
                 <div class="color-indicator" style={{ backgroundColor: colors[i % colors.length] }}></div>
                 <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>
-                  {fieldLabel(this.data, field)}
+                  {this.seriesLabel(field)}
                 </span>
               </div>
             ))}

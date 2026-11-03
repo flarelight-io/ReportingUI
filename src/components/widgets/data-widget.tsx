@@ -168,6 +168,8 @@ export interface StackedBarChartConfig extends BaseDataWidgetConfig {
   labelField?: string;
   aggregation?: AggregationSpec;
   fields?: string[];
+  /** Pivot this dimension into series (one per distinct value) instead of using a fixed `fields` list; needs `valueField`. */
+  seriesField?: string;
 }
 
 // Stacked horizontal bar chart specific configuration
@@ -178,6 +180,8 @@ export interface StackedHBarChartConfig extends BaseDataWidgetConfig {
   labelField?: string;
   aggregation?: AggregationSpec;
   fields?: string[];
+  /** Pivot this dimension into series (one per distinct value) instead of using a fixed `fields` list; needs `valueField`. */
+  seriesField?: string;
 }
 
 // Clustered bar chart specific configuration
@@ -188,6 +192,8 @@ export interface ClusteredBarChartConfig extends BaseDataWidgetConfig {
   labelField?: string;
   aggregation?: AggregationSpec;
   fields?: string[];
+  /** Pivot this dimension into series (one per distinct value) instead of using a fixed `fields` list; needs `valueField`. */
+  seriesField?: string;
 }
 
 // Clustered horizontal bar chart specific configuration
@@ -198,6 +204,8 @@ export interface ClusteredHBarChartConfig extends BaseDataWidgetConfig {
   labelField?: string;
   aggregation?: AggregationSpec;
   fields?: string[];
+  /** Pivot this dimension into series (one per distinct value) instead of using a fixed `fields` list; needs `valueField`. */
+  seriesField?: string;
 }
 
 // Lollipop chart specific configuration
@@ -477,6 +485,7 @@ export class DataWidget {
         labelField,
         aggregation,
         aggregations,
+        seriesField: 'seriesField' in this.config ? (this.config as any).seriesField : undefined,
         columns,
         previousValueField: 'previousValueField' in this.config ? (this.config as any).previousValueField : undefined,
         sortField,
