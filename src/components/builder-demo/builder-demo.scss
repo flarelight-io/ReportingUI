@@ -108,3 +108,9 @@ builder-demo {
   .bd-error { margin: 0; color: #b91c1c; font-size: 13px; }
   .bd-actions { display: flex; justify-content: flex-end; gap: 8px; }
 }
+
+builder-demo .bd-toolbar select {
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 13px;
+}

@@ -6,6 +6,7 @@ import {
 } from '../../utils/report-layout';
 import { parseConfigObject } from '../../utils/config-keys';
 import { WidgetTypeDefinition, resolveWidgetType } from '../../utils/widget-catalog';
+import { ConfigFormLabels, configSchemaFor } from '../../utils/config-form';
 
 const HISTORY_LIMIT = 100;
 
@@ -82,6 +83,14 @@ export class ReportBuilder {
     definition: { type: string; label: string; defaultSize: { w: number; h: number }; minSize?: { w: number; h: number }; maxSize?: { w: number; h: number } };
     sources: DataSource[];
   }) => Promise<Record<string, any> | null> | Record<string, any> | null;
+  /**
+   * The built-in configuration form, used when there is no `configureWidget` hook (or the hook resolves with
+   * `undefined`, which means "use the default for this one"): `panel` (default) is a drawer on the right, `modal` a
+   * centered dialog, `none` turns the default off so widgets are only configured through the hook or `updateWidget`.
+   */
+  @Prop() configurePanel: 'panel' | 'modal' | 'none' = 'panel';
+  /** Texts of the built-in form (translations); anything left out stays English. */
+  @Prop() configLabels?: Partial<ConfigFormLabels>;
   /** Whether `addWidget` calls `configureWidget` before adding. */
   @Prop() configureOnAdd: boolean = true;
   /** Presentation, passed to the viewer (see `<report-viewer>`). */
@@ -96,6 +105,8 @@ export class ReportBuilder {
   /** The layout while a widget is being dragged or resized (applied for real on release). */
   @State() preview?: any;
   @State() interactingId?: string;
+  /** The built-in form, while it is open. */
+  @State() panel?: { mode: 'add' | 'edit'; widget: Record<string, any>; definition: ReturnType<typeof resolveWidgetType>; resolve: (widget: Record<string, any> | null) => void };
   @State() metrics?: GridMetrics;
   @State() history?: { canUndo: boolean; canRedo: boolean };
   @State() announcement = '';
@@ -258,7 +269,7 @@ export class ReportBuilder {
     const initial = definition.defaultConfig ? definition.defaultConfig({ sources: this.currentSources(config) }) : {};
     let widget: Record<string, any> = { id, type, title: options.title !== undefined ? options.title : definition.label, config: { ...initial, ...(options.config || {}) } };
 
-    if (this.configureWidget && this.configureOnAdd) {
+    if (this.hasConfigUi && this.configureOnAdd) {
       // Let the app configure the draft first; nothing is added if it cancels
       const draft = this.placeNewWidget(config, widget, options, definition);
       if (!draft) return null;
@@ -306,20 +317,45 @@ export class ReportBuilder {
     return { config: next, rect };
   }
 
-  /** Calls the app's hook; a hook that throws counts as a cancel (and is reported to the console). */
-  private async runConfigureHook(mode: 'add' | 'edit', widget: Record<string, any>, definition: ReturnType<typeof resolveWidgetType>): Promise<Record<string, any> | null> {
-    if (!this.configureWidget) return null;
-    try {
-      const result = await this.configureWidget({ mode, widget, definition, sources: this.currentSources(this.config) });
-      return result && typeof result === 'object' ? result : null;
-    } catch (error) {
-      console.error('[report-builder] configureWidget failed', error);
-      return null;
-    }
+  private get hasConfigUi(): boolean {
+    return !!this.configureWidget || this.configurePanel !== 'none';
   }
 
   /**
-   * Starts configuring a widget: emits `widgetAction` (`configure`) and, when a `configureWidget` hook is set, calls it
+   * Asks the app's hook, then falls back to the built-in form when there is no hook or it resolved with `undefined`.
+   * A hook that throws counts as a cancel (and is reported to the console).
+   */
+  private async runConfigureHook(mode: 'add' | 'edit', widget: Record<string, any>, definition: ReturnType<typeof resolveWidgetType>): Promise<Record<string, any> | null> {
+    let result: any;
+    if (this.configureWidget) {
+      try {
+        result = await this.configureWidget({ mode, widget, definition, sources: this.currentSources(this.config) });
+      } catch (error) {
+        console.error('[report-builder] configureWidget failed', error);
+        return null;
+      }
+    }
+    if (result === undefined && this.configurePanel !== 'none') return this.openPanel(mode, widget, definition);
+    return result && typeof result === 'object' ? result : null;
+  }
+
+  private openPanel(mode: 'add' | 'edit', widget: Record<string, any>, definition: ReturnType<typeof resolveWidgetType>) {
+    // Only one form at a time: a new request cancels the open one
+    if (this.panel) this.closePanel(null);
+    return new Promise<Record<string, any> | null>(resolve => {
+      this.panel = { mode, widget, definition, resolve };
+    });
+  }
+
+  private closePanel(result: Record<string, any> | null) {
+    const panel = this.panel;
+    this.panel = undefined;
+    if (panel) panel.resolve(result);
+    if (this.rootEl) this.rootEl.focus();
+  }
+
+  /**
+   * Starting configuring a widget: emits `widgetAction` (`configure`) and, when a `configureWidget` hook is set, calls it
    * and applies the widget it resolves with. Resolves with whether a change was applied. Without a hook, apps listen
    * for `widgetAction` and call `updateWidget`.
    */
@@ -330,7 +366,7 @@ export class ReportBuilder {
     const def = defs.find(d => String(d.id) === id);
     if (!def || this.readOnly) return false;
     this.widgetAction.emit({ id, action: 'configure' });
-    if (!this.configureWidget) return false;
+    if (!this.hasConfigUi) return false;
     const item = this.itemsFor(config).find(i => i.id === id);
     const result = await this.runConfigureHook('edit', { ...def, ...(item ? { x: item.x, y: item.y, w: item.w, h: item.h } : {}) }, resolveWidgetType(def.type, this.widgetCatalog));
     if (!result) return false;
@@ -501,6 +537,7 @@ export class ReportBuilder {
 
   disconnectedCallback() {
     this.resizeObserver?.disconnect();
+    if (this.panel) this.closePanel(null);
     if (this.measureFrame !== undefined) cancelAnimationFrame(this.measureFrame);
     if (this.revertTimer) clearTimeout(this.revertTimer);
   }
@@ -597,7 +634,7 @@ export class ReportBuilder {
     if (this.readOnly) return;
     // Keys on the settings button belong to the button
     const target = event.target as HTMLElement;
-    if (target && target.closest && target.closest('button')) return;
+    if (target && target.closest && target.closest('button, input, textarea, select, .builder-panel')) return;
     const mod = event.ctrlKey || event.metaKey;
     const key = event.key;
     if (this.interaction) {
@@ -714,6 +751,24 @@ export class ReportBuilder {
           theme={this.theme}
           heightMode="auto"
         ></report-viewer>
+        {this.panel && (
+          <div class={`builder-panel builder-panel-${this.configurePanel === 'modal' ? 'modal' : 'drawer'}`} part="panel" onPointerDown={(e: PointerEvent) => e.stopPropagation()}
+            onClick={(e: MouseEvent) => { if (e.target === e.currentTarget && this.configurePanel === 'modal') this.closePanel(null); }}>
+            <div class="builder-panel-card" role="dialog" aria-modal={this.configurePanel === 'modal' ? 'true' : undefined}>
+              <widget-config-form
+                key={this.panel.widget.id}
+                widget={this.panel.widget}
+                mode={this.panel.mode}
+                typeLabel={this.panel.widget.type === 'data' && this.panel.widget.config && this.panel.widget.config.visualizationType ? this.panel.widget.config.visualizationType : this.panel.definition.label}
+                schema={configSchemaFor(String(this.panel.widget.type), this.widgetCatalog)}
+                sources={this.currentSources(this.config)}
+                labels={this.configLabels}
+                onConfigApply={(e: CustomEvent) => this.closePanel(e.detail)}
+                onConfigCancel={() => this.closePanel(null)}
+              ></widget-config-form>
+            </div>
+          </div>
+        )}
         {!this.readOnly && m && m.rowHeight > 0 && (
           <div
             class="builder-overlay"

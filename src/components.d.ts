@@ -24,6 +24,7 @@ import { OneWayAnovaWidgetConfig } from "./components/widgets/one-way-anova-widg
 import { PairedTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/paired-two-sample-hypothesis-test-widget";
 import { PairedTwoSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/paired-two-sample-wilcoxon-signed-rank-widget";
 import { WidgetTypeDefinition } from "./utils/widget-catalog";
+import { ConfigFormLabels } from "./utils/config-form";
 import { ReportWidgetDef } from "./utils/report-layout";
 import { ShapiroWilkTestWidgetConfig } from "./components/widgets/shapiro-wilk-test-widget";
 import { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
@@ -49,6 +50,7 @@ export { OneWayAnovaWidgetConfig } from "./components/widgets/one-way-anova-widg
 export { PairedTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/paired-two-sample-hypothesis-test-widget";
 export { PairedTwoSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/paired-two-sample-wilcoxon-signed-rank-widget";
 export { WidgetTypeDefinition } from "./utils/widget-catalog";
+export { ConfigFormLabels } from "./utils/config-form";
 export { ReportWidgetDef } from "./utils/report-layout";
 export { ShapiroWilkTestWidgetConfig } from "./components/widgets/shapiro-wilk-test-widget";
 export { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
@@ -607,11 +609,15 @@ export namespace Components {
          */
         "compact": 'vertical' | 'none';
         /**
+          * Texts of the built-in form (translations); anything left out stays English.
+         */
+        "configLabels"?: Partial<ConfigFormLabels>;
+        /**
           * The report configuration. Controlled: apply `configurationChange` by setting this again.
          */
         "configuration": any;
         /**
-          * Starts configuring a widget: emits `widgetAction` (`configure`) and, when a `configureWidget` hook is set, calls it and applies the widget it resolves with. Resolves with whether a change was applied. Without a hook, apps listen for `widgetAction` and call `updateWidget`.
+          * Starting configuring a widget: emits `widgetAction` (`configure`) and, when a `configureWidget` hook is set, calls it and applies the widget it resolves with. Resolves with whether a change was applied. Without a hook, apps listen for `widgetAction` and call `updateWidget`.
          */
         "configure": (id: string) => Promise<boolean>;
         /**
@@ -619,6 +625,11 @@ export namespace Components {
           * @default true
          */
         "configureOnAdd": boolean;
+        /**
+          * The built-in configuration form, used when there is no `configureWidget` hook (or the hook resolves with `undefined`, which means "use the default for this one"): `panel` (default) is a drawer on the right, `modal` a centered dialog, `none` turns the default off so widgets are only configured through the hook or `updateWidget`.
+          * @default 'panel'
+         */
+        "configurePanel": 'panel' | 'modal' | 'none';
         /**
           * Called to configure a widget: when one is added (`mode: 'add'`) and when the user double-clicks it, presses Enter or uses its settings button (`'edit'`). Open whatever UI you like, then resolve with the new widget definition (any keys the backend supports), or `null` to cancel: a cancelled add adds nothing, a cancelled edit changes nothing.
          */
@@ -928,6 +939,35 @@ export namespace Components {
         "widgetTitle": string;
         "width"?: number;
     }
+    /**
+     * The report builder's default configuration form for one widget: a title, and the fields of the widget type's config
+     * schema (see `utils/config-form`). Used by `<report-builder>` when the app gives no `configureWidget` hook (or the hook
+     * returns `undefined`), and usable on its own: it emits `configApply` with the edited widget or `configCancel`.
+     */
+    interface WidgetConfigForm {
+        "labels"?: Partial<ConfigFormLabels>;
+        /**
+          * @default 'edit'
+         */
+        "mode": 'add' | 'edit';
+        /**
+          * The widget type's config schema.
+         */
+        "schema"?: Record<string, any>;
+        /**
+          * @default []
+         */
+        "sources": DataSource[];
+        /**
+          * Name of the widget type, for the heading.
+          * @default ''
+         */
+        "typeLabel": string;
+        /**
+          * The widget being edited (a new one with defaults when adding).
+         */
+        "widget": Record<string, any>;
+    }
 }
 export interface BarChartVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -1000,6 +1040,10 @@ export interface SunburstChartVisualizationCustomEvent<T> extends CustomEvent<T>
 export interface TableVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLTableVisualizationElement;
+}
+export interface WidgetConfigFormCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLWidgetConfigFormElement;
 }
 declare global {
     interface HTMLAndersonDarlingNormalityTestWidgetElement extends Components.AndersonDarlingNormalityTestWidget, HTMLStencilElement {
@@ -1448,6 +1492,29 @@ declare global {
         prototype: HTMLWelchTwoSampleHypothesisTestWidgetElement;
         new (): HTMLWelchTwoSampleHypothesisTestWidgetElement;
     };
+    interface HTMLWidgetConfigFormElementEventMap {
+        "configApply": Record<string, any>;
+        "configCancel": void;
+    }
+    /**
+     * The report builder's default configuration form for one widget: a title, and the fields of the widget type's config
+     * schema (see `utils/config-form`). Used by `<report-builder>` when the app gives no `configureWidget` hook (or the hook
+     * returns `undefined`), and usable on its own: it emits `configApply` with the edited widget or `configCancel`.
+     */
+    interface HTMLWidgetConfigFormElement extends Components.WidgetConfigForm, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLWidgetConfigFormElementEventMap>(type: K, listener: (this: HTMLWidgetConfigFormElement, ev: WidgetConfigFormCustomEvent<HTMLWidgetConfigFormElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLWidgetConfigFormElementEventMap>(type: K, listener: (this: HTMLWidgetConfigFormElement, ev: WidgetConfigFormCustomEvent<HTMLWidgetConfigFormElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLWidgetConfigFormElement: {
+        prototype: HTMLWidgetConfigFormElement;
+        new (): HTMLWidgetConfigFormElement;
+    };
     interface HTMLElementTagNameMap {
         "anderson-darling-normality-test-widget": HTMLAndersonDarlingNormalityTestWidgetElement;
         "bar-chart-visualization": HTMLBarChartVisualizationElement;
@@ -1488,6 +1555,7 @@ declare global {
         "text-widget": HTMLTextWidgetElement;
         "welch-anova-widget": HTMLWelchAnovaWidgetElement;
         "welch-two-sample-hypothesis-test-widget": HTMLWelchTwoSampleHypothesisTestWidgetElement;
+        "widget-config-form": HTMLWidgetConfigFormElement;
     }
 }
 declare namespace LocalJSX {
@@ -2050,6 +2118,10 @@ declare namespace LocalJSX {
          */
         "compact"?: 'vertical' | 'none';
         /**
+          * Texts of the built-in form (translations); anything left out stays English.
+         */
+        "configLabels"?: Partial<ConfigFormLabels>;
+        /**
           * The report configuration. Controlled: apply `configurationChange` by setting this again.
          */
         "configuration"?: any;
@@ -2058,6 +2130,11 @@ declare namespace LocalJSX {
           * @default true
          */
         "configureOnAdd"?: boolean;
+        /**
+          * The built-in configuration form, used when there is no `configureWidget` hook (or the hook resolves with `undefined`, which means "use the default for this one"): `panel` (default) is a drawer on the right, `modal` a centered dialog, `none` turns the default off so widgets are only configured through the hook or `updateWidget`.
+          * @default 'panel'
+         */
+        "configurePanel"?: 'panel' | 'modal' | 'none';
         /**
           * Called to configure a widget: when one is added (`mode: 'add'`) and when the user double-clicks it, presses Enter or uses its settings button (`'edit'`). Open whatever UI you like, then resolve with the new widget definition (any keys the backend supports), or `null` to cancel: a cancelled add adds nothing, a cancelled edit changes nothing.
          */
@@ -2336,6 +2413,37 @@ declare namespace LocalJSX {
         "widgetTitle"?: string;
         "width"?: number;
     }
+    /**
+     * The report builder's default configuration form for one widget: a title, and the fields of the widget type's config
+     * schema (see `utils/config-form`). Used by `<report-builder>` when the app gives no `configureWidget` hook (or the hook
+     * returns `undefined`), and usable on its own: it emits `configApply` with the edited widget or `configCancel`.
+     */
+    interface WidgetConfigForm {
+        "labels"?: Partial<ConfigFormLabels>;
+        /**
+          * @default 'edit'
+         */
+        "mode"?: 'add' | 'edit';
+        "onConfigApply"?: (event: WidgetConfigFormCustomEvent<Record<string, any>>) => void;
+        "onConfigCancel"?: (event: WidgetConfigFormCustomEvent<void>) => void;
+        /**
+          * The widget type's config schema.
+         */
+        "schema"?: Record<string, any>;
+        /**
+          * @default []
+         */
+        "sources"?: DataSource[];
+        /**
+          * Name of the widget type, for the heading.
+          * @default ''
+         */
+        "typeLabel"?: string;
+        /**
+          * The widget being edited (a new one with defaults when adding).
+         */
+        "widget": Record<string, any>;
+    }
     interface IntrinsicElements {
         "anderson-darling-normality-test-widget": AndersonDarlingNormalityTestWidget;
         "bar-chart-visualization": BarChartVisualization;
@@ -2376,6 +2484,7 @@ declare namespace LocalJSX {
         "text-widget": TextWidget;
         "welch-anova-widget": WelchAnovaWidget;
         "welch-two-sample-hypothesis-test-widget": WelchTwoSampleHypothesisTestWidget;
+        "widget-config-form": WidgetConfigForm;
     }
 }
 export { LocalJSX as JSX };
@@ -2432,6 +2541,12 @@ declare module "@stencil/core" {
             "text-widget": LocalJSX.TextWidget & JSXBase.HTMLAttributes<HTMLTextWidgetElement>;
             "welch-anova-widget": LocalJSX.WelchAnovaWidget & JSXBase.HTMLAttributes<HTMLWelchAnovaWidgetElement>;
             "welch-two-sample-hypothesis-test-widget": LocalJSX.WelchTwoSampleHypothesisTestWidget & JSXBase.HTMLAttributes<HTMLWelchTwoSampleHypothesisTestWidgetElement>;
+            /**
+             * The report builder's default configuration form for one widget: a title, and the fields of the widget type's config
+             * schema (see `utils/config-form`). Used by `<report-builder>` when the app gives no `configureWidget` hook (or the hook
+             * returns `undefined`), and usable on its own: it emits `configApply` with the edited widget or `configCancel`.
+             */
+            "widget-config-form": LocalJSX.WidgetConfigForm & JSXBase.HTMLAttributes<HTMLWidgetConfigFormElement>;
         }
     }
 }

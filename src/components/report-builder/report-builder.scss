@@ -111,3 +111,33 @@ report-builder .builder-root:focus-visible {
   outline: 2px solid var(--fl-chart-primary, #4d19a2);
   outline-offset: 2px;
 }
+
+// The built-in configuration form. `drawer` (default) is docked on the right and leaves the report visible.
+report-builder .builder-panel-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  width: min(380px, 100vw);
+  box-shadow: -6px 0 24px rgba(0, 0, 0, 0.18);
+
+  .builder-panel-card { height: 100%; }
+}
+
+report-builder .builder-panel-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+
+  .builder-panel-card {
+    width: min(520px, calc(100vw - 32px));
+    max-height: calc(100vh - 48px);
+    overflow: hidden;
+    border-radius: 10px;
+  }
+}

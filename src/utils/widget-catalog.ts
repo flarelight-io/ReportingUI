@@ -16,6 +16,11 @@ export interface WidgetTypeDefinition {
   defaultSize?: { w: number; h: number };
   minSize?: { w: number; h: number };
   maxSize?: { w: number; h: number };
+  /**
+   * Describes the widget's `config` for the builder's default configuration panel: a flat JSON-schema object
+   * (`{ properties: { name: { type, enum, description, default } } }`). Built-in types already have one.
+   */
+  configSchema?: Record<string, any>;
   /** Initial `config` of a new widget of this type. */
   defaultConfig?: (context: { sources: DataSource[] }) => Record<string, any>;
 }

@@ -43,6 +43,7 @@ graph TD;
   data-widget --> filter-visualization
   data-widget --> base-widget
   report-builder --> report-viewer
+  report-builder --> widget-config-form
   style builder-demo fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

@@ -418,6 +418,22 @@ reset on an external change. Min/max sizes were already enforced via `widgetCata
 Not done: alignment guides and nudging with modifier keys (the outline preview already shows the target), a drop
 placeholder (the neighbours moving in the live layout serves as one), multi-select moves.
 
-### Phase 4 (next)
+### Phase 4: default configuration panel (done)
 
-Default configuration panel (schema-driven form), used when no `configureWidget` hook is given.
+`<widget-config-form>` and the builder's `configurePanel` (`panel` drawer by default, `modal`, `none`) and `configLabels`.
+The form is generated from per-type config schemas: `scripts/generate-config-schemas.js` extracts them from `schema.json`
+into `src/utils/widget-config-schemas.ts` (31 KB), `src/utils/config-form.ts` turns a schema into fields (source and
+field pickers using `displayName`, enums, booleans, numbers, aggregation free text with suggestions, JSON for the rest, the
+options of the chosen visualization first and the rest under "More options", a raw JSON editor so unknown keys are
+reachable). Apps describe their own types through `widgetCatalog[].configSchema`, and a hook resolving `undefined` hands one
+widget to the form (per-type overrides). Decision on the open question: drawer by default (the report stays visible while
+editing), modal selectable. Verified in the builder demo: edit applies title, checkbox, number and aggregation and keeps
+other keys and the position; Escape cancels an add; changing the visualization type changes the fields; invalid raw JSON
+blocks Apply; keys typed in the form don't reach the builder's shortcuts. 116 unit tests pass.
+
+Not done: filters (the schema has none for widgets), per-field validation beyond number/JSON, live preview while editing
+(Apply-based), i18n of field labels and descriptions (only the form's own texts are translatable).
+
+### Phase 5 (as needed)
+
+Responsive breakpoints and the other advanced items above; also the optional built-in toolbar.

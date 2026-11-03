@@ -43,6 +43,8 @@ export class BuilderDemo {
   @State() compact: 'vertical' | 'none' = 'vertical';
   @State() preview: 'outline' | 'live' = 'outline';
   @State() theme: 'light' | 'dark' = 'light';
+  /** Which configuration UI the builder uses: its built-in form (as a drawer or a modal) or this page's own dialog. */
+  @State() configUi: 'drawer' | 'modal' | 'own' = 'drawer';
   @State() showJson = false;
   @State() log: string[] = [];
   @State() dialog?: Dialog;
@@ -157,6 +159,15 @@ export class BuilderDemo {
             <label><input type="checkbox" checked={dark} onChange={(e: any) => (this.theme = e.target.checked ? 'dark' : 'light')} /> Dark</label>
           </div>
           <div class="bd-group">
+            <label>Configure with
+              <select onChange={(e: any) => (this.configUi = e.target.value)}>
+                <option value="drawer" selected={this.configUi === 'drawer'}>Built-in drawer</option>
+                <option value="modal" selected={this.configUi === 'modal'}>Built-in modal</option>
+                <option value="own" selected={this.configUi === 'own'}>This page's own dialog</option>
+              </select>
+            </label>
+          </div>
+          <div class="bd-group">
             <button type="button" onClick={() => this.reset(false)}>Reset sample</button>
             <button type="button" onClick={() => this.reset(true)}>Start empty</button>
             <button type="button" onClick={() => (this.showJson = !this.showJson)}>{this.showJson ? 'Hide' : 'Show'} output</button>
@@ -169,7 +180,8 @@ export class BuilderDemo {
               ref={el => (this.builder = el as HTMLReportBuilderElement)}
               configuration={this.report}
               fetchChartData={this.fetchChartData}
-              configureWidget={this.configureWidget}
+              configureWidget={this.configUi === 'own' ? this.configureWidget : undefined}
+              configurePanel={this.configUi === 'modal' ? 'modal' : 'panel'}
               readOnly={this.readOnly}
               compact={this.compact}
               interactionPreview={this.preview}

@@ -1,0 +1,89 @@
+// Colors and sizes come from the library's CSS variables, so the form follows the app's theme.
+widget-config-form {
+  display: block;
+  height: 100%;
+
+  .wcf {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+    color: var(--fl-text-color-primary, #1f2937);
+    background: var(--fl-card-background, #fff);
+    font-size: 13px;
+  }
+
+  .wcf-heading {
+    margin: 0;
+    padding: 14px 16px;
+    font-size: 16px;
+    border-bottom: 1px solid var(--fl-border-color, #e5e7eb);
+  }
+
+  .wcf-body {
+    flex: 1;
+    min-height: 0;
+    padding: 12px 16px;
+    overflow: auto;
+  }
+
+  .wcf-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+
+    label { font-weight: 600; }
+
+    &.wcf-inline {
+      flex-flow: row wrap;
+      align-items: center;
+      gap: 4px 8px;
+      label { order: 2; font-weight: 500; }
+      .wcf-help { order: 3; flex-basis: 100%; }
+    }
+  }
+
+  input[type='text'], input[type='number'], select, textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 6px 8px;
+    font: inherit;
+    color: inherit;
+    background: var(--fl-background-color, #fff);
+    border: 1px solid var(--fl-border-color, #cbd5e1);
+    border-radius: 6px;
+
+    &:focus-visible { outline: 2px solid var(--fl-chart-primary, #4d19a2); outline-offset: 1px; }
+  }
+
+  .wcf-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+
+  .wcf-help { margin: 0; font-size: 12px; opacity: 0.65; }
+  .wcf-error { margin: 0; font-size: 12px; color: #b91c1c; }
+
+  .wcf-more {
+    margin-top: 4px;
+    summary { cursor: pointer; font-weight: 600; margin-bottom: 10px; }
+  }
+
+  .wcf-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--fl-border-color, #e5e7eb);
+
+    button {
+      padding: 6px 14px;
+      font: inherit;
+      color: inherit;
+      background: transparent;
+      border: 1px solid var(--fl-border-color, #cbd5e1);
+      border-radius: 6px;
+      cursor: pointer;
+
+      &.wcf-primary { color: #fff; background: var(--fl-chart-primary, #4d19a2); border-color: transparent; }
+    }
+  }
+}

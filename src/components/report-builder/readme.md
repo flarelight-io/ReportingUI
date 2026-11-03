@@ -7,248 +7,41 @@
 
 ## Overview
 
-Edit layer for a report: select, move, resize, add and delete widgets on the grid. The configuration is
-controlled: it is passed in, and every user change is emitted as `configurationChange` with the full next
-configuration for the app to apply (and save). Widgets render with the regular `<report-viewer>`, so what you
-edit is what the viewer shows. The builder has no toolbar or palette: apps build their own around `addWidget`,
-`removeWidgets`, `updateWidget` and `select`.
+The report builder's default configuration form for one widget: a title, and the fields of the widget type's config
+schema (see `utils/config-form`). Used by `<report-builder>` when the app gives no `configureWidget` hook (or the hook
+returns `undefined`), and usable on its own: it emits `configApply` with the edited widget or `configCancel`.
 
 ## Properties
 
-| Property             | Attribute             | Description                                                                                                                                                                                                                                                                                                                                            | Type                                                                                                                                                                                                                                                                                                               | Default      |
-| -------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ |
-| `columns`            | `columns`             | Presentation, passed to the viewer (see `<report-viewer>`).                                                                                                                                                                                                                                                                                            | `number`                                                                                                                                                                                                                                                                                                           | `undefined`  |
-| `compact`            | `compact`             | `vertical` (default): colliding widgets are pushed down and gaps close upwards. `none`: widgets stay where they are put and moves that would overlap are rejected.                                                                                                                                                                                     | `"none" \| "vertical"`                                                                                                                                                                                                                                                                                             | `'vertical'` |
-| `configuration`      | `configuration`       | The report configuration. Controlled: apply `configurationChange` by setting this again.                                                                                                                                                                                                                                                               | `any`                                                                                                                                                                                                                                                                                                              | `undefined`  |
-| `configureOnAdd`     | `configure-on-add`    | Whether `addWidget` calls `configureWidget` before adding.                                                                                                                                                                                                                                                                                             | `boolean`                                                                                                                                                                                                                                                                                                          | `true`       |
-| `configureWidget`    | --                    | Called to configure a widget: when one is added (`mode: 'add'`) and when the user double-clicks it, presses Enter or uses its settings button (`'edit'`). Open whatever UI you like, then resolve with the new widget definition (any keys the backend supports), or `null` to cancel: a cancelled add adds nothing, a cancelled edit changes nothing. | `(request: { mode: "add" \| "edit"; widget: Record<string, any>; definition: { type: string; label: string; defaultSize: { w: number; h: number; }; minSize?: { w: number; h: number; }; maxSize?: { w: number; h: number; }; }; sources: DataSource[]; }) => Record<string, any> \| Promise<Record<string, any>>` | `undefined`  |
-| `fetchChartData`     | --                    | Same data function the viewer takes, so widgets show real data while editing.                                                                                                                                                                                                                                                                          | `Function`                                                                                                                                                                                                                                                                                                         | `undefined`  |
-| `gap`                | `gap`                 |                                                                                                                                                                                                                                                                                                                                                        | `number`                                                                                                                                                                                                                                                                                                           | `undefined`  |
-| `interactionPreview` | `interaction-preview` | What a widget shows while it is dragged or resized: `outline` (default) hides its content and keeps the frame and title, which is cheaper and a clearer drop target; `live` keeps the content visible.                                                                                                                                                 | `"live" \| "outline"`                                                                                                                                                                                                                                                                                              | `'outline'`  |
-| `readOnly`           | `read-only`           | Turns the editing layer off: the report just renders.                                                                                                                                                                                                                                                                                                  | `boolean`                                                                                                                                                                                                                                                                                                          | `false`      |
-| `reportId`           | `report-id`           |                                                                                                                                                                                                                                                                                                                                                        | `string`                                                                                                                                                                                                                                                                                                           | `undefined`  |
-| `rowAspectRatio`     | `row-aspect-ratio`    |                                                                                                                                                                                                                                                                                                                                                        | `number`                                                                                                                                                                                                                                                                                                           | `undefined`  |
-| `rowHeight`          | `row-height`          |                                                                                                                                                                                                                                                                                                                                                        | `number`                                                                                                                                                                                                                                                                                                           | `undefined`  |
-| `sources`            | --                    | Sources available in the report (overrides `configuration.sources`).                                                                                                                                                                                                                                                                                   | `DataSource[]`                                                                                                                                                                                                                                                                                                     | `undefined`  |
-| `theme`              | `theme`               |                                                                                                                                                                                                                                                                                                                                                        | `"auto" \| "dark" \| "light"`                                                                                                                                                                                                                                                                                      | `'auto'`     |
-| `widgetCatalog`      | --                    | Describes the widget types users can add: sizes, limits, default config. Types not listed use built-in defaults.                                                                                                                                                                                                                                       | `WidgetTypeDefinition[]`                                                                                                                                                                                                                                                                                           | `undefined`  |
+| Property              | Attribute    | Description                                                    | Type                                                                                                                                                                                                                                 | Default     |
+| --------------------- | ------------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------- |
+| `labels`              | --           |                                                                | `{ title?: string; source?: string; none?: string; apply?: string; add?: string; cancel?: string; moreOptions?: string; rawConfig?: string; invalidJson?: string; noSources?: string; addTitle?: string; configureTitle?: string; }` | `undefined` |
+| `mode`                | `mode`       |                                                                | `"add" \| "edit"`                                                                                                                                                                                                                    | `'edit'`    |
+| `schema`              | --           | The widget type's config schema.                               | `{ [x: string]: any; }`                                                                                                                                                                                                              | `undefined` |
+| `sources`             | --           |                                                                | `DataSource[]`                                                                                                                                                                                                                       | `[]`        |
+| `typeLabel`           | `type-label` | Name of the widget type, for the heading.                      | `string`                                                                                                                                                                                                                             | `''`        |
+| `widget` _(required)_ | --           | The widget being edited (a new one with defaults when adding). | `{ [x: string]: any; }`                                                                                                                                                                                                              | `undefined` |
 
 
 ## Events
 
-| Event                 | Description                                                                                  | Type                                                   |
-| --------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `configurationChange` | The full next configuration, whenever the user changes the layout or the app calls a method. | `CustomEvent<any>`                                     |
-| `historyChange`       | Undo/redo availability changed.                                                              | `CustomEvent<{ canUndo: boolean; canRedo: boolean; }>` |
-| `widgetAction`        |                                                                                              | `CustomEvent<{ id: string; action: "configure"; }>`    |
-| `widgetSelect`        | The selection changed.                                                                       | `CustomEvent<{ ids: string[]; }>`                      |
-
-
-## Methods
-
-### `addWidget(type: string, options?: { id?: string; title?: string; x?: number; y?: number; w?: number; h?: number; config?: Record<string, any>; }) => Promise<string | null>`
-
-Adds a widget of the given type (at the first free spot, or at `x`/`y`) and selects it. Resolves with its id, or
-null when it couldn't be placed (for example `compact: 'none'` and no room at the requested position).
-
-#### Parameters
-
-| Name      | Type                                                                                                             | Description |
-| --------- | ---------------------------------------------------------------------------------------------------------------- | ----------- |
-| `type`    | `string`                                                                                                         |             |
-| `options` | `{ id?: string; title?: string; x?: number; y?: number; w?: number; h?: number; config?: Record<string, any>; }` |             |
-
-#### Returns
-
-Type: `Promise<string>`
-
-
-
-### `configure(id: string) => Promise<boolean>`
-
-Starts configuring a widget: emits `widgetAction` (`configure`) and, when a `configureWidget` hook is set, calls it
-and applies the widget it resolves with. Resolves with whether a change was applied. Without a hook, apps listen
-for `widgetAction` and call `updateWidget`.
-
-#### Parameters
-
-| Name | Type     | Description |
-| ---- | -------- | ----------- |
-| `id` | `string` |             |
-
-#### Returns
-
-Type: `Promise<boolean>`
-
-
-
-### `copy(ids: string[]) => Promise<void>`
-
-Remembers widgets for `paste()` (also Ctrl/Cmd+C). The clipboard belongs to the builder, not the system.
-
-#### Parameters
-
-| Name  | Type       | Description |
-| ----- | ---------- | ----------- |
-| `ids` | `string[]` |             |
-
-#### Returns
-
-Type: `Promise<void>`
-
-
-
-### `duplicate(ids: string[]) => Promise<string[]>`
-
-Duplicates widgets (settings and size included) and selects the copies. Resolves with their ids.
-
-#### Parameters
-
-| Name  | Type       | Description |
-| ----- | ---------- | ----------- |
-| `ids` | `string[]` |             |
-
-#### Returns
-
-Type: `Promise<string[]>`
-
-
-
-### `getSelection() => Promise<string[]>`
-
-The ids of the selected widgets.
-
-#### Returns
-
-Type: `Promise<string[]>`
-
-
-
-### `paste() => Promise<string[]>`
-
-Adds copies of what `copy()` remembered. Resolves with the new ids.
-
-#### Returns
-
-Type: `Promise<string[]>`
-
-
-
-### `redo() => Promise<boolean>`
-
-Re-applies a change that was undone. Resolves with whether it did.
-
-#### Returns
-
-Type: `Promise<boolean>`
-
-
-
-### `removeWidgets(ids: string[]) => Promise<void>`
-
-Removes widgets and closes the gaps they leave (unless `compact` is `none`).
-
-#### Parameters
-
-| Name  | Type       | Description |
-| ----- | ---------- | ----------- |
-| `ids` | `string[]` |             |
-
-#### Returns
-
-Type: `Promise<void>`
-
-
-
-### `select(ids: string[]) => Promise<void>`
-
-Selects widgets by id (an empty list clears the selection).
-
-#### Parameters
-
-| Name  | Type       | Description |
-| ----- | ---------- | ----------- |
-| `ids` | `string[]` |             |
-
-#### Returns
-
-Type: `Promise<void>`
-
-
-
-### `undo() => Promise<boolean>`
-
-Steps back to the configuration before the last change the builder made. Resolves with whether it did.
-
-#### Returns
-
-Type: `Promise<boolean>`
-
-
-
-### `updateWidget(id: string, patch: Record<string, any>) => Promise<void>`
-
-Merges a patch into a widget (title, config, position, anything). This is how an app applies its own
-configuration UI. A position change is run through the layout engine so other widgets make room.
-
-#### Parameters
-
-| Name    | Type                    | Description |
-| ------- | ----------------------- | ----------- |
-| `id`    | `string`                |             |
-| `patch` | `{ [x: string]: any; }` |             |
-
-#### Returns
-
-Type: `Promise<void>`
-
-
-
-
-## Shadow Parts
-
-| Part                | Description |
-| ------------------- | ----------- |
-| `"handle"`          |             |
-| `"overlay"`         |             |
-| `"settings-button"` |             |
+| Event          | Description | Type                                 |
+| -------------- | ----------- | ------------------------------------ |
+| `configApply`  |             | `CustomEvent<{ [x: string]: any; }>` |
+| `configCancel` |             | `CustomEvent<void>`                  |
 
 
 ## Dependencies
 
 ### Used by
 
- - [builder-demo](../builder-demo)
-
-### Depends on
-
-- [report-viewer](../report-viewer)
+ - [report-builder](.)
 
 ### Graph
 ```mermaid
 graph TD;
-  report-builder --> report-viewer
-  report-viewer --> text-widget
-  report-viewer --> data-widget
-  text-widget --> base-widget
-  data-widget --> table-visualization
-  data-widget --> bar-chart-visualization
-  data-widget --> stacked-bar-chart-visualization
-  data-widget --> clustered-bar-chart-visualization
-  data-widget --> lollipop-chart-visualization
-  data-widget --> line-chart-visualization
-  data-widget --> pie-chart-visualization
-  data-widget --> kpi-visualization
-  data-widget --> scatter-chart-visualization
-  data-widget --> histogram-chart-visualization
-  data-widget --> heatmap-visualization
-  data-widget --> sunburst-chart-visualization
-  data-widget --> bubble-chart-visualization
-  data-widget --> box-whisker-chart-visualization
-  data-widget --> filter-visualization
-  data-widget --> base-widget
-  builder-demo --> report-builder
-  style report-builder fill:#f9f,stroke:#333,stroke-width:4px
+  report-builder --> widget-config-form
+  style widget-config-form fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
 ----------------------------------------------

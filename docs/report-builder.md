@@ -27,7 +27,9 @@ If the app doesn't apply a change, the builder falls back to the configuration i
 | `widgetCatalog` | `WidgetTypeDefinition[]`: default/min/max sizes, label and initial config per widget type. Unlisted types use built-in defaults. |
 | `fetchChartData` | The same data function the viewer takes. |
 | `configureWidget` | Your hook for configuring widgets, see below. |
-| `configureOnAdd` | Whether `addWidget` calls the hook first (default `true`). |
+| `configureOnAdd` | Whether `addWidget` opens the configuration UI first (default `true`). |
+| `configurePanel` | The built-in form: `panel` (default, a drawer on the right), `modal`, or `none`. |
+| `configLabels` | Texts of the built-in form, for translation. |
 | `readOnly` | Turns editing off; the report just renders. |
 | `compact` | `vertical` (default): colliding widgets are pushed down and gaps close. `none`: widgets stay where they're put; moves that would overlap are rejected. |
 | `interactionPreview` | `outline` (default) hides a widget's content while it is dragged or resized and keeps its frame and title; `live` keeps the content. |
@@ -51,9 +53,31 @@ If the app doesn't apply a change, the builder falls back to the configuration i
 - `copy(ids)` / `paste()` – a clipboard private to the builder.
 - `select(ids)` / `getSelection()`.
 
+## Configuring widgets
+
+With no setup the builder opens its **built-in form** when a widget is added (`mode: 'add'`) and when one is edited. The form is generated from the widget type's config schema (the built-in ones come from `schema.json`):
+
+- a title, the data source (from your `sources` prop) and field pickers that list the source's fields by `displayName`;
+- the options that matter for the chosen visualization first, everything else under "More options";
+- aggregation is free text with suggestions (any name your backend supports), and anything the schema doesn't describe can be set in the raw JSON editor, so no key is out of reach;
+- Apply (or Add) emits the change, Cancel and Escape do nothing (a cancelled add adds nothing).
+
+Describe your own widget types to get a form for them too, through the catalog:
+
+```js
+builder.widgetCatalog = [{ type: 'gauge', label: 'Gauge', configSchema: { properties: {
+  sourceId: { type: 'string' }, valueField: { type: 'string' },
+  max: { type: 'number', description: 'Top of the scale' }, unit: { type: 'string', enum: ['%', 'ms'] }
+} } }];
+```
+
+Properties named `…Field` get field pickers, `sourceId` a source picker, enums selects, booleans checkboxes, numbers number inputs; arrays and objects are edited as JSON. After changing `schema.json`, run `npm run generate:config-schemas` to refresh the built-in schemas.
+
+The form is also a component of its own, `<widget-config-form>` (props `widget`, `schema`, `sources`, `mode`, `labels`; events `configApply`, `configCancel`).
+
 ## Configuring widgets with your own UI
 
-The builder has no configuration form. Give it a hook and open whatever you like (a modal, a side panel, a backend round trip):
+To replace the form, give the builder a hook and open whatever you like (a modal, a side panel, a backend round trip):
 
 ```js
 builder.configureWidget = async ({ mode, widget, definition, sources }) => {
@@ -62,9 +86,9 @@ builder.configureWidget = async ({ mode, widget, definition, sources }) => {
 };
 ```
 
-The widget you resolve with replaces the old one as a whole, so you can set any keys your backend supports. Its position stays where the layout has it. Cancelling an add adds nothing; cancelling an edit changes nothing. A hook that throws counts as a cancel.
+Resolve with `undefined` to let the built-in form handle this one (so you can override single types and keep the form for the rest). The widget you resolve with replaces the old one as a whole, so you can set any keys your backend supports. Its position stays where the layout has it. Cancelling an add adds nothing; cancelling an edit changes nothing. A hook that throws counts as a cancel.
 
-If promises are awkward in your framework, skip the hook: listen to `widgetAction` and call `updateWidget(id, patch)` when your UI is done. `addWidget(type, { config })` then adds directly.
+If promises are awkward in your framework, set `configurePanel="none"`, listen to `widgetAction` and call `updateWidget(id, patch)` when your UI is done; `addWidget(type, { config })` then adds directly.
 
 ## Interaction
 
