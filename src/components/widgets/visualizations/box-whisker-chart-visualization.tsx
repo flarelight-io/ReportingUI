@@ -2,7 +2,9 @@ import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
-import { PlotSizeTracker, clipLabel } from '../../../utils/bar-layout';
+import { PlotSizeTracker, clipLabel, fitRotatedLabels } from '../../../utils/bar-layout';
+import { niceScale } from '../../../utils/scale';
+import { renderValueAxis, tickLabelWidth } from '../../../utils/chart-axes';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface BoxWhiskerDataItem {
@@ -263,18 +265,23 @@ export class BoxWhiskerChartVisualization {
     const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
     const charWidth = fontSize * 0.58;
     const pad = 8;
-    const fmt = (v: number) => v.toFixed(3).replace(/\.?0+$/, '');
-    const tickValues = [0, 0.25, 0.5, 0.75, 1].map(ratio => fmt(maxValue - ratio * (maxValue - minValue)));
-    const showTicks = !!(this.config.showGrid && this.config.showLabels);
+    // Round the value axis so ticks are clean numbers
+    const scale = niceScale(minValue, maxValue);
+    minValue = scale.min;
+    maxValue = scale.max;
+    const showTicks = true;
     const categoryLabels = chartData.map((item, i) => clipLabel(item.SampleSourceName || `Group ${i + 1}`));
     const longestPx = Math.max(...categoryLabels.map(l => l.length)) * charWidth;
 
-    const plotX = pad + (showTicks ? Math.max(...tickValues.map(t => t.length)) * charWidth + 6 : 0);
+    const plotX = pad + (showTicks ? tickLabelWidth(scale.ticks, fontSize) + 2 : 0);
     const plotY = pad;
-    const bottom = this.config.showLabels
-      ? Math.min(longestPx * Math.SQRT1_2 + fontSize + 8, H * 0.45)
-      : pad + 4;
     const plotW = Math.max(0, W - plotX - pad);
+    // Names that fit under their box stay horizontal; longer ones rotate within a capped area
+    const flatLabels = plotW / chartData.length >= longestPx + 6;
+    const rotatedFit = this.config.showLabels && !flatLabels ? fitRotatedLabels(categoryLabels, H, fontSize, 0.35) : null;
+    const bottom = !this.config.showLabels
+      ? pad + 4
+      : rotatedFit ? rotatedFit.height : fontSize + 14;
     const plotH = Math.max(0, H - plotY - bottom);
 
     const boxCount = chartData.length;
@@ -353,41 +360,11 @@ export class BoxWhiskerChartVisualization {
                 <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
               </filter>
             </defs>
-            {this.config.showGrid && (
-              <g class="grid-lines">
-                {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const y = ChartThemeUtils.snapToPixel(plotY + ratio * plotH);
-                  return (
-                    <g key={`grid-${i}`}>
-                      <line
-                        x1={plotX}
-                        y1={y}
-                        x2={plotX + plotW}
-                        y2={y}
-                        stroke="var(--fl-chart-grid-color)"
-                        stroke-width="1"
-                        stroke-dasharray={i > 0 ? "3,3" : ""}
-                        opacity={theme.gridlines.opacity}
-                      />
-                      {this.config.showLabels && (
-                        <text
-                          x={plotX - 6}
-                          y={y}
-                          font-size={fontSize}
-                          text-anchor="end"
-                          dominant-baseline="middle"
-                          fill={theme.labelColor}
-                          font-family={theme.fontFamily}
-                          font-weight="500"
-                        >
-                          {tickValues[i]}
-                        </text>
-                      )}
-                    </g>
-                  );
-                })}
-              </g>
-            )}
+            {renderValueAxis({
+              ticks: scale.ticks, min: scale.min, max: scale.max,
+              plotX, plotY, plotW, plotH, fontSize, fontFamily: theme.fontFamily,
+              showGrid: !!this.config.showGrid, gridOpacity: theme.gridlines.opacity
+            })}
 
             <line
               x1={ChartThemeUtils.snapToPixel(plotX)}
@@ -478,13 +455,13 @@ export class BoxWhiskerChartVisualization {
                       x={box.elements.label.x}
                       y={box.elements.label.y}
                       font-size={fontSize}
-                      text-anchor="end"
+                      text-anchor={rotatedFit ? 'end' : 'middle'}
                       fill={theme.labelColor}
                       font-family={theme.fontFamily}
                       font-weight="500"
-                      transform={`rotate(-45, ${box.elements.label.x}, ${box.elements.label.y})`}
+                      transform={rotatedFit ? `rotate(-45, ${box.elements.label.x}, ${box.elements.label.y})` : undefined}
                     >
-                      {box.label}
+                      {rotatedFit ? rotatedFit.labels[boxIndex] : box.label}
                     </text>
                   )}
 
