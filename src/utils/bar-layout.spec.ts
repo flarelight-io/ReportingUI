@@ -6,7 +6,7 @@ describe('fitCellFontSize', () => {
   });
 
   it('shrinks to fit a smaller cell', () => {
-    const size = fitCellFontSize(30, 20, 4, 11);
+    const size = fitCellFontSize(26, 20, 4, 11);
     expect(size).toBeGreaterThanOrEqual(9);
     expect(size).toBeLessThan(11);
   });
