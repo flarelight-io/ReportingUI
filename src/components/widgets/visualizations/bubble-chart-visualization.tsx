@@ -3,6 +3,8 @@ import { FilterChangeEventDetail, VisualizationData } from './base-visualization
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { PlotSizeTracker } from '../../../utils/bar-layout';
+import { niceScale } from '../../../utils/scale';
+import { formatTick } from '../../../utils/chart-axes';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface BubbleDataPoint {
@@ -247,9 +249,11 @@ export class BubbleChartVisualization {
     const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
     const charWidth = fontSize * 0.58;
     const pad = 8;
-    const fmt = (v: number) => v.toFixed(3).replace(/\.?0+$/, '');
-    const yTicks = [0, 0.25, 0.5, 0.75, 1].map(ratio => fmt(minY + ratio * (maxY - minY)));
-    const xTicks = [0, 0.25, 0.5, 0.75, 1].map(ratio => fmt(minX + ratio * (maxX - minX)));
+    // Round axis domains so ticks are clean numbers; bubbles are positioned against the same domain
+    const xs = niceScale(minX, maxX);
+    const ys = niceScale(minY, maxY);
+    const yTicks = ys.ticks.map(formatTick);
+    const xTicks = xs.ticks.map(formatTick);
     const axisLeft = pad + Math.max(...yTicks.map(t => t.length)) * charWidth + 6;
     const axisBottom = H - (xValues.length > 0 ? fontSize + 12 : pad);
     const axisTop = pad;
@@ -261,19 +265,22 @@ export class BubbleChartVisualization {
     const innerW = Math.max(0, axisRight - maxR - xPadding);
     const innerH = Math.max(0, axisBottom - maxR - yPadding);
 
+    const mapX = (v: number) => xPadding + ((v - xs.min) / (xs.max - xs.min || 1)) * innerW;
+    const mapY = (v: number) => axisBottom - maxR - ((v - ys.min) / (ys.max - ys.min || 1)) * innerH;
+
     const categories = this.getUniqueCategories(bubbleData);
 
     const bubbles = bubbleData.map((item, index) => {
       let x: number;
       if (typeof item.x === 'number') {
-        x = xPadding + ((item.x - minX) / (maxX - minX || 1)) * innerW;
+        x = mapX(item.x);
       } else if (typeof item.x === 'string' && !isNaN(Number(item.x))) {
-        x = xPadding + ((Number(item.x) - minX) / (maxX - minX || 1)) * innerW;
+        x = mapX(Number(item.x));
       } else {
         // Non-numeric x values are spaced evenly
         x = xPadding + index * (innerW / (bubbleData.length - 1 || 1));
       }
-      const y = axisBottom - maxR - ((item.y - minY) / (maxY - minY || 1)) * innerH;
+      const y = mapY(item.y);
       const r = Math.max(4, (item.size / (maxSize || 1)) * maxR);
       const color = this.getCategoryColor(item.category, categories);
       const tooltipContent = `${item.x}: ${item.y} (Size: ${item.originalData[idField || valueField || '']})`;
@@ -306,8 +313,8 @@ export class BubbleChartVisualization {
             </defs>
             {this.config.showGrid && (
               <>
-                {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const y = ChartThemeUtils.snapToPixel(axisBottom - ratio * (axisBottom - axisTop));
+                {ys.ticks.map((tick, i) => {
+                  const y = ChartThemeUtils.snapToPixel(mapY(tick));
                   return (
                     <line
                       key={`h-${i}`}
@@ -317,13 +324,13 @@ export class BubbleChartVisualization {
                       y2={y}
                       stroke="var(--fl-chart-grid-color)"
                       stroke-width="1"
-                      stroke-dasharray={i > 0 ? "3,3" : ""}
+                      stroke-dasharray="3,3"
                       opacity={theme.gridlines.opacity}
                     />
                   );
                 })}
-                {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const x = ChartThemeUtils.snapToPixel(axisLeft + ratio * (axisRight - axisLeft));
+                {xs.ticks.map((tick, i) => {
+                  const x = ChartThemeUtils.snapToPixel(mapX(tick));
                   return (
                     <line
                       key={`v-${i}`}
@@ -333,7 +340,7 @@ export class BubbleChartVisualization {
                       y2={axisBottom}
                       stroke="var(--fl-chart-grid-color)"
                       stroke-width="1"
-                      stroke-dasharray={i > 0 ? "3,3" : ""}
+                      stroke-dasharray="3,3"
                       opacity={theme.gridlines.opacity}
                     />
                   );
@@ -404,32 +411,30 @@ export class BubbleChartVisualization {
               stroke-width="1"
             />
 
-            {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
+            {ys.ticks.map((tick, i) => (
               <text
                 key={`y-label-${i}`}
-                x={axisLeft - 6}
-                y={axisBottom - ratio * (axisBottom - axisTop)}
+                x={axisLeft - 8}
+                y={mapY(tick)}
                 font-size={fontSize}
                 text-anchor="end"
                 dominant-baseline="middle"
-                fill={theme.labelColor}
+                fill="var(--fl-chart-text-secondary)"
                 font-family={theme.fontFamily}
-                font-weight="500"
               >
                 {yTicks[i]}
               </text>
             ))}
 
-            {xValues.length > 0 && [0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
+            {xValues.length > 0 && xs.ticks.map((tick, i) => (
               <text
                 key={`x-label-${i}`}
-                x={axisLeft + ratio * (axisRight - axisLeft)}
+                x={mapX(tick)}
                 y={axisBottom + fontSize + 4}
                 font-size={fontSize}
-                text-anchor={i === 0 ? 'start' : i === 4 ? 'end' : 'middle'}
-                fill={theme.labelColor}
+                text-anchor="middle"
+                fill="var(--fl-chart-text-secondary)"
                 font-family={theme.fontFamily}
-                font-weight="500"
               >
                 {xTicks[i]}
               </text>
