@@ -4,6 +4,8 @@ import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { placeTooltip } from '../../../utils/tooltip';
 import { PlotSizeTracker, computeBarFrame, clipLabel } from '../../../utils/bar-layout';
+import { niceScale } from '../../../utils/scale';
+import { renderValueAxis, formatTick } from '../../../utils/chart-axes';
 
 interface StackedChartItem {
   category: string;
@@ -175,7 +177,8 @@ export class StackedBarChartVisualization {
     const colors = this.getColors();
     const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
-    const maxValue = Math.max(...chartData.map(item => item.total), 0) * 1.1 || 1; // Add 10% padding
+    const scale = niceScale(0, Math.max(...chartData.map(item => item.total), 0));
+    const maxValue = scale.max || 1;
 
     // Lay out in real pixels so text keeps a constant, readable size at any container size
     const W = this.plotWidth;
@@ -183,7 +186,8 @@ export class StackedBarChartVisualization {
     const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
     const labels = chartData.map(item => clipLabel(item.category));
     const frame = computeBarFrame({
-      width: W, height: H, horizontal: isHorizontal, labels, fontSize, valueLabels: false, showCategories: true
+      width: W, height: H, horizontal: isHorizontal, labels, fontSize, valueLabels: false, showCategories: true,
+      tickLabels: scale.ticks.map(formatTick)
     });
     const { plotX, plotY, plotW, plotH, rotate, slot, labelStride } = frame;
     const thickness = Math.max(1, slot * 0.7);
@@ -225,25 +229,11 @@ export class StackedBarChartVisualization {
                 <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
               </filter>
             </defs>
-            {this.config.showGrid && (
-              <g>
-                {[0, 0.25, 0.5, 0.75, 1].map((f, i) => {
-                  const pos = isHorizontal ? plotX + plotW * f : plotY + plotH * f;
-                  return (
-                    <line
-                      key={i}
-                      x1={isHorizontal ? ChartThemeUtils.snapToPixel(pos) : plotX}
-                      y1={isHorizontal ? plotY : ChartThemeUtils.snapToPixel(pos)}
-                      x2={isHorizontal ? ChartThemeUtils.snapToPixel(pos) : plotX + plotW}
-                      y2={isHorizontal ? plotY + plotH : ChartThemeUtils.snapToPixel(pos)}
-                      stroke="var(--fl-chart-grid-color)"
-                      stroke-width="1"
-                      opacity={theme.gridlines.opacity}
-                    />
-                  );
-                })}
-              </g>
-            )}
+            {renderValueAxis({
+              ticks: scale.ticks, min: scale.min, max: scale.max,
+              plotX, plotY, plotW, plotH, fontSize, fontFamily: theme.fontFamily,
+              horizontal: isHorizontal, showGrid: !!this.config.showGrid, gridOpacity: theme.gridlines.opacity
+            })}
 
             {bars.map((bar, i) => (
               <g key={i}>

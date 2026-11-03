@@ -33,6 +33,8 @@ export interface BarFrameInput {
   showCategories: boolean;
   /** Extra left margin in px, e.g. for value-axis tick labels. */
   leftInset?: number;
+  /** Value-axis tick labels (already formatted); reserves a left margin, or a bottom one for horizontal charts. */
+  tickLabels?: string[];
 }
 
 export interface BarFrame {
@@ -76,6 +78,13 @@ export function computeBarFrame(input: BarFrameInput): BarFrame {
   }
 
   left += input.leftInset || 0;
+  if (input.tickLabels && input.tickLabels.length) {
+    if (horizontal) {
+      bottom += fontSize + 8;
+    } else {
+      left += Math.max(...input.tickLabels.map(t => t.length)) * charWidth + 8;
+    }
+  }
 
   const rightPad = pad + (horizontal && valueLabels ? 40 : 0);
   const plotW = Math.max(0, W - left - rightPad);
