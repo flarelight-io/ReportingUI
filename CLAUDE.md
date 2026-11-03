@@ -11,6 +11,7 @@ npm test               # Jest unit tests + Puppeteer E2E tests
 npm run test.watch     # Continuous test watching
 npm run generate       # Scaffold a new Stencil component
 npm run bundle:esbuild # Build standalone flarelight-reporting-esbuild.js (no deps)
+npm run generate:config-schemas # Refresh src/utils/widget-config-schemas.ts from src/schema.json
 ```
 
 There is no lint script. Tests use Jest (spec) and Puppeteer (e2e); both run together with `npm test`.
@@ -22,10 +23,14 @@ This is a **StencilJS web components library** that publishes reusable reporting
 ### Component Hierarchy
 
 ```
-<report-viewer>          ← Main container: parses config, manages grid layout (Gridstack),
+<report-viewer>          ← Main container: parses config, renders the CSS grid layout,
                            owns filter state, calls fetchChartData()
   └── <*-widget>         ← Widgets extend BaseWidget; receive data props from report-viewer
         └── <*-visualization>  ← Chart/viz components extend BaseVisualization; render Chart.js
+
+<report-builder>         ← Optional editing layer around <report-viewer>: selection frames, move/resize,
+                           undo/redo, config hook or built-in <widget-config-form>. Controlled:
+                           emits configurationChange, the app applies it
 ```
 
 All widgets inherit from `base-widget.tsx`. All visualizations inherit from `base-visualization.ts`. The base classes handle shared lifecycle, data loading, and event emission.
@@ -44,7 +49,8 @@ All widgets inherit from `base-widget.tsx`. All visualizations inherit from `bas
 - `src/components/widgets/visualizations/` — Chart renderers (bar, line, pie, heatmap, scatter, table, etc.)
 - `src/components/report-viewer/` — Top-level container component
 - `src/api/types/common.ts` — Shared API interfaces (`ChartDataRequest`, `DataSource`, `Filter`)
-- `src/utils/` — `ChartDataRequestBuilder`, `ChartThemeUtils`, general utils
+- `src/components/report-builder/` — `<report-builder>` and `<widget-config-form>`; `src/components/builder-demo/` is the builder demo page (`/builder.html`)
+- `src/utils/` — `ChartDataRequestBuilder`, `ChartThemeUtils`, general utils; the report builder's pure logic: `layout.ts` (layout engine), `report-layout.ts` (config helpers), `widget-catalog.ts`, `config-form.ts`, `widget-registry.ts`
 - `src/global/theme.scss` — Global SCSS theme
 - `src/schema.json` — UI schema defining widget configuration shape
 
@@ -75,3 +81,4 @@ Integration guides live in the `docs/` folder:
 - `docs/dotnet-integration.md`
 - `docs/esbuild-bundle.md`
 - `docs/development.md` — full architecture and contributor guide
+- `docs/report-builder.md` — the report builder (API, keyboard, configuration UI); design and status in `docs/design/report-builder.md`

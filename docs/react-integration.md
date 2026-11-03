@@ -143,6 +143,33 @@ function Dashboard() {
 
 ---
 
+## Report builder
+
+`<report-builder>` is a controlled editing layer over the viewer: keep the report in state and apply what it emits. Events are DOM `CustomEvent`s, so subscribe with a ref:
+
+```tsx
+function Editor({ initial, sources, fetchChartData }) {
+  const [report, setReport] = React.useState(initial);
+  const ref = React.useRef<HTMLReportBuilderElement>(null);
+
+  React.useEffect(() => {
+    const el = ref.current!;
+    const onChange = (e: Event) => setReport((e as CustomEvent).detail); // also the place to save
+    el.addEventListener('configurationChange', onChange);
+    return () => el.removeEventListener('configurationChange', onChange);
+  }, []);
+
+  return (
+    <>
+      <button onClick={() => ref.current!.addWidget('data', { config: { visualizationType: 'bar' } })}>Add bar chart</button>
+      <report-builder ref={ref} configuration={report} sources={sources} fetchChartData={fetchChartData} reportId="editor" />
+    </>
+  );
+}
+```
+
+Without a `configureWidget` prop the builder shows its own configuration form; pass a function to open your own dialog instead. See [report-builder.md](report-builder.md).
+
 ## Approach B: Individual widgets with custom layout (advanced)
 
 Use individual widget components when you need to build your own layout engine (e.g. with `react-grid-layout`), or when you're building a report editor alongside a viewer.

@@ -1,4 +1,4 @@
-import { Component, h, State, Element, Watch } from '@stencil/core';
+import { Component, h, State, Element, Watch, Method, Prop } from '@stencil/core';
 import { ColorTheme, ChartThemeUtils } from '../../utils/chart-theme';
 
 const DEBUG_MODE = false; // Set to true to enable verbose logging
@@ -11,6 +11,9 @@ const DEBUG_MODE = false; // Set to true to enable verbose logging
 export class ReportDemo {
   @Element() hostElement: HTMLElement;
   
+  /** Renders nothing: the builder demo borrows this component's sample report and data function (`getDemoKit`). */
+  @Prop() headless: boolean = false;
+
   @State() heightMode: 'auto' | 'fixed' = 'auto';
   
   @State() demoConfiguration = {
@@ -1110,7 +1113,14 @@ export class ReportDemo {
     }
   };
 
+  /** The sample report (a copy) and the function that answers its data requests. */
+  @Method()
+  async getDemoKit(): Promise<{ configuration: any; fetchChartData: (request: any) => Promise<any> }> {
+    return { configuration: JSON.parse(JSON.stringify(this.demoConfiguration)), fetchChartData: this.fetchChartData };
+  }
+
   componentDidLoad() {
+    if (this.headless) return;
     console.log('Component did load');
     
     // Set initial color theme
@@ -2532,6 +2542,7 @@ export class ReportDemo {
   }
 
   render() {
+    if (this.headless) return <div hidden></div>;
     return (
       <div class="demo-container">
         <header class="demo-header">

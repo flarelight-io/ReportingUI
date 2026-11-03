@@ -39,6 +39,7 @@ Example configuration:
 | Property          | Attribute          | Description                                                                                                                                                                                                                                                                                                                                                                                                                          | Type                          | Default     |
 | ----------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------- | ----------- |
 | `activeFilters`   | --                 | Filters applied to the report. Providing this property (even `[]`) makes the filters **managed**: the viewer never changes them itself. When the user clicks a chart element it emits `filtersChange` with the proposed list, and the app decides by setting this property again. Leave it undefined for **unmanaged** use, where the viewer keeps the filters itself (and still emits `filtersChange` so the app can observe them). | `Filter[]`                    | `undefined` |
+| `columns`         | `columns`          | Number of grid columns (default 12). `x` and `w` of widgets are counted in these columns; widgets wider than the grid are clamped. Also available as `columns` in the report configuration; the property wins.                                                                                                                                                                                                                       | `number`                      | `undefined` |
 | `configuration`   | `configuration`    |                                                                                                                                                                                                                                                                                                                                                                                                                                      | `any`                         | `undefined` |
 | `defaultFilters`  | --                 | Filters to start with in unmanaged mode. Read once on load; ignored when `activeFilters` is provided.                                                                                                                                                                                                                                                                                                                                | `Filter[]`                    | `undefined` |
 | `fetchChartData`  | --                 |                                                                                                                                                                                                                                                                                                                                                                                                                                      | `Function`                    | `undefined` |
@@ -50,6 +51,7 @@ Example configuration:
 | `rowAspectRatio`  | `row-aspect-ratio` | Column width divided by row height (heightMode="auto" only): 1 gives square rows (the default), 2 gives rows half as tall as a column is wide. Ignored when `rowHeight` is set.                                                                                                                                                                                                                                                      | `number`                      | `undefined` |
 | `rowHeight`       | `row-height`       | Row height in pixels (heightMode="auto" only). Takes precedence over `rowAspectRatio` and over `rowHeight` in the report configuration.                                                                                                                                                                                                                                                                                              | `number`                      | `undefined` |
 | `showPlaceholder` | `show-placeholder` |                                                                                                                                                                                                                                                                                                                                                                                                                                      | `boolean`                     | `true`      |
+| `sources`         | --                 | Data sources for the report. Takes precedence over `configuration.sources`, so apps can supply sources (and their fields) at render time instead of embedding them in the saved report.                                                                                                                                                                                                                                              | `DataSource[]`                | `undefined` |
 | `theme`           | `theme`            | Light or dark appearance for this report. `auto` (default) follows the page: a `data-theme` attribute or `dark`/`light` class on <html>, otherwise the system preference. `light`/`dark` forces it for this viewer only, so apps can drive it from their own toggle.                                                                                                                                                                 | `"auto" \| "dark" \| "light"` | `'auto'`    |
 
 
@@ -103,55 +105,20 @@ Type: `Promise<void>`
 
 ### Used by
 
+ - [report-builder](../report-builder)
  - [report-demo](../report-demo)
 
 ### Depends on
 
 - [text-widget](../widgets)
-- [source-info-widget](../widgets)
-- [descriptive-analysis-widget](../widgets)
-- [correlation-analysis-widget](../widgets)
-- [one-sample-hypothesis-test-widget](../widgets)
-- [one-sample-wilcoxon-signed-rank-widget](../widgets)
-- [paired-two-sample-wilcoxon-signed-rank-widget](../widgets)
-- [independent-two-sample-hypothesis-test-widget](../widgets)
-- [paired-two-sample-hypothesis-test-widget](../widgets)
-- [welch-two-sample-hypothesis-test-widget](../widgets)
-- [one-way-anova-widget](../widgets)
-- [welch-anova-widget](../widgets)
-- [mann-whitney-u-test-widget](../widgets)
-- [kruskal-wallis-test-widget](../widgets)
-- [shapiro-wilk-test-widget](../widgets)
-- [kolmogorov-smirnov-normality-test-widget](../widgets)
-- [anderson-darling-normality-test-widget](../widgets)
-- [box-whisker-normality-plot-widget](../widgets)
 - [data-widget](../widgets)
 
 ### Graph
 ```mermaid
 graph TD;
   report-viewer --> text-widget
-  report-viewer --> source-info-widget
-  report-viewer --> descriptive-analysis-widget
-  report-viewer --> correlation-analysis-widget
-  report-viewer --> one-sample-hypothesis-test-widget
-  report-viewer --> one-sample-wilcoxon-signed-rank-widget
-  report-viewer --> paired-two-sample-wilcoxon-signed-rank-widget
-  report-viewer --> independent-two-sample-hypothesis-test-widget
-  report-viewer --> paired-two-sample-hypothesis-test-widget
-  report-viewer --> welch-two-sample-hypothesis-test-widget
-  report-viewer --> one-way-anova-widget
-  report-viewer --> welch-anova-widget
-  report-viewer --> mann-whitney-u-test-widget
-  report-viewer --> kruskal-wallis-test-widget
-  report-viewer --> shapiro-wilk-test-widget
-  report-viewer --> kolmogorov-smirnov-normality-test-widget
-  report-viewer --> anderson-darling-normality-test-widget
-  report-viewer --> box-whisker-normality-plot-widget
   report-viewer --> data-widget
   text-widget --> base-widget
-  source-info-widget --> base-widget
-  source-info-widget --> data-widget
   data-widget --> table-visualization
   data-widget --> bar-chart-visualization
   data-widget --> stacked-bar-chart-visualization
@@ -168,25 +135,7 @@ graph TD;
   data-widget --> box-whisker-chart-visualization
   data-widget --> filter-visualization
   data-widget --> base-widget
-  descriptive-analysis-widget --> base-widget
-  descriptive-analysis-widget --> data-widget
-  correlation-analysis-widget --> base-widget
-  one-sample-hypothesis-test-widget --> base-widget
-  one-sample-wilcoxon-signed-rank-widget --> base-widget
-  paired-two-sample-wilcoxon-signed-rank-widget --> base-widget
-  independent-two-sample-hypothesis-test-widget --> base-widget
-  paired-two-sample-hypothesis-test-widget --> base-widget
-  welch-two-sample-hypothesis-test-widget --> base-widget
-  one-way-anova-widget --> base-widget
-  one-way-anova-widget --> data-widget
-  welch-anova-widget --> base-widget
-  welch-anova-widget --> data-widget
-  mann-whitney-u-test-widget --> base-widget
-  kruskal-wallis-test-widget --> base-widget
-  shapiro-wilk-test-widget --> base-widget
-  kolmogorov-smirnov-normality-test-widget --> base-widget
-  anderson-darling-normality-test-widget --> base-widget
-  box-whisker-normality-plot-widget --> data-widget
+  report-builder --> report-viewer
   report-demo --> report-viewer
   style report-viewer fill:#f9f,stroke:#333,stroke-width:4px
 ```

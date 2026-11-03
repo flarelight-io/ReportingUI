@@ -12,7 +12,7 @@ import { ColorTheme } from "./utils/chart-theme";
 import { BoxWhiskerNormalityPlotWidgetConfig } from "./components/widgets/box-whisker-normality-plot-widget";
 import { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlation-analysis-widget";
 import { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data-widget";
-import { Filter } from "./api/types/common";
+import { DataSource, Filter } from "./api/types/common";
 import { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
 import { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/independent-two-sample-hypothesis-test-widget";
 import { KolmogorovSmirnovNormalityTestWidgetConfig } from "./components/widgets/kolmogorov-smirnov-normality-test-widget";
@@ -23,6 +23,9 @@ import { OneSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/on
 import { OneWayAnovaWidgetConfig } from "./components/widgets/one-way-anova-widget";
 import { PairedTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/paired-two-sample-hypothesis-test-widget";
 import { PairedTwoSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/paired-two-sample-wilcoxon-signed-rank-widget";
+import { WidgetTypeDefinition } from "./utils/widget-catalog";
+import { ConfigFormLabels } from "./utils/config-form";
+import { ReportWidgetDef } from "./utils/report-layout";
 import { ShapiroWilkTestWidgetConfig } from "./components/widgets/shapiro-wilk-test-widget";
 import { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 import { TextWidgetConfig } from "./components/widgets/text-widget";
@@ -35,7 +38,7 @@ export { ColorTheme } from "./utils/chart-theme";
 export { BoxWhiskerNormalityPlotWidgetConfig } from "./components/widgets/box-whisker-normality-plot-widget";
 export { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlation-analysis-widget";
 export { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data-widget";
-export { Filter } from "./api/types/common";
+export { DataSource, Filter } from "./api/types/common";
 export { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
 export { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/independent-two-sample-hypothesis-test-widget";
 export { KolmogorovSmirnovNormalityTestWidgetConfig } from "./components/widgets/kolmogorov-smirnov-normality-test-widget";
@@ -46,6 +49,9 @@ export { OneSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/on
 export { OneWayAnovaWidgetConfig } from "./components/widgets/one-way-anova-widget";
 export { PairedTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/paired-two-sample-hypothesis-test-widget";
 export { PairedTwoSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/paired-two-sample-wilcoxon-signed-rank-widget";
+export { WidgetTypeDefinition } from "./utils/widget-catalog";
+export { ConfigFormLabels } from "./utils/config-form";
+export { ReportWidgetDef } from "./utils/report-layout";
 export { ShapiroWilkTestWidgetConfig } from "./components/widgets/shapiro-wilk-test-widget";
 export { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 export { TextWidgetConfig } from "./components/widgets/text-widget";
@@ -157,6 +163,12 @@ export namespace Components {
         "colorTheme": ColorTheme;
         "config": DataWidgetConfig;
         "data": VisualizationData;
+    }
+    /**
+     * Demo page for `<report-builder>`: the sample report from the viewer demo, an app-built toolbar around the builder's
+     * methods, a `configureWidget` hook with a small dialog of its own, and a live view of what the builder emits.
+     */
+    interface BuilderDemo {
     }
     interface ClusteredBarChartVisualization {
         /**
@@ -575,7 +587,135 @@ export namespace Components {
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
+    /**
+     * Edit layer for a report: select, move, resize, add and delete widgets on the grid. The configuration is
+     * controlled: it is passed in, and every user change is emitted as `configurationChange` with the full next
+     * configuration for the app to apply (and save). Widgets render with the regular `<report-viewer>`, so what you
+     * edit is what the viewer shows. The builder has no toolbar or palette: apps build their own around `addWidget`,
+     * `removeWidgets`, `updateWidget` and `select`.
+     */
+    interface ReportBuilder {
+        /**
+          * Adds a widget of the given type (at the first free spot, or at `x`/`y`) and selects it. Resolves with its id, or null when it couldn't be placed (for example `compact: 'none'` and no room at the requested position).
+         */
+        "addWidget": (type: string, options?: { id?: string; title?: string; x?: number; y?: number; w?: number; h?: number; config?: Record<string, any>; }) => Promise<string | null>;
+        /**
+          * Presentation, passed to the viewer (see `<report-viewer>`).
+         */
+        "columns"?: number;
+        /**
+          * `vertical` (default): colliding widgets are pushed down and gaps close upwards. `none`: widgets stay where they are put and moves that would overlap are rejected.
+          * @default 'vertical'
+         */
+        "compact": 'vertical' | 'none';
+        /**
+          * Texts of the built-in form (translations); anything left out stays English.
+         */
+        "configLabels"?: Partial<ConfigFormLabels>;
+        /**
+          * The report configuration. Controlled: apply `configurationChange` by setting this again.
+         */
+        "configuration": any;
+        /**
+          * Starting configuring a widget: emits `widgetAction` (`configure`) and, when a `configureWidget` hook is set, calls it and applies the widget it resolves with. Resolves with whether a change was applied. Without a hook, apps listen for `widgetAction` and call `updateWidget`.
+         */
+        "configure": (id: string) => Promise<boolean>;
+        /**
+          * Whether `addWidget` calls `configureWidget` before adding.
+          * @default true
+         */
+        "configureOnAdd": boolean;
+        /**
+          * The built-in configuration form, used when there is no `configureWidget` hook (or the hook resolves with `undefined`, which means "use the default for this one"): `panel` (default) is a drawer on the right, `modal` a centered dialog, `none` turns the default off so widgets are only configured through the hook or `updateWidget`.
+          * @default 'panel'
+         */
+        "configurePanel": 'panel' | 'modal' | 'none';
+        /**
+          * Called to configure a widget: when one is added (`mode: 'add'`) and when the user double-clicks it, presses Enter or uses its settings button (`'edit'`). Open whatever UI you like, then resolve with the new widget definition (any keys the backend supports), or `null` to cancel: a cancelled add adds nothing, a cancelled edit changes nothing.
+         */
+        "configureWidget"?: (request: {
+    mode: 'add' | 'edit';
+    widget: Record<string, any>;
+    definition: { type: string; label: string; defaultSize: { w: number; h: number }; minSize?: { w: number; h: number }; maxSize?: { w: number; h: number } };
+    sources: DataSource[];
+  }) => Promise<Record<string, any> | null> | Record<string, any> | null;
+        /**
+          * Remembers widgets for `paste()` (also Ctrl/Cmd+C). The clipboard belongs to the builder, not the system.
+         */
+        "copy": (ids: string[]) => Promise<void>;
+        /**
+          * Duplicates widgets (settings and size included) and selects the copies. Resolves with their ids.
+         */
+        "duplicate": (ids: string[]) => Promise<string[]>;
+        /**
+          * Same data function the viewer takes, so widgets show real data while editing.
+         */
+        "fetchChartData": Function;
+        "gap"?: number;
+        /**
+          * The ids of the selected widgets.
+         */
+        "getSelection": () => Promise<string[]>;
+        /**
+          * What a widget shows while it is dragged or resized: `outline` (default) hides its content and keeps the frame and title, which is cheaper and a clearer drop target; `live` keeps the content visible.
+          * @default 'outline'
+         */
+        "interactionPreview": 'outline' | 'live';
+        /**
+          * Adds copies of what `copy()` remembered. Resolves with the new ids.
+         */
+        "paste": () => Promise<string[]>;
+        /**
+          * Turns the editing layer off: the report just renders.
+          * @default false
+         */
+        "readOnly": boolean;
+        /**
+          * Re-applies a change that was undone. Resolves with whether it did.
+         */
+        "redo": () => Promise<boolean>;
+        /**
+          * Removes widgets and closes the gaps they leave (unless `compact` is `none`).
+         */
+        "removeWidgets": (ids: string[]) => Promise<void>;
+        "reportId"?: string;
+        "rowAspectRatio"?: number;
+        "rowHeight"?: number;
+        /**
+          * Selects widgets by id (an empty list clears the selection).
+         */
+        "select": (ids: string[]) => Promise<void>;
+        /**
+          * Sources available in the report (overrides `configuration.sources`).
+         */
+        "sources"?: DataSource[];
+        /**
+          * @default 'auto'
+         */
+        "theme": 'light' | 'dark' | 'auto';
+        /**
+          * Steps back to the configuration before the last change the builder made. Resolves with whether it did.
+         */
+        "undo": () => Promise<boolean>;
+        /**
+          * Merges a patch into a widget (title, config, position, anything). This is how an app applies its own configuration UI. A position change is run through the layout engine so other widgets make room.
+         */
+        "updateWidget": (id: string, patch: Record<string, any>) => Promise<void>;
+        /**
+          * Describes the widget types users can add: sizes, limits, default config. Types not listed use built-in defaults.
+         */
+        "widgetCatalog"?: WidgetTypeDefinition[];
+    }
     interface ReportDemo {
+        /**
+          * The sample report (a copy) and the function that answers its data requests.
+         */
+        "getDemoKit": () => Promise<{ configuration: any; fetchChartData: (request: any) => Promise<any>; }>;
+        /**
+          * Renders nothing: the builder demo borrows this component's sample report and data function (`getDemoKit`).
+          * @default false
+         */
+        "headless": boolean;
     }
     interface ReportViewer {
         /**
@@ -586,6 +726,10 @@ export namespace Components {
           * Removes all filters (same managed/unmanaged rules as `setFilters`).
          */
         "clearFilters": () => Promise<void>;
+        /**
+          * Number of grid columns (default 12). `x` and `w` of widgets are counted in these columns; widgets wider than the grid are clamped. Also available as `columns` in the report configuration; the property wins.
+         */
+        "columns"?: number;
         "configuration": any;
         /**
           * Filters to start with in unmanaged mode. Read once on load; ignored when `activeFilters` is provided.
@@ -629,6 +773,10 @@ export namespace Components {
           * @default true
          */
         "showPlaceholder": boolean;
+        /**
+          * Data sources for the report. Takes precedence over `configuration.sources`, so apps can supply sources (and their fields) at render time instead of embedding them in the saved report.
+         */
+        "sources"?: DataSource[];
         /**
           * Light or dark appearance for this report. `auto` (default) follows the page: a `data-theme` attribute or `dark`/`light` class on <html>, otherwise the system preference. `light`/`dark` forces it for this viewer only, so apps can drive it from their own toggle.
           * @default 'auto'
@@ -791,6 +939,35 @@ export namespace Components {
         "widgetTitle": string;
         "width"?: number;
     }
+    /**
+     * The report builder's default configuration form for one widget: a title, and the fields of the widget type's config
+     * schema (see `utils/config-form`). Used by `<report-builder>` when the app gives no `configureWidget` hook (or the hook
+     * returns `undefined`), and usable on its own: it emits `configApply` with the edited widget or `configCancel`.
+     */
+    interface WidgetConfigForm {
+        "labels"?: Partial<ConfigFormLabels>;
+        /**
+          * @default 'edit'
+         */
+        "mode": 'add' | 'edit';
+        /**
+          * The widget type's config schema.
+         */
+        "schema"?: Record<string, any>;
+        /**
+          * @default []
+         */
+        "sources": DataSource[];
+        /**
+          * Name of the widget type, for the heading.
+          * @default ''
+         */
+        "typeLabel": string;
+        /**
+          * The widget being edited (a new one with defaults when adding).
+         */
+        "widget": Record<string, any>;
+    }
 }
 export interface BarChartVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -840,6 +1017,10 @@ export interface PieChartVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLPieChartVisualizationElement;
 }
+export interface ReportBuilderCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLReportBuilderElement;
+}
 export interface ReportViewerCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLReportViewerElement;
@@ -859,6 +1040,10 @@ export interface SunburstChartVisualizationCustomEvent<T> extends CustomEvent<T>
 export interface TableVisualizationCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLTableVisualizationElement;
+}
+export interface WidgetConfigFormCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLWidgetConfigFormElement;
 }
 declare global {
     interface HTMLAndersonDarlingNormalityTestWidgetElement extends Components.AndersonDarlingNormalityTestWidget, HTMLStencilElement {
@@ -929,6 +1114,16 @@ declare global {
     var HTMLBubbleChartVisualizationElement: {
         prototype: HTMLBubbleChartVisualizationElement;
         new (): HTMLBubbleChartVisualizationElement;
+    };
+    /**
+     * Demo page for `<report-builder>`: the sample report from the viewer demo, an app-built toolbar around the builder's
+     * methods, a `configureWidget` hook with a small dialog of its own, and a live view of what the builder emits.
+     */
+    interface HTMLBuilderDemoElement extends Components.BuilderDemo, HTMLStencilElement {
+    }
+    var HTMLBuilderDemoElement: {
+        prototype: HTMLBuilderDemoElement;
+        new (): HTMLBuilderDemoElement;
     };
     interface HTMLClusteredBarChartVisualizationElementEventMap {
         "filterChange": FilterChangeEventDetail;
@@ -1149,6 +1344,33 @@ declare global {
         prototype: HTMLPieChartVisualizationElement;
         new (): HTMLPieChartVisualizationElement;
     };
+    interface HTMLReportBuilderElementEventMap {
+        "configurationChange": any;
+        "widgetSelect": { ids: string[] };
+        "historyChange": { canUndo: boolean; canRedo: boolean };
+        "widgetAction": { id: string; action: 'configure' };
+    }
+    /**
+     * Edit layer for a report: select, move, resize, add and delete widgets on the grid. The configuration is
+     * controlled: it is passed in, and every user change is emitted as `configurationChange` with the full next
+     * configuration for the app to apply (and save). Widgets render with the regular `<report-viewer>`, so what you
+     * edit is what the viewer shows. The builder has no toolbar or palette: apps build their own around `addWidget`,
+     * `removeWidgets`, `updateWidget` and `select`.
+     */
+    interface HTMLReportBuilderElement extends Components.ReportBuilder, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLReportBuilderElementEventMap>(type: K, listener: (this: HTMLReportBuilderElement, ev: ReportBuilderCustomEvent<HTMLReportBuilderElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLReportBuilderElementEventMap>(type: K, listener: (this: HTMLReportBuilderElement, ev: ReportBuilderCustomEvent<HTMLReportBuilderElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLReportBuilderElement: {
+        prototype: HTMLReportBuilderElement;
+        new (): HTMLReportBuilderElement;
+    };
     interface HTMLReportDemoElement extends Components.ReportDemo, HTMLStencilElement {
     }
     var HTMLReportDemoElement: {
@@ -1270,6 +1492,29 @@ declare global {
         prototype: HTMLWelchTwoSampleHypothesisTestWidgetElement;
         new (): HTMLWelchTwoSampleHypothesisTestWidgetElement;
     };
+    interface HTMLWidgetConfigFormElementEventMap {
+        "configApply": Record<string, any>;
+        "configCancel": void;
+    }
+    /**
+     * The report builder's default configuration form for one widget: a title, and the fields of the widget type's config
+     * schema (see `utils/config-form`). Used by `<report-builder>` when the app gives no `configureWidget` hook (or the hook
+     * returns `undefined`), and usable on its own: it emits `configApply` with the edited widget or `configCancel`.
+     */
+    interface HTMLWidgetConfigFormElement extends Components.WidgetConfigForm, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLWidgetConfigFormElementEventMap>(type: K, listener: (this: HTMLWidgetConfigFormElement, ev: WidgetConfigFormCustomEvent<HTMLWidgetConfigFormElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLWidgetConfigFormElementEventMap>(type: K, listener: (this: HTMLWidgetConfigFormElement, ev: WidgetConfigFormCustomEvent<HTMLWidgetConfigFormElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLWidgetConfigFormElement: {
+        prototype: HTMLWidgetConfigFormElement;
+        new (): HTMLWidgetConfigFormElement;
+    };
     interface HTMLElementTagNameMap {
         "anderson-darling-normality-test-widget": HTMLAndersonDarlingNormalityTestWidgetElement;
         "bar-chart-visualization": HTMLBarChartVisualizationElement;
@@ -1277,6 +1522,7 @@ declare global {
         "box-whisker-chart-visualization": HTMLBoxWhiskerChartVisualizationElement;
         "box-whisker-normality-plot-widget": HTMLBoxWhiskerNormalityPlotWidgetElement;
         "bubble-chart-visualization": HTMLBubbleChartVisualizationElement;
+        "builder-demo": HTMLBuilderDemoElement;
         "clustered-bar-chart-visualization": HTMLClusteredBarChartVisualizationElement;
         "correlation-analysis-widget": HTMLCorrelationAnalysisWidgetElement;
         "data-widget": HTMLDataWidgetElement;
@@ -1297,6 +1543,7 @@ declare global {
         "paired-two-sample-hypothesis-test-widget": HTMLPairedTwoSampleHypothesisTestWidgetElement;
         "paired-two-sample-wilcoxon-signed-rank-widget": HTMLPairedTwoSampleWilcoxonSignedRankWidgetElement;
         "pie-chart-visualization": HTMLPieChartVisualizationElement;
+        "report-builder": HTMLReportBuilderElement;
         "report-demo": HTMLReportDemoElement;
         "report-viewer": HTMLReportViewerElement;
         "scatter-chart-visualization": HTMLScatterChartVisualizationElement;
@@ -1308,6 +1555,7 @@ declare global {
         "text-widget": HTMLTextWidgetElement;
         "welch-anova-widget": HTMLWelchAnovaWidgetElement;
         "welch-two-sample-hypothesis-test-widget": HTMLWelchTwoSampleHypothesisTestWidgetElement;
+        "widget-config-form": HTMLWidgetConfigFormElement;
     }
 }
 declare namespace LocalJSX {
@@ -1419,6 +1667,12 @@ declare namespace LocalJSX {
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: BubbleChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
+    }
+    /**
+     * Demo page for `<report-builder>`: the sample report from the viewer demo, an app-built toolbar around the builder's
+     * methods, a `configureWidget` hook with a small dialog of its own, and a live view of what the builder emits.
+     */
+    interface BuilderDemo {
     }
     interface ClusteredBarChartVisualization {
         /**
@@ -1846,13 +2100,110 @@ declare namespace LocalJSX {
         "data"?: VisualizationData;
         "onFilterChange"?: (event: PieChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
     }
+    /**
+     * Edit layer for a report: select, move, resize, add and delete widgets on the grid. The configuration is
+     * controlled: it is passed in, and every user change is emitted as `configurationChange` with the full next
+     * configuration for the app to apply (and save). Widgets render with the regular `<report-viewer>`, so what you
+     * edit is what the viewer shows. The builder has no toolbar or palette: apps build their own around `addWidget`,
+     * `removeWidgets`, `updateWidget` and `select`.
+     */
+    interface ReportBuilder {
+        /**
+          * Presentation, passed to the viewer (see `<report-viewer>`).
+         */
+        "columns"?: number;
+        /**
+          * `vertical` (default): colliding widgets are pushed down and gaps close upwards. `none`: widgets stay where they are put and moves that would overlap are rejected.
+          * @default 'vertical'
+         */
+        "compact"?: 'vertical' | 'none';
+        /**
+          * Texts of the built-in form (translations); anything left out stays English.
+         */
+        "configLabels"?: Partial<ConfigFormLabels>;
+        /**
+          * The report configuration. Controlled: apply `configurationChange` by setting this again.
+         */
+        "configuration"?: any;
+        /**
+          * Whether `addWidget` calls `configureWidget` before adding.
+          * @default true
+         */
+        "configureOnAdd"?: boolean;
+        /**
+          * The built-in configuration form, used when there is no `configureWidget` hook (or the hook resolves with `undefined`, which means "use the default for this one"): `panel` (default) is a drawer on the right, `modal` a centered dialog, `none` turns the default off so widgets are only configured through the hook or `updateWidget`.
+          * @default 'panel'
+         */
+        "configurePanel"?: 'panel' | 'modal' | 'none';
+        /**
+          * Called to configure a widget: when one is added (`mode: 'add'`) and when the user double-clicks it, presses Enter or uses its settings button (`'edit'`). Open whatever UI you like, then resolve with the new widget definition (any keys the backend supports), or `null` to cancel: a cancelled add adds nothing, a cancelled edit changes nothing.
+         */
+        "configureWidget"?: (request: {
+    mode: 'add' | 'edit';
+    widget: Record<string, any>;
+    definition: { type: string; label: string; defaultSize: { w: number; h: number }; minSize?: { w: number; h: number }; maxSize?: { w: number; h: number } };
+    sources: DataSource[];
+  }) => Promise<Record<string, any> | null> | Record<string, any> | null;
+        /**
+          * Same data function the viewer takes, so widgets show real data while editing.
+         */
+        "fetchChartData"?: Function;
+        "gap"?: number;
+        /**
+          * What a widget shows while it is dragged or resized: `outline` (default) hides its content and keeps the frame and title, which is cheaper and a clearer drop target; `live` keeps the content visible.
+          * @default 'outline'
+         */
+        "interactionPreview"?: 'outline' | 'live';
+        /**
+          * The full next configuration, whenever the user changes the layout or the app calls a method.
+         */
+        "onConfigurationChange"?: (event: ReportBuilderCustomEvent<any>) => void;
+        /**
+          * Undo/redo availability changed.
+         */
+        "onHistoryChange"?: (event: ReportBuilderCustomEvent<{ canUndo: boolean; canRedo: boolean }>) => void;
+        "onWidgetAction"?: (event: ReportBuilderCustomEvent<{ id: string; action: 'configure' }>) => void;
+        /**
+          * The selection changed.
+         */
+        "onWidgetSelect"?: (event: ReportBuilderCustomEvent<{ ids: string[] }>) => void;
+        /**
+          * Turns the editing layer off: the report just renders.
+          * @default false
+         */
+        "readOnly"?: boolean;
+        "reportId"?: string;
+        "rowAspectRatio"?: number;
+        "rowHeight"?: number;
+        /**
+          * Sources available in the report (overrides `configuration.sources`).
+         */
+        "sources"?: DataSource[];
+        /**
+          * @default 'auto'
+         */
+        "theme"?: 'light' | 'dark' | 'auto';
+        /**
+          * Describes the widget types users can add: sizes, limits, default config. Types not listed use built-in defaults.
+         */
+        "widgetCatalog"?: WidgetTypeDefinition[];
+    }
     interface ReportDemo {
+        /**
+          * Renders nothing: the builder demo borrows this component's sample report and data function (`getDemoKit`).
+          * @default false
+         */
+        "headless"?: boolean;
     }
     interface ReportViewer {
         /**
           * Filters applied to the report. Providing this property (even `[]`) makes the filters **managed**: the viewer never changes them itself. When the user clicks a chart element it emits `filtersChange` with the proposed list, and the app decides by setting this property again. Leave it undefined for **unmanaged** use, where the viewer keeps the filters itself (and still emits `filtersChange` so the app can observe them).
          */
         "activeFilters"?: Filter[];
+        /**
+          * Number of grid columns (default 12). `x` and `w` of widgets are counted in these columns; widgets wider than the grid are clamped. Also available as `columns` in the report configuration; the property wins.
+         */
+        "columns"?: number;
         "configuration"?: any;
         /**
           * Filters to start with in unmanaged mode. Read once on load; ignored when `activeFilters` is provided.
@@ -1892,6 +2243,10 @@ declare namespace LocalJSX {
           * @default true
          */
         "showPlaceholder"?: boolean;
+        /**
+          * Data sources for the report. Takes precedence over `configuration.sources`, so apps can supply sources (and their fields) at render time instead of embedding them in the saved report.
+         */
+        "sources"?: DataSource[];
         /**
           * Light or dark appearance for this report. `auto` (default) follows the page: a `data-theme` attribute or `dark`/`light` class on <html>, otherwise the system preference. `light`/`dark` forces it for this viewer only, so apps can drive it from their own toggle.
           * @default 'auto'
@@ -2058,6 +2413,37 @@ declare namespace LocalJSX {
         "widgetTitle"?: string;
         "width"?: number;
     }
+    /**
+     * The report builder's default configuration form for one widget: a title, and the fields of the widget type's config
+     * schema (see `utils/config-form`). Used by `<report-builder>` when the app gives no `configureWidget` hook (or the hook
+     * returns `undefined`), and usable on its own: it emits `configApply` with the edited widget or `configCancel`.
+     */
+    interface WidgetConfigForm {
+        "labels"?: Partial<ConfigFormLabels>;
+        /**
+          * @default 'edit'
+         */
+        "mode"?: 'add' | 'edit';
+        "onConfigApply"?: (event: WidgetConfigFormCustomEvent<Record<string, any>>) => void;
+        "onConfigCancel"?: (event: WidgetConfigFormCustomEvent<void>) => void;
+        /**
+          * The widget type's config schema.
+         */
+        "schema"?: Record<string, any>;
+        /**
+          * @default []
+         */
+        "sources"?: DataSource[];
+        /**
+          * Name of the widget type, for the heading.
+          * @default ''
+         */
+        "typeLabel"?: string;
+        /**
+          * The widget being edited (a new one with defaults when adding).
+         */
+        "widget": Record<string, any>;
+    }
     interface IntrinsicElements {
         "anderson-darling-normality-test-widget": AndersonDarlingNormalityTestWidget;
         "bar-chart-visualization": BarChartVisualization;
@@ -2065,6 +2451,7 @@ declare namespace LocalJSX {
         "box-whisker-chart-visualization": BoxWhiskerChartVisualization;
         "box-whisker-normality-plot-widget": BoxWhiskerNormalityPlotWidget;
         "bubble-chart-visualization": BubbleChartVisualization;
+        "builder-demo": BuilderDemo;
         "clustered-bar-chart-visualization": ClusteredBarChartVisualization;
         "correlation-analysis-widget": CorrelationAnalysisWidget;
         "data-widget": DataWidget;
@@ -2085,6 +2472,7 @@ declare namespace LocalJSX {
         "paired-two-sample-hypothesis-test-widget": PairedTwoSampleHypothesisTestWidget;
         "paired-two-sample-wilcoxon-signed-rank-widget": PairedTwoSampleWilcoxonSignedRankWidget;
         "pie-chart-visualization": PieChartVisualization;
+        "report-builder": ReportBuilder;
         "report-demo": ReportDemo;
         "report-viewer": ReportViewer;
         "scatter-chart-visualization": ScatterChartVisualization;
@@ -2096,6 +2484,7 @@ declare namespace LocalJSX {
         "text-widget": TextWidget;
         "welch-anova-widget": WelchAnovaWidget;
         "welch-two-sample-hypothesis-test-widget": WelchTwoSampleHypothesisTestWidget;
+        "widget-config-form": WidgetConfigForm;
     }
 }
 export { LocalJSX as JSX };
@@ -2108,6 +2497,11 @@ declare module "@stencil/core" {
             "box-whisker-chart-visualization": LocalJSX.BoxWhiskerChartVisualization & JSXBase.HTMLAttributes<HTMLBoxWhiskerChartVisualizationElement>;
             "box-whisker-normality-plot-widget": LocalJSX.BoxWhiskerNormalityPlotWidget & JSXBase.HTMLAttributes<HTMLBoxWhiskerNormalityPlotWidgetElement>;
             "bubble-chart-visualization": LocalJSX.BubbleChartVisualization & JSXBase.HTMLAttributes<HTMLBubbleChartVisualizationElement>;
+            /**
+             * Demo page for `<report-builder>`: the sample report from the viewer demo, an app-built toolbar around the builder's
+             * methods, a `configureWidget` hook with a small dialog of its own, and a live view of what the builder emits.
+             */
+            "builder-demo": LocalJSX.BuilderDemo & JSXBase.HTMLAttributes<HTMLBuilderDemoElement>;
             "clustered-bar-chart-visualization": LocalJSX.ClusteredBarChartVisualization & JSXBase.HTMLAttributes<HTMLClusteredBarChartVisualizationElement>;
             "correlation-analysis-widget": LocalJSX.CorrelationAnalysisWidget & JSXBase.HTMLAttributes<HTMLCorrelationAnalysisWidgetElement>;
             "data-widget": LocalJSX.DataWidget & JSXBase.HTMLAttributes<HTMLDataWidgetElement>;
@@ -2128,6 +2522,14 @@ declare module "@stencil/core" {
             "paired-two-sample-hypothesis-test-widget": LocalJSX.PairedTwoSampleHypothesisTestWidget & JSXBase.HTMLAttributes<HTMLPairedTwoSampleHypothesisTestWidgetElement>;
             "paired-two-sample-wilcoxon-signed-rank-widget": LocalJSX.PairedTwoSampleWilcoxonSignedRankWidget & JSXBase.HTMLAttributes<HTMLPairedTwoSampleWilcoxonSignedRankWidgetElement>;
             "pie-chart-visualization": LocalJSX.PieChartVisualization & JSXBase.HTMLAttributes<HTMLPieChartVisualizationElement>;
+            /**
+             * Edit layer for a report: select, move, resize, add and delete widgets on the grid. The configuration is
+             * controlled: it is passed in, and every user change is emitted as `configurationChange` with the full next
+             * configuration for the app to apply (and save). Widgets render with the regular `<report-viewer>`, so what you
+             * edit is what the viewer shows. The builder has no toolbar or palette: apps build their own around `addWidget`,
+             * `removeWidgets`, `updateWidget` and `select`.
+             */
+            "report-builder": LocalJSX.ReportBuilder & JSXBase.HTMLAttributes<HTMLReportBuilderElement>;
             "report-demo": LocalJSX.ReportDemo & JSXBase.HTMLAttributes<HTMLReportDemoElement>;
             "report-viewer": LocalJSX.ReportViewer & JSXBase.HTMLAttributes<HTMLReportViewerElement>;
             "scatter-chart-visualization": LocalJSX.ScatterChartVisualization & JSXBase.HTMLAttributes<HTMLScatterChartVisualizationElement>;
@@ -2139,6 +2541,12 @@ declare module "@stencil/core" {
             "text-widget": LocalJSX.TextWidget & JSXBase.HTMLAttributes<HTMLTextWidgetElement>;
             "welch-anova-widget": LocalJSX.WelchAnovaWidget & JSXBase.HTMLAttributes<HTMLWelchAnovaWidgetElement>;
             "welch-two-sample-hypothesis-test-widget": LocalJSX.WelchTwoSampleHypothesisTestWidget & JSXBase.HTMLAttributes<HTMLWelchTwoSampleHypothesisTestWidgetElement>;
+            /**
+             * The report builder's default configuration form for one widget: a title, and the fields of the widget type's config
+             * schema (see `utils/config-form`). Used by `<report-builder>` when the app gives no `configureWidget` hook (or the hook
+             * returns `undefined`), and usable on its own: it emits `configApply` with the edited widget or `configCancel`.
+             */
+            "widget-config-form": LocalJSX.WidgetConfigForm & JSXBase.HTMLAttributes<HTMLWidgetConfigFormElement>;
         }
     }
 }

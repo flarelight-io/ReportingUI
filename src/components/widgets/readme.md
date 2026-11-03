@@ -24,10 +24,6 @@
 
 ## Dependencies
 
-### Used by
-
- - [report-viewer](../report-viewer)
-
 ### Depends on
 
 - [base-widget](.)
@@ -36,7 +32,6 @@
 ```mermaid
 graph TD;
   welch-two-sample-hypothesis-test-widget --> base-widget
-  report-viewer --> welch-two-sample-hypothesis-test-widget
   style welch-two-sample-hypothesis-test-widget fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

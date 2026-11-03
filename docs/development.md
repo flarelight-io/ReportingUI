@@ -35,10 +35,14 @@ This is a **StencilJS web components library** that publishes reusable reporting
 ### Component Hierarchy
 
 ```
-<report-viewer>          ← Main container: parses config, manages grid layout (Gridstack),
+<report-viewer>          ← Main container: parses config, renders the CSS grid layout,
                            owns filter state, calls fetchChartData()
   └── <*-widget>         ← Widgets extend BaseWidget; receive data props from report-viewer
         └── <*-visualization>  ← Chart/viz components extend BaseVisualization; render Chart.js
+
+<report-builder>         ← Optional editing layer around <report-viewer>: selection frames, move/resize,
+                           undo/redo, config hook or built-in <widget-config-form>. Controlled:
+                           emits configurationChange, the app applies it
 ```
 
 All widgets inherit from `base-widget.tsx`. All visualizations inherit from `base-visualization.ts`. The base classes handle shared lifecycle, data loading, and event emission.
@@ -57,6 +61,9 @@ All widgets inherit from `base-widget.tsx`. All visualizations inherit from `bas
 src/
   components/
     report-viewer/          ← Top-level container component
+    report-builder/         ← <report-builder> (editing layer) and <widget-config-form> (default configuration form)
+    builder-demo/           ← Demo page for the builder (/builder.html)
+    report-demo/            ← Demo page for the viewer (/)
     widgets/                ← All widget components
       visualizations/       ← Chart renderers (bar, line, pie, heatmap, scatter, etc.)
   api/
@@ -65,6 +72,12 @@ src/
   utils/
     chart-data-request-builder.ts
     chart-theme-utils.ts
+    layout.ts               ← Pure layout engine (move, resize, add, remove, compact)
+    report-layout.ts        ← Read/edit widget positions in a report configuration (widgets and layouts formats)
+    widget-registry.ts      ← Widget type registry used by the viewer (registerWidgetType)
+    widget-catalog.ts       ← Builder widget types: sizes, defaults, config schema
+    config-form.ts          ← Turns a config schema into form fields for the default configuration form
+    widget-config-schemas.ts ← Generated from schema.json (npm run generate:config-schemas); do not edit
   global/
     theme.scss              ← Global SCSS theme variables
   schema.json               ← UI schema defining widget configuration shape
@@ -103,10 +116,30 @@ works when the backend returns a different casing in the rows.
 ```
 
 A table column's explicit `header` in the widget configuration still wins over the display name.
+
+### Supplying sources at render time
+
+Sources don't have to be embedded in the saved report. `<report-viewer>` takes a `sources` property that overrides
+`configuration.sources`; a widget only stores its `sourceId`. Changing the property refetches and re-renders, and
+clearing it falls back to the sources in the configuration.
+
+```js
+viewer.sources = await loadSourcesFromBackend();
+```
 `data-widget` builds the lookup (`VisualizationData.fieldLabels`) and visualizations use `fieldLabel(data, name)`
 from `base-visualization.ts`; use the same helper in new visualizations.
 
+## Report builder
+
+`<report-builder>` wraps an unmodified `<report-viewer>` with an overlay of frames and handles. All layout logic is pure and unit tested (`layout.ts`, `report-layout.ts`, `config-form.ts`); the component only measures the viewer's grid, turns pointer and key events into layout changes and emits `configurationChange`. See [report-builder.md](report-builder.md) for the API and [design/report-builder.md](design/report-builder.md) for the design, the phases and what was measured.
+
+To try it, run `npm start`: the viewer demo is at `/` and the builder demo at `/builder.html`.
+
+After changing `src/schema.json`, run `npm run generate:config-schemas` so the builder's configuration form follows it.
+
 ## Adding a New Widget
+
+To make the widget configurable in the report builder's form, add its config definition to `schema.json` (and regenerate), or describe it with `configSchema` in a `widgetCatalog` entry.
 
 1. Run `npm run generate` and follow the Stencil scaffold prompts.
 2. Extend `BaseWidget` from `src/components/widgets/base-widget.tsx`.

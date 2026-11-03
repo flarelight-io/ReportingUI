@@ -22,6 +22,8 @@ report-viewer {
 | Widget | `--fl-widget-radius`, `--fl-widget-shadow`, `--fl-widget-shadow-hover`, `--fl-widget-border`, `--fl-widget-header-padding`, `--fl-widget-header-background`, `--fl-widget-title-size`, `--fl-widget-title-weight`, `--fl-widget-body-padding`, `--fl-widget-body-padding-fixed` |
 | Chart  | `--fl-chart-padding`, `--fl-chart-legend-max-height`, and the existing `--fl-chart-*` colors, fonts and effects |
 
+By default a widget's padding, title and text sizes shrink as the widget gets small (down to 40% for cards under about 140 × 220 px), so a one-row text widget still shows its text. The padding and title variables above set a fixed value instead and turn that scaling off for the part they set. Inside a widget, `--fl-widget-scale` (0.4 to 1) is available for your own styles.
+
 ## Light / dark
 
 `report-viewer` has a `theme` property: `"light"`, `"dark"` or `"auto"` (default). Use it to drive the report from your
@@ -51,6 +53,7 @@ the configuration.
 
 | Property | Config key | Meaning |
 | -------- | ---------- | ------- |
+| `columns` | `columns` | Number of grid columns (default `12`). Widget `x` and `w` are counted in these columns and widgets wider than the grid are clamped. |
 | `rowHeight` / `row-height` | `rowHeight` | Row height in pixels. Overrides `rowAspectRatio`. |
 | `rowAspectRatio` / `row-aspect-ratio` | `rowAspectRatio` | Column width divided by row height. `1` = square (default), `2` = rows half as tall as a column is wide. |
 | `gap` | `gap` | Gap between widgets in pixels, `0` or more. Default `15`. |
@@ -82,6 +85,10 @@ data-widget::part(title) { text-transform: uppercase; }
 data-widget::part(legend) { display: none; }
 data-widget::part(card) { border-radius: 0; }
 ```
+
+## Report builder
+
+The builder is light DOM like the viewer, so you restyle it with ordinary selectors: `.builder-frame`, `.builder-frame.selected`, `.builder-handle`, `.builder-settings` (the settings button) and `.builder-panel` (the configuration drawer or modal). Its frames, handles and settings button use `--fl-chart-primary`, and the built-in configuration form uses the card, border, text and background variables above, so it follows your theme and dark mode. Details in [report-builder.md](report-builder.md#styling).
 
 ## Chart colors from CSS
 

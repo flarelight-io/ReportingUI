@@ -4,6 +4,9 @@ import { WidgetData } from '../widgets/base-widget';
 import { ColorTheme, ChartThemeUtils } from '../../utils/chart-theme';
 import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
 import { filtersCacheKey, filterIdentity, stableStringify } from '../../utils/filters';
+import { resolveRect } from '../../utils/layout';
+import { globalDataKey, widgetDataKeys, staleWidgetIds } from '../../utils/config-keys';
+import { getWidgetType } from '../../utils/widget-registry';
 
 interface WidgetDataCache {
   [widgetId: string]: any;
@@ -40,6 +43,16 @@ export class ReportViewer {
    */
   @Prop() gap?: number;
   /**
+   * Number of grid columns (default 12). `x` and `w` of widgets are counted in these columns; widgets wider than
+   * the grid are clamped. Also available as `columns` in the report configuration; the property wins.
+   */
+  @Prop() columns?: number;
+  /**
+   * Data sources for the report. Takes precedence over `configuration.sources`, so apps can supply sources
+   * (and their fields) at render time instead of embedding them in the saved report.
+   */
+  @Prop() sources?: DataSource[];
+  /**
    * Light or dark appearance for this report. `auto` (default) follows the page: a `data-theme` attribute or
    * `dark`/`light` class on <html>, otherwise the system preference. `light`/`dark` forces it for this viewer
    * only, so apps can drive it from their own toggle.
@@ -69,6 +82,8 @@ export class ReportViewer {
   @State() configRowHeight?: number;
   @State() configRowAspectRatio?: number;
   @State() configGap?: number;
+  @State() configColumns?: number;
+  private configSources: DataSource[] = [];
   
   private gridContainer?: HTMLElement;
   private dataFetchPromises: { [widgetId: string]: Promise<any> } = {};
@@ -77,6 +92,7 @@ export class ReportViewer {
   private configurationPollingInterval?: number;
   private lastConfiguration?: any;
   private lastDataConfigKey?: string;
+  private widgetDataKeys = new Map<string, string>();
   private handleResize = () => {
     if (this.isMounted && this.gridContainer) {
       this.setEqualGridDimensions();
@@ -212,7 +228,6 @@ export class ReportViewer {
     this.dataFetchPromises = {};
     const finish = () => {
       if (!this.gridContainer) return;
-      this.gridContainer.innerHTML = '';
       this.renderWidgets();
       const event = cleared
         ? new CustomEvent('filters-cleared', { bubbles: true })
@@ -246,6 +261,39 @@ export class ReportViewer {
     ChartThemeUtils.refreshTheme();
   }
 
+  @Watch('columns')
+  onColumnsChange() {
+    if (!this.isMounted || !this.gridContainer) return;
+    this.setEqualGridDimensions();
+    // Widget positions are clamped to the number of columns, so place them again
+    this.renderWidgets();
+  }
+
+  @Watch('sources')
+  onSourcesChange() {
+    this.applySources();
+    if (!this.isMounted) return;
+    // Source lookups decide what is fetched, so refresh the data and re-render
+    this.widgetData = {};
+    this.dataFetchPromises = {};
+    this.prefetchAndRender();
+  }
+
+  /** The sources in effect: the `sources` property when provided, otherwise the ones from the configuration. */
+  private applySources() {
+    this.dataSources = Array.isArray(this.sources) ? this.sources : this.configSources;
+  }
+
+  /** Number of grid columns in effect: property, then configuration, then 12. */
+  private get effectiveColumns(): number {
+    return this.positiveInteger(this.columns) ?? this.configColumns ?? 12;
+  }
+
+  private positiveInteger(value: unknown): number | undefined {
+    const n = typeof value === 'string' ? parseFloat(value) : value;
+    return typeof n === 'number' && isFinite(n) && n >= 1 ? Math.floor(n) : undefined;
+  }
+
   @Watch('rowHeight')
   @Watch('rowAspectRatio')
   @Watch('gap')
@@ -257,9 +305,10 @@ export class ReportViewer {
 
   @Watch('heightMode')
   onHeightModeChange() {
-    // Recalculate grid dimensions when height mode changes
+    // Recalculate grid dimensions when height mode changes, and refresh the widgets' height-mode attribute
     if (this.isMounted && this.gridContainer) {
       this.setEqualGridDimensions();
+      this.renderWidgets();
     }
   }
   
@@ -362,7 +411,8 @@ export class ReportViewer {
     
     // Configuration handled above is the baseline; polling only reacts to later changes
     this.lastConfiguration = this.configuration;
-    this.lastDataConfigKey = this.dataConfigKey(this.configuration);
+    this.lastDataConfigKey = globalDataKey(this.configuration);
+    this.widgetDataKeys = widgetDataKeys(this.configuration);
     // Add a polling mechanism to check for configuration changes
     this.startConfigurationPolling();
   }
@@ -391,6 +441,7 @@ export class ReportViewer {
     this.configRowHeight = this.positiveNumber(config.rowHeight);
     this.configRowAspectRatio = this.positiveNumber(config.rowAspectRatio);
     this.configGap = this.nonNegativeNumber(config.gap);
+    this.configColumns = this.positiveInteger(config.columns);
 
     if (config.colorTheme && typeof config.colorTheme === 'string') {
       this.colorTheme = config.colorTheme as ColorTheme;
@@ -401,11 +452,12 @@ export class ReportViewer {
     
     // Parse data sources
     if (config.sources && Array.isArray(config.sources)) {
-      this.dataSources = config.sources;
+      this.configSources = config.sources;
     } else {
-      console.warn('No data sources found in configuration');
-      this.dataSources = [];
+      if (!Array.isArray(this.sources)) console.warn('No data sources found in configuration');
+      this.configSources = [];
     }
+    this.applySources();
 
     // Handle both legacy format (direct widgets) and new format (layouts + widgets)
     let widgets: WidgetData[] = [];
@@ -482,29 +534,29 @@ export class ReportViewer {
     }));
   }
   
-  /** Identifies the parts of a configuration that determine fetched data (everything except presentation such as colorTheme). */
-  private dataConfigKey(config: any): string | undefined {
-    try {
-      const parsed = typeof config === 'string' ? JSON.parse(config) : config;
-      if (!parsed) return undefined;
-      const { colorTheme, ...rest } = parsed;
-      return JSON.stringify(rest);
-    } catch {
-      return undefined;
-    }
-  }
-
   /**
-   * Applies a changed configuration. The data cache is only invalidated when something that affects the
-   * fetched data changed; presentation-only changes (such as the color theme) re-render with the cached data.
+   * Applies a changed configuration. Cached data is only dropped where it can be stale: everything when a global
+   * part changed (such as the sources), otherwise just the widgets whose type or config changed, new ones and removed
+   * ones. Moving, resizing, retitling or re-theming widgets keeps their data, so nothing is refetched.
    */
   private applyConfiguration(parsedConfig: any) {
-    const key = this.dataConfigKey(parsedConfig);
+    const key = globalDataKey(parsedConfig);
+    const nextKeys = widgetDataKeys(parsedConfig);
     if (key === undefined || key !== this.lastDataConfigKey || this.widgets.length === 0) {
       this.widgetData = {};
       this.dataFetchPromises = {};
+    } else {
+      const widgetData = { ...this.widgetData };
+      const promises = { ...this.dataFetchPromises };
+      staleWidgetIds(this.widgetDataKeys, nextKeys).forEach(id => {
+        delete widgetData[id];
+        delete promises[id];
+      });
+      this.widgetData = widgetData;
+      this.dataFetchPromises = promises;
     }
     this.lastDataConfigKey = key;
+    this.widgetDataKeys = nextKeys;
     this.parseConfiguration(parsedConfig);
     // Rerender once data is in (parseConfiguration started or reused the prefetch)
     this.prefetchAndRender();
@@ -633,1063 +685,166 @@ export class ReportViewer {
   }
   
   private needsFetchChartData(widgetType: string): boolean {
-    return ['data', 'table', 'kpi', 'bar', 'pie', 'donut', 'line', 'hbar', 
-            'scatter', 'sunburst', 'heatmap', 'bubble', 'histogram',
-            'stacked-bar', 'stacked-hbar', 'clustered-bar', 'clustered-hbar', 'lollipop', 'lollipop-h',
-            'descriptiveAnalysis', 'correlationAnalysis', 'oneSampleHypothesisTest', 'oneSampleWilcoxonSignedRank', 'pairedTwoSampleWilcoxonSignedRank', 'independentTwoSampleHypothesisTest', 'pairedTwoSampleHypothesisTest', 'welchTwoSampleHypothesisTest', 'WelchANOVA', 'OneWayANOVA', 'oneWayANOVA', 'mannWhitneyUTest', 'kruskalWallisTest', 'shapiroWilkTest', 'kolmogorovSmirnovNormalityTest', 'andersonDarlingNormalityTest'].includes(widgetType);
+    const registration = getWidgetType(widgetType);
+    return !!(registration && registration.fetchesData);
   }
   
+  // What is currently on the grid, by widget key, so a render only touches what changed
+  private widgetNodes = new Map<string, { container: HTMLElement; element: HTMLElement; signature: string }>();
+  private identityTokens = new WeakMap<object, number>();
+  private identityCounter = 0;
+
+  /** A short stable token for an object or function, so "same instance" can be part of a signature. */
+  private identityToken(value: any): string {
+    if (value === null || value === undefined) return 'none';
+    if (typeof value !== 'object' && typeof value !== 'function') return String(value);
+    let token = this.identityTokens.get(value);
+    if (token === undefined) {
+      token = ++this.identityCounter;
+      this.identityTokens.set(value, token);
+    }
+    return `#${token}`;
+  }
+
+  /**
+   * Everything that makes a widget's element different. When it is unchanged between renders the existing element
+   * is kept (so layout-only changes never recreate widgets); when it changes, only that element is replaced.
+   */
+  private widgetSignature(widget: WidgetData, shared: { sources: string; filters: string; fetch: string }): string {
+    const cached = this.widgetData[widget.id] || null;
+    return JSON.stringify([
+      widget.type,
+      widget.title === undefined ? null : widget.title,
+      widget.config === undefined ? null : widget.config,
+      this.identityToken(cached),
+      !!(this.dataFetchPromises[widget.id] && !cached),
+      this.colorTheme,
+      this.reportId === undefined ? null : this.reportId,
+      this.isViewer,
+      shared.sources,
+      shared.filters,
+      shared.fetch
+    ]);
+  }
+
   private renderWidgets() {
     if (!this.gridContainer) {
       console.error('Grid container not found, cannot render widgets');
       return;
     }
-    
-    // Clear existing content
-    this.gridContainer.innerHTML = '';
-    
+    const grid = this.gridContainer;
+
+    // Placeholder (if any) is rebuilt every time; it is cheap and never holds state
+    Array.from(grid.children).forEach(child => {
+      if ((child as HTMLElement).classList.contains('empty-report')) grid.removeChild(child);
+    });
+
     // No widgets? Show placeholder if needed
     if (!this.widgets || this.widgets.length === 0) {
+      this.widgetNodes.forEach(node => node.container.remove());
+      this.widgetNodes.clear();
       if (this.showPlaceholder) {
         const emptyElement = document.createElement('div');
         emptyElement.className = 'empty-report';
         emptyElement.innerHTML = '<p>No widgets in this report</p>';
-        this.gridContainer.appendChild(emptyElement);
+        grid.appendChild(emptyElement);
       }
       return;
     }
-    
-    // Create all widget elements
-    this.widgets.forEach((widget) => {
-      // Create the widget container
-      const widgetContainer = document.createElement('div');
-      widgetContainer.className = 'widget-item';
-      widgetContainer.setAttribute('data-id', widget.id);
-      
-      // Position the widget using grid properties
-      // Set both size (span) and position (start)
-      // Using zero-based coordinates (add 1 when applying to grid since CSS grid is 1-based)
-      const x = (widget.x !== undefined) ? widget.x : 0; // Default to first column (0) if not specified
-      const y = (widget.y !== undefined) ? widget.y : 0; // Default to first row (0) if not specified
-      const w = widget.w || 6; // Default width of 6 grid units
-      const h = widget.h || 4; // Default height of 4 grid units
-      
-      // Set both size (span) and position (start)
-      // Add 1 to x and y because CSS grid is 1-based, but our coordinates are 0-based
-      const gridColumn = `${x + 1} / span ${w}`;
-      const gridRow = `${y + 1} / span ${h}`;
-      
-      widgetContainer.style.gridColumn = gridColumn;
-      widgetContainer.style.gridRow = gridRow;
-      
-      // Create the widget element
-      const widgetElement = this.createWidgetElement(widget);
-      
-      // Append the widget to the container
-      widgetContainer.appendChild(widgetElement);
-      
-      // Add to grid
-      this.gridContainer.appendChild(widgetContainer);
+
+    // Inputs shared by every widget, computed once per render. Sources and filters are compared by content (an app
+    // that passes a fresh but equal configuration must not rebuild everything); the data function by identity.
+    const shared = {
+      sources: stableStringify(this.dataSources),
+      filters: filtersCacheKey(this.currentFilters),
+      fetch: this.identityToken(this.fetchChartData)
+    };
+    // Key every widget first (two widgets with the same id still get their own node) and drop nodes that are gone
+    // before touching the order, so the ones that stay are never moved: moving an element reconnects it, which
+    // would re-run its connectedCallback (and refetch for widgets that load their data there).
+    const seen = new Set<string>();
+    const keys = this.widgets.map(widget => {
+      let key = widget.id;
+      for (let n = 2; seen.has(key); n++) key = `${widget.id}#${n}`;
+      seen.add(key);
+      return key;
     });
+    this.widgetNodes.forEach((node, key) => {
+      if (!seen.has(key)) {
+        node.container.remove();
+        this.widgetNodes.delete(key);
+      }
+    });
+
+    let previous: HTMLElement | null = null;
+
+    this.widgets.forEach((widget, index) => {
+      const key = keys[index];
+
+      let node = this.widgetNodes.get(key);
+      // The grid can be emptied from outside (e.g. innerHTML); a node that is no longer on it counts as missing
+      if (node && node.container.parentElement !== grid) node = undefined;
+
+      const signature = this.widgetSignature(widget, shared);
+      if (!node) {
+        const container = document.createElement('div');
+        container.className = 'widget-item';
+        container.setAttribute('data-id', widget.id);
+        const element = this.createWidgetElement(widget);
+        container.appendChild(element);
+        // Signature after creation: factories may fill in config defaults
+        node = { container, element, signature: this.widgetSignature(widget, shared) };
+        this.widgetNodes.set(key, node);
+      } else if (node.signature !== signature) {
+        // Only this widget changed: swap its element, keep its place on the grid
+        const element = this.createWidgetElement(widget);
+        node.container.replaceChild(element, node.element);
+        node.element = element;
+        node.signature = this.widgetSignature(widget, shared);
+      } else {
+        node.element.setAttribute('height-mode', this.heightMode);
+      }
+
+      // Position the widget on the grid. Coordinates are zero-based; CSS grid lines are one-based.
+      // Defaults and clamping to the grid live in resolveRect so the report builder places widgets identically.
+      const { x, y, w, h } = resolveRect(widget, this.effectiveColumns);
+      node.container.style.gridColumn = `${x + 1} / span ${w}`;
+      node.container.style.gridRow = `${y + 1} / span ${h}`;
+
+      // Keep the DOM in widget order
+      const expected: Element | null = previous ? previous.nextElementSibling : grid.firstElementChild;
+      if (node.container !== expected) grid.insertBefore(node.container, expected);
+      previous = node.container;
+    });
+
   }
   
   private createWidgetElement(widget: WidgetData): HTMLElement {
-    // Get cached data for this widget
+    // Data the viewer already fetched for this widget (if any) and whether it is still on its way
     const widgetDataCache = this.widgetData[widget.id] || null;
-    const dataIsLoading = this.dataFetchPromises[widget.id] && !widgetDataCache;
-    
+    const registration = getWidgetType(widget.type);
+
     let element: HTMLElement;
-    
-    switch (widget.type) {
-      case 'text':
-        // Create text widget
-        element = document.createElement('text-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        
-        const textConfig = widget.config || { text: '' };
-        if (!textConfig.text) textConfig.text = '';
-        
-        // Set the config as both attribute and direct property
-        (element as any).config = textConfig;
-        
-        // Dispatch a config update event
-        setTimeout(() => {
-          if (element.isConnected) {
-            const configEvent = new CustomEvent('configUpdate', {
-              detail: textConfig,
-              bubbles: false
-            });
-            element.dispatchEvent(configEvent);
-          }
-        }, 100);
-        break;
-        
-      case 'sourceInfo':
-        // Create source info widget
-        element = document.createElement('source-info-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        
-        // Set config as direct property
-        const sourceInfoConfig = widget.config || {};
-        (element as any).config = sourceInfoConfig;
-        
-        // Directly pass pre-fetched data to the component
-        if (widgetDataCache) {
-          // Set data directly
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: sourceInfoConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'descriptiveAnalysis':
-        // Create descriptive analysis widget
-        element = document.createElement('descriptive-analysis-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        
-        // Set config as direct property
-        const descriptiveConfig = widget.config || {};
-        (element as any).config = descriptiveConfig;
-        
-        // Directly pass pre-fetched data to the component through a custom property
-        if (widgetDataCache) {
-          // Set data directly
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: descriptiveConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'correlationAnalysis':
-        // Create correlation analysis widget  
-        element = document.createElement('correlation-analysis-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        (element as any).colorTheme = this.colorTheme; // Pass color theme!
-        
-        // Set config as direct property
-        const correlationConfig = widget.config || {};
-        (element as any).config = correlationConfig;
-        
-        // Directly pass pre-fetched data to the component
-        if (widgetDataCache) {
-          // Set data directly
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: correlationConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-              
-              // Color theme change event
-              const colorThemeEvent = new CustomEvent('colorThemeChange', {
-                detail: { colorTheme: this.colorTheme },
-                bubbles: false
-              });
-              element.dispatchEvent(colorThemeEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'oneSampleHypothesisTest':
-        // Create one-sample hypothesis test widget  
-        element = document.createElement('one-sample-hypothesis-test-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        
-        // Set config as direct property
-        const hypothesisConfig = widget.config || {};
-        (element as any).config = hypothesisConfig;
-        
-        // Directly pass pre-fetched data to the component
-        if (widgetDataCache) {
-          // Pass the data as an array (following the same pattern as other widgets)
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: hypothesisConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'oneSampleWilcoxonSignedRank':
-        // Create one-sample Wilcoxon signed rank test widget  
-        element = document.createElement('one-sample-wilcoxon-signed-rank-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        
-        // Set config as direct property
-        const wilcoxonConfig = widget.config || {};
-        (element as any).config = wilcoxonConfig;
-        
-        // Directly pass pre-fetched data to the component
-        if (widgetDataCache) {
-          // Pass the data as an array (following the same pattern as other widgets)
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: wilcoxonConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'pairedTwoSampleWilcoxonSignedRank':
-        // Create paired two-sample Wilcoxon signed rank test widget  
-        element = document.createElement('paired-two-sample-wilcoxon-signed-rank-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        
-        // Set config as direct property
-        const pairedWilcoxonConfig = widget.config || {};
-        (element as any).config = pairedWilcoxonConfig;
-        
-        // Directly pass pre-fetched data to the component
-        if (widgetDataCache) {
-          // Pass the data as an array (following the same pattern as other widgets)
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: pairedWilcoxonConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'independentTwoSampleHypothesisTest':
-        // Create independent two-sample hypothesis test widget  
-        element = document.createElement('independent-two-sample-hypothesis-test-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        
-        // Set config as direct property
-        const independentTwoSampleConfig = widget.config || {};
-        (element as any).config = independentTwoSampleConfig;
-        
-        // Directly pass pre-fetched data to the component
-        if (widgetDataCache) {
-          // Pass the data as an array (following the same pattern as other widgets)
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: independentTwoSampleConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'pairedTwoSampleHypothesisTest':
-        // Create paired two-sample hypothesis test widget  
-        element = document.createElement('paired-two-sample-hypothesis-test-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        
-        // Set config as direct property
-        const pairedTwoSampleConfig = widget.config || {};
-        (element as any).config = pairedTwoSampleConfig;
-        
-        // Directly pass pre-fetched data to the component
-        if (widgetDataCache) {
-          // Pass the data as an array (following the same pattern as other widgets)
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: pairedTwoSampleConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'welchTwoSampleHypothesisTest':
-        // Create Welch's two-sample hypothesis test widget  
-        element = document.createElement('welch-two-sample-hypothesis-test-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        
-        // Set config as direct property
-        const welchTwoSampleConfig = widget.config || {};
-        (element as any).config = welchTwoSampleConfig;
-        
-        // Directly pass pre-fetched data to the component
-        if (widgetDataCache) {
-          // Pass the data as an array (following the same pattern as other widgets)
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: welchTwoSampleConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'OneWayANOVA':
-      case 'oneWayANOVA':
-        // Create one-way ANOVA widget  
-        element = document.createElement('one-way-anova-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        
-        // Set config as direct property
-        const oneWayAnovaConfig = widget.config || {};
-        (element as any).config = oneWayAnovaConfig;
-        
-        // Directly pass pre-fetched data to the component
-        if (widgetDataCache) {
-          // Pass the data as an array (following the same pattern as other widgets)
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: oneWayAnovaConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'WelchANOVA':
-        // Create Welch ANOVA widget  
-        element = document.createElement('welch-anova-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        
-        // Set config as direct property
-        const welchAnovaConfig = widget.config || {};
-        (element as any).config = welchAnovaConfig;
-        
-        // Directly pass pre-fetched data to the component
-        if (widgetDataCache) {
-          // Pass the data as an array (following the same pattern as other widgets)
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: welchAnovaConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'mannWhitneyUTest':
-        // Create Mann-Whitney U test widget  
-        element = document.createElement('mann-whitney-u-test-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        
-        // Set config as direct property
-        const mannWhitneyConfig = widget.config || {};
-        (element as any).config = mannWhitneyConfig;
-        
-        // Directly pass pre-fetched data to the component
-        if (widgetDataCache) {
-          // Pass the data as an array (following the same pattern as other widgets)
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: mannWhitneyConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'kruskalWallisTest':
-        // Create Kruskal-Wallis test widget  
-        element = document.createElement('kruskal-wallis-test-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        
-        // Set config as direct property
-        const kruskalWallisConfig = widget.config || {};
-        (element as any).config = kruskalWallisConfig;
-        
-        // Directly pass pre-fetched data to the component
-        if (widgetDataCache) {
-          // Pass the data as an array (following the same pattern as other widgets)
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: kruskalWallisConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'shapiroWilkTest':
-        // Create Shapiro-Wilk test widget  
-        element = document.createElement('shapiro-wilk-test-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        
-        // Set config as direct property
-        const shapiroWilkConfig = widget.config || {};
-        (element as any).config = shapiroWilkConfig;
-        
-        // Directly pass pre-fetched data to the component
-        if (widgetDataCache) {
-          // Pass the data as an array (following the same pattern as other widgets)
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: shapiroWilkConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'kolmogorovSmirnovNormalityTest':
-        // Create Kolmogorov-Smirnov normality test widget  
-        element = document.createElement('kolmogorov-smirnov-normality-test-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        
-        // Set config as direct property
-        const kolmogorovSmirnovConfig = widget.config || {};
-        (element as any).config = kolmogorovSmirnovConfig;
-        
-        // Directly pass pre-fetched data to the component
-        if (widgetDataCache) {
-          // Pass the data as an array (following the same pattern as other widgets)
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: kolmogorovSmirnovConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'andersonDarlingNormalityTest':
-        // Create Anderson-Darling normality test widget  
-        element = document.createElement('anderson-darling-normality-test-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        
-        // Set config as direct property
-        const andersonDarlingConfig = widget.config || {};
-        (element as any).config = andersonDarlingConfig;
-        
-        // Directly pass pre-fetched data to the component
-        if (widgetDataCache) {
-          // Pass the data as an array (following the same pattern as other widgets)
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: andersonDarlingConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'boxWhiskerNormalityPlot':
-        // Create box-whisker normality plot widget  
-        element = document.createElement('box-whisker-normality-plot-widget') as unknown as HTMLElement;
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        (element as any).colorTheme = this.colorTheme; // Pass color theme!
-        
-        // Set config as direct property
-        const boxWhiskerNormalityPlotConfig = widget.config || {};
-        (element as any).config = boxWhiskerNormalityPlotConfig;
-        
-        // Directly pass pre-fetched data to the component
-        if (widgetDataCache) {
-          // Pass the data as an array (following the same pattern as other widgets)
-          (element as any).data = widgetDataCache;
-          
-          // We also need to pass a dummy fetchChartData function
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-          
-          // Dispatch custom events for data update
-          setTimeout(() => {
-            if (element.isConnected) {
-              // Data update event
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: boxWhiskerNormalityPlotConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-              
-              // Color theme change event
-              const colorThemeEvent = new CustomEvent('colorThemeChange', {
-                detail: { colorTheme: this.colorTheme },
-                bubbles: false
-              });
-              element.dispatchEvent(colorThemeEvent);
-            }
-          }, 100);
-        } else if (this.fetchChartData) {
-          // If data is still loading, set loading state
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-        }
-        break;
-        
-      case 'data':
-      case 'table':
-      case 'kpi':
-      case 'bar':
-      case 'pie':
-      case 'donut':
-      case 'line':
-      case 'hbar':
-      case 'scatter':
-      case 'sunburst':
-      case 'heatmap':
-      case 'bubble':
-      case 'histogram':
-      case 'stacked-bar':
-      case 'stacked-hbar':
-      case 'clustered-bar':
-      case 'clustered-hbar':
-      case 'lollipop':
-      case 'lollipop-h':
-        // Create data widget with specific visualization type
-        element = document.createElement('data-widget') as unknown as HTMLElement;
-        element.setAttribute('widgetId', widget.id);
-        
-        // Set properties directly
-        (element as any).widgetId = widget.id;
-        (element as any).widgetTitle = widget.title || '';
-        (element as any).reportId = this.reportId || '';
-        (element as any).readOnly = true;
-        (element as any).isInEditor = false;
-        (element as any).isViewer = this.isViewer;
-        (element as any).colorTheme = this.colorTheme;
-        
-        // Use the widget type as visualization type if it's not a generic data widget
-        const visualizationType = widget.type === 'data'
-          ? (widget.config?.visualizationType || 'table')
-          : widget.type;
-          
-        const dataConfig = { 
-          ...(widget.config || {}),
-          visualizationType: visualizationType
-        };
-        
-        // Set properties directly
-        (element as any).config = dataConfig;
-        (element as any).availableSources = this.dataSources || [];
-        (element as any).activeFilters = this.currentFilters;
-        
-        // Directly pass the data
-        if (widgetDataCache) {
-          // Set data directly
-          (element as any).data = widgetDataCache;
-          
-          // Dispatch a custom event to ensure the component picks up the data
-          setTimeout(() => {
-            if (element.isConnected) {
-              const dataEvent = new CustomEvent('dataUpdate', {
-                detail: widgetDataCache,
-                bubbles: false
-              });
-              element.dispatchEvent(dataEvent);
-              
-              // Also dispatch a config update event
-              const configEvent = new CustomEvent('configUpdate', {
-                detail: dataConfig,
-                bubbles: false
-              });
-              element.dispatchEvent(configEvent);
-            }
-          }, 100);
-          
-          // Also set loading state property 
-          (element as any).loading = false;
-          
-          // And pass a mock fetchChartData that returns the cached data
-          (element as any).fetchChartData = () => Promise.resolve(widgetDataCache);
-        } else if (this.fetchChartData) {
-          // If no cached data but we have the fetch function
-          (element as any).loading = dataIsLoading;
-          // Pass real function for future updates
-          (element as any).fetchChartData = this.fetchChartData;
-          // Also set the config directly
-          (element as any).config = dataConfig;
-        }
-        break;
-        
-      default:
-        // Create a placeholder div for unknown widget types
-        element = document.createElement('div');
-        element.className = 'placeholder-widget';
-        element.innerHTML = `
-          <h3>${widget.title || 'Unknown Widget'}</h3>
-          <p>Widget type: ${widget.type}</p>
-        `;
-        break;
+    if (registration) {
+      element = registration.create({
+        widget,
+        reportId: this.reportId,
+        isViewer: this.isViewer,
+        colorTheme: this.colorTheme,
+        dataSources: this.dataSources,
+        activeFilters: this.currentFilters,
+        data: widgetDataCache,
+        loading: !!(this.dataFetchPromises[widget.id] && !widgetDataCache),
+        fetchChartData: this.fetchChartData
+      });
+    } else {
+      // Unknown widget type: show a placeholder instead of failing the whole report
+      element = document.createElement('div');
+      element.className = 'placeholder-widget';
+      element.innerHTML = `
+        <h3>${widget.title || 'Unknown Widget'}</h3>
+        <p>Widget type: ${widget.type}</p>
+      `;
     }
     
     // Set common styles
@@ -1759,6 +914,9 @@ export class ReportViewer {
   private setEqualGridDimensions() {
     if (!this.gridContainer) return;
     
+    // Column count (default 12); an inline template overrides the stylesheet's default
+    this.gridContainer.style.gridTemplateColumns = `repeat(${this.effectiveColumns}, 1fr)`;
+
     // Get the width of the grid
     const gridWidth = this.gridContainer.offsetWidth;
     
@@ -1771,7 +929,7 @@ export class ReportViewer {
     }
     
     // Calculate column width (account for gap)
-    const numColumns = 12;
+    const numColumns = this.effectiveColumns;
     // An explicit gap (prop or configuration) wins; otherwise the CSS (--fl-grid-gap, default 15px) applies.
     // The row-height math below reads the effective gap back from the computed style so both stay in sync.
     const explicitGap = this.nonNegativeNumber(this.gap) ?? this.configGap;
