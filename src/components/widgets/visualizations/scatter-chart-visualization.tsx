@@ -2,6 +2,7 @@ import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
+import { PlotSizeTracker, clipLabel } from '../../../utils/bar-layout';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface ScatterDataPoint {
@@ -35,12 +36,22 @@ export class ScatterChartVisualization {
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0;
   @State() legendFontSize: number = 10;
+  @State() plotWidth: number = 0;
+  @State() plotHeight: number = 0;
 
   @Element() el: HTMLElement;
 
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
   private adjustingFont: boolean = false;
+  private plotSize = new PlotSizeTracker(({ width, height }) => {
+    if (width !== this.plotWidth) this.plotWidth = width;
+    if (height !== this.plotHeight) this.plotHeight = height;
+  });
+
+  disconnectedCallback() {
+    this.plotSize.detach();
+  }
 
   componentWillLoad() {
     ChartThemeUtils.onThemeChange(() => {
@@ -204,137 +215,111 @@ export class ScatterChartVisualization {
       return <div class="empty-data">No data available</div>;
     }
     
-    // Find the maximum value for scaling
-    const maxValue = Math.max(...chartData.map(item => item.y)) * 1.1; // Add 10% padding
-    
-    // Calculate optimal aspect ratio for the chart
-    const viewBoxWidth = 100;
-    const viewBoxHeight = 60;
-    
-    // Generate points for the scatter plot
-    const points = chartData.map((item, index) => {
-      const x = 5 + index * ((viewBoxWidth - 10) / (chartData.length - 1 || 1));
-      const y = viewBoxHeight - 5 - (item.y / maxValue) * (viewBoxHeight - 10);
-      return { x, y, category: item.x, value: item.y };
-    });
-    
-    // Calculate regression line if enabled and we have numeric x values
+    const maxValue = Math.max(...chartData.map(item => item.y), 0) * 1.1 || 1; // Add 10% padding
+
+    const colors = this.getColors();
+    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+
+    // Lay out in real pixels so text keeps a constant, readable size at any container size
+    const W = this.plotWidth;
+    const H = this.plotHeight;
+    const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
+    const charWidth = fontSize * 0.58;
+    const pad = 8;
+    const tickValues = [0, 0.25, 0.5, 0.75, 1].map(ratio => ChartThemeUtils.formatNumber(ratio * maxValue));
+    const plotX = pad + Math.max(...tickValues.map(t => t.length)) * charWidth + 6;
+    const plotY = this.config.showLabels ? fontSize + 8 : pad;
+    const xLabels = chartData.map(item => clipLabel(String(item.x), 10));
+    const longestPx = Math.max(...xLabels.map(l => l.length)) * charWidth;
+    const bottom = fontSize + 12;
+    const plotW = Math.max(0, W - plotX - pad);
+    const plotH = Math.max(0, H - plotY - bottom);
+    const spacing = plotW / Math.max(1, chartData.length - 1);
+    const xStride = Math.max(1, Math.ceil((longestPx + 6) / Math.max(1, spacing)));
+    const valueStride = Math.max(1, Math.ceil((charWidth * 4) / Math.max(1, spacing)));
+    const mapY = (value: number) => plotY + plotH - (value / maxValue) * plotH;
+
+    const points = chartData.map((item, index) => ({
+      x: chartData.length === 1 ? plotX + plotW / 2 : plotX + index * spacing,
+      y: mapY(item.y),
+      category: item.x,
+      value: item.y
+    }));
+
+    // Regression line over the numeric x values, drawn from the first to the last point
     let regressionLine = null;
     if (showRegressionLine) {
-      // Convert original data points to numeric values for regression calculation
       const numericPoints = chartData
-        .filter(item => {
-          const numVal = typeof item.x === 'number' ? item.x : 
-                        (typeof item.x === 'string' && !isNaN(Number(item.x))) ? Number(item.x) : null;
-          return numVal !== null;
-        })
-        .map(item => ({
-          x: typeof item.x === 'number' ? item.x : Number(item.x),
-          y: item.y
-        }));
-      
+        .filter(item => typeof item.x === 'number' || (typeof item.x === 'string' && !isNaN(Number(item.x))))
+        .map(item => ({ x: Number(item.x), y: item.y }));
+
       if (numericPoints.length >= 2) {
         const regression = this.calculateLinearRegression(numericPoints);
-        
         if (regression) {
-          // Calculate start and end points of the regression line
-          // Map the regression line to SVG coordinates
-          const firstIndex = 0;
-          const lastIndex = chartData.length - 1;
-          
-          const firstX = 5 + firstIndex * ((viewBoxWidth - 10) / (chartData.length - 1 || 1));
-          const lastX = 5 + lastIndex * ((viewBoxWidth - 10) / (chartData.length - 1 || 1));
-          
-          // Using the regression formula y = mx + b
-          // We need to map both x and y values to SVG coordinates
-          const mapYToSvg = (value) => viewBoxHeight - 5 - (value / maxValue) * (viewBoxHeight - 10);
-          
-          // Calculate y values at the first and last points
-          const firstPointOrigX = typeof chartData[firstIndex].x === 'number' ? 
-                                chartData[firstIndex].x : Number(chartData[firstIndex].x);
-          const lastPointOrigX = typeof chartData[lastIndex].x === 'number' ? 
-                               chartData[lastIndex].x : Number(chartData[lastIndex].x);
-          
-          const firstY = regression.slope * firstPointOrigX + regression.intercept;
-          const lastY = regression.slope * lastPointOrigX + regression.intercept;
-          
-          // Map to SVG coordinates
-          const startX = firstX;
-          const startY = mapYToSvg(firstY);
-          const endX = lastX;
-          const endY = mapYToSvg(lastY);
-          
+          const first = chartData[0];
+          const last = chartData[chartData.length - 1];
           regressionLine = {
-            x1: startX,
-            y1: startY,
-            x2: endX,
-            y2: endY,
+            x1: points[0].x,
+            y1: mapY(regression.slope * Number(first.x) + regression.intercept),
+            x2: points[points.length - 1].x,
+            y2: mapY(regression.slope * Number(last.x) + regression.intercept),
             r2: regression.r2
           };
         }
       }
     }
-    
-    // Define colors and theme
-    const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
-    
+
     return (
       <div class="scatter-chart-container" part="chart">
-        <div class="visualization-container" part="plot">
-          <svg 
-            width="100%" 
-            height="100%" 
-            viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
-            preserveAspectRatio="xMidYMid meet"
+        <div class="visualization-container" part="plot" ref={this.plotSize.attach}>
+          {W > 0 && H > 0 && (
+          <svg
+            width={W}
+            height={H}
+            viewBox={`0 0 ${W} ${H}`}
+            style={{ position: 'absolute', inset: '0' }}
             {...ChartThemeUtils.getSVGAttributes()}
           >
-            {/* Define gradients and filters for modern styling */}
             <defs>
               <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
                 <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
               </filter>
             </defs>
-            {/* Draw subtle grid lines if enabled */}
             {this.config.showGrid && (
               <>
-                {/* Horizontal grid lines */}
                 {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const y = viewBoxHeight - 5 - ratio * (viewBoxHeight - 10);
+                  const y = plotY + plotH - ratio * plotH;
                   return (
-                    <line 
+                    <line
                       key={`h-${i}`}
-                      x1="5" 
-                      y1={ChartThemeUtils.snapToPixel(y)} 
-                      x2={viewBoxWidth - 5} 
-                      y2={ChartThemeUtils.snapToPixel(y)} 
-                      stroke="var(--fl-chart-grid-color)" 
-                      stroke-width="0.5"
-                      opacity="0.2"
+                      x1={plotX}
+                      y1={ChartThemeUtils.snapToPixel(y)}
+                      x2={plotX + plotW}
+                      y2={ChartThemeUtils.snapToPixel(y)}
+                      stroke="var(--fl-chart-grid-color)"
+                      stroke-width="1"
+                      opacity="0.5"
                     />
                   );
                 })}
-                
-                {/* Vertical grid lines */}
                 {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const x = 5 + ratio * (viewBoxWidth - 10);
+                  const x = plotX + ratio * plotW;
                   return (
-                    <line 
+                    <line
                       key={`v-${i}`}
-                      x1={ChartThemeUtils.snapToPixel(x)} 
-                      y1="5" 
-                      x2={ChartThemeUtils.snapToPixel(x)} 
-                      y2={viewBoxHeight - 5} 
-                      stroke="var(--fl-chart-grid-color)" 
-                      stroke-width="0.5"
-                      opacity="0.2"
+                      x1={ChartThemeUtils.snapToPixel(x)}
+                      y1={plotY}
+                      x2={ChartThemeUtils.snapToPixel(x)}
+                      y2={plotY + plotH}
+                      stroke="var(--fl-chart-grid-color)"
+                      stroke-width="1"
+                      opacity="0.5"
                     />
                   );
                 })}
               </>
             )}
-            
-            {/* Draw regression line if enabled */}
+
             {showRegressionLine && regressionLine && (
               <line
                 x1={regressionLine.x1}
@@ -342,7 +327,7 @@ export class ScatterChartVisualization {
                 x2={regressionLine.x2}
                 y2={regressionLine.y2}
                 stroke={theme.regressionColor}
-                stroke-width="1"
+                stroke-width={theme.lineStrokeWidth || 2}
                 stroke-dasharray="none"
                 opacity="0.9"
                 class="regression-line"
@@ -351,13 +336,12 @@ export class ScatterChartVisualization {
                 }}
               />
             )}
-            
-            {/* Draw points with modern styling */}
+
             {points.map((point, i) => (
-              <g 
-                key={i} 
+              <g
+                key={i}
                 transform={`translate(${point.x}, ${point.y})`}
-                style={{ 
+                style={{
                   cursor: 'pointer',
                   transition: ChartAnimations.getHoverTransition()
                 }}
@@ -365,14 +349,14 @@ export class ScatterChartVisualization {
                 onMouseMove={(event) => this.handleMouseMove(event, point.category, point.value)}
                 onMouseLeave={() => this.handleMouseLeave()}
               >
-                <circle 
-                  cx="0" 
-                  cy="0" 
-                  r="1.2" 
-                  fill={colors[i % colors.length]} 
+                <circle
+                  cx="0"
+                  cy="0"
+                  r={Math.max(4, theme.pointRadius || 3)}
+                  fill={colors[i % colors.length]}
                   stroke="white"
-                  stroke-width="0.5"
-                  opacity="0.7"
+                  stroke-width="1"
+                  opacity="0.8"
                   class="point-animated"
                   style={{
                     animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
@@ -380,11 +364,11 @@ export class ScatterChartVisualization {
                   }}
                   filter="url(#softShadow)"
                 />
-                {/* Subtle hover state */}
-                <circle 
-                  cx="0" 
-                  cy="0" 
-                  r="2.5" 
+                {/* Larger invisible target so points are easy to hover */}
+                <circle
+                  cx="0"
+                  cy="0"
+                  r="9"
                   fill="transparent"
                   stroke="transparent"
                   stroke-width="0"
@@ -395,98 +379,63 @@ export class ScatterChartVisualization {
                 />
               </g>
             ))}
-            
-            {/* X and Y axis with subtle styling */}
-            <line 
-              x1="5" 
-              y1={ChartThemeUtils.snapToPixel(viewBoxHeight - 5)} 
-              x2={viewBoxWidth - 5} 
-              y2={ChartThemeUtils.snapToPixel(viewBoxHeight - 5)} 
-              stroke="var(--fl-chart-axis-color)" 
-              stroke-width="0.5" 
-              opacity="0.6"
+
+            <line
+              x1={plotX} y1={ChartThemeUtils.snapToPixel(plotY + plotH)}
+              x2={plotX + plotW} y2={ChartThemeUtils.snapToPixel(plotY + plotH)}
+              stroke="var(--fl-chart-axis-color)" stroke-width="1" opacity="0.6"
             />
-            <line 
-              x1={ChartThemeUtils.snapToPixel(5)} 
-              y1="5" 
-              x2={ChartThemeUtils.snapToPixel(5)} 
-              y2={viewBoxHeight - 5} 
-              stroke="var(--fl-chart-axis-color)" 
-              stroke-width="0.5" 
-              opacity="0.6"
+            <line
+              x1={ChartThemeUtils.snapToPixel(plotX)} y1={plotY}
+              x2={ChartThemeUtils.snapToPixel(plotX)} y2={plotY + plotH}
+              stroke="var(--fl-chart-axis-color)" stroke-width="1" opacity="0.6"
             />
-            
-            {/* Labels (only show if not too many points) */}
-            {chartData.length <= 8 && (
-              <>
-                {points.map((point, i) => {
-                  // Only show labels for every other point if there are many
-                  if (chartData.length > 5 && i % 2 !== 0) {
-                    return null;
-                  }
-                  
-                  const displayText = String(point.category);
-                  const truncatedText = displayText.length > 10 
-                    ? displayText.substring(0, 10) + '...' 
-                    : displayText;
-                  
-                  return (
-                    <text 
-                      key={i} 
-                      x={point.x} 
-                      y={viewBoxHeight - 2} 
-                      font-size="2.5" 
-                      text-anchor="middle" 
-                      fill="var(--fl-chart-text-color, #666)"
-                    >
-                      {truncatedText}
-                    </text>
-                  );
-                })}
-                
-                {this.config.showLabels && points.map((point, i) => {
-                  // Only show value labels for every other point if there are many
-                  if (chartData.length > 5 && i % 2 !== 0) {
-                    return null;
-                  }
-                  
-                  return (
-                    <text 
-                      key={`value-${i}`} 
-                      x={point.x} 
-                      y={point.y - 3} 
-                      font-size="2.5" 
-                      text-anchor="middle" 
-                      fill="var(--fl-chart-text-color, #444)"
-                    >
-                      {point.value}
-                    </text>
-                  );
-                })}
-              </>
-            )}
-            
-            {/* Y-axis value labels */}
-            {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-              const y = viewBoxHeight - 5 - ratio * (viewBoxHeight - 10);
-              const value = Math.round(ratio * maxValue);
-              
-              return (
-                <text 
-                  key={`y-label-${i}`} 
-                  x="3" 
-                  y={y} 
-                  font-size="2.5" 
-                  text-anchor="end" 
-                  dominant-baseline="middle" 
-                  fill="var(--fl-chart-text-color, #666)"
-                >
-                  {value}
-                </text>
-              );
-            })}
+
+            {points.map((point, i) => i % xStride === 0 && (
+              <text
+                key={i}
+                x={point.x}
+                y={plotY + plotH + fontSize + 4}
+                font-size={fontSize}
+                text-anchor="middle"
+                fill="var(--fl-chart-text-color, #666)"
+                font-family={theme.fontFamily}
+              >
+                {xLabels[i]}
+              </text>
+            ))}
+
+            {this.config.showLabels && points.map((point, i) => i % valueStride === 0 && (
+              <text
+                key={`value-${i}`}
+                x={point.x}
+                y={point.y - 8}
+                font-size={fontSize}
+                text-anchor="middle"
+                fill="var(--fl-chart-text-color, #444)"
+                font-family={theme.fontFamily}
+              >
+                {ChartThemeUtils.formatNumber(point.value)}
+              </text>
+            ))}
+
+            {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
+              <text
+                key={`y-label-${i}`}
+                x={plotX - 6}
+                y={plotY + plotH - ratio * plotH}
+                font-size={fontSize}
+                text-anchor="end"
+                dominant-baseline="middle"
+                fill="var(--fl-chart-text-color, #666)"
+                font-family={theme.fontFamily}
+              >
+                {tickValues[i]}
+              </text>
+            ))}
           </svg>
-          
+          )}
+
           {/* Tooltip */}
           {this.tooltip.visible && (
             <div 
