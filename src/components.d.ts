@@ -24,6 +24,7 @@ import { OneWayAnovaWidgetConfig } from "./components/widgets/one-way-anova-widg
 import { PairedTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/paired-two-sample-hypothesis-test-widget";
 import { PairedTwoSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/paired-two-sample-wilcoxon-signed-rank-widget";
 import { WidgetTypeDefinition } from "./utils/widget-catalog";
+import { ReportWidgetDef } from "./utils/report-layout";
 import { ShapiroWilkTestWidgetConfig } from "./components/widgets/shapiro-wilk-test-widget";
 import { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 import { TextWidgetConfig } from "./components/widgets/text-widget";
@@ -48,6 +49,7 @@ export { OneWayAnovaWidgetConfig } from "./components/widgets/one-way-anova-widg
 export { PairedTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/paired-two-sample-hypothesis-test-widget";
 export { PairedTwoSampleWilcoxonSignedRankWidgetConfig } from "./components/widgets/paired-two-sample-wilcoxon-signed-rank-widget";
 export { WidgetTypeDefinition } from "./utils/widget-catalog";
+export { ReportWidgetDef } from "./utils/report-layout";
 export { ShapiroWilkTestWidgetConfig } from "./components/widgets/shapiro-wilk-test-widget";
 export { SourceInfoWidgetConfig } from "./components/widgets/source-info-widget";
 export { TextWidgetConfig } from "./components/widgets/text-widget";

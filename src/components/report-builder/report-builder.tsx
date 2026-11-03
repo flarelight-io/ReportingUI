@@ -2,7 +2,7 @@ import { Component, Element, Event, EventEmitter, Method, Prop, State, Watch, h 
 import { DataSource } from '../../api/types/common';
 import { LayoutItem, addItem, moveItem, removeItems, sameLayout, setItemRect } from '../../utils/layout';
 import {
-  addWidgetToConfig, applyLayoutItems, getLayoutItems, nextWidgetId, removeWidgetsFromConfig, replaceWidgetInConfig, updateWidgetInConfig
+  addWidgetToConfig, applyLayoutItems, getLayoutItems, nextWidgetId, removeWidgetsFromConfig, replaceWidgetInConfig, ReportWidgetDef, updateWidgetInConfig
 } from '../../utils/report-layout';
 import { parseConfigObject } from '../../utils/config-keys';
 import { WidgetTypeDefinition, resolveWidgetType } from '../../utils/widget-catalog';
@@ -335,7 +335,7 @@ export class ReportBuilder {
     const result = await this.runConfigureHook('edit', { ...def, ...(item ? { x: item.x, y: item.y, w: item.w, h: item.h } : {}) }, resolveWidgetType(def.type, this.widgetCatalog));
     if (!result) return false;
     const latest = parseConfigObject(this.configuration) || { widgets: [] };
-    const next = replaceWidgetInConfig(latest, id, { ...result, id });
+    const next = replaceWidgetInConfig(latest, id, { ...result, id } as ReportWidgetDef);
     if (next === latest) return false;
     this.emitChange(next);
     return true;
