@@ -30,11 +30,20 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs.js"
     },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.js"
+    },
+    "./components/*": {
+      "types": "./dist/components/*.d.ts",
+      "import": "./dist/components/*.js"
+    },
     "./loader": {
       "import": "./loader/index.js",
       "require": "./loader/index.cjs",
       "types": "./loader/index.d.ts"
     },
+    "./styles.css": "./dist/flarelight-reporting/flarelight-reporting.css",
     "./dist/flarelight-reporting/flarelight-reporting.css": "./dist/flarelight-reporting/flarelight-reporting.css",
     "./schema": "./src/schema.json"
   },
