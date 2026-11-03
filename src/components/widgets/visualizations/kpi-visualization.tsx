@@ -16,6 +16,7 @@ export class KpiVisualization {
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
   private valueElement?: HTMLElement;
+  private trendElement?: HTMLElement;
   private resizeObserver?: ResizeObserver;
 
   private calculateKpiValue(): { value: number; previousValue?: number; trend?: 'up' | 'down' | 'flat' } {
@@ -242,6 +243,13 @@ export class KpiVisualization {
     
     // Apply the calculated font size
     this.valueElement.style.fontSize = `${fontSize}rem`;
+
+    // Size the change chip from the rendered value so it scales with it but never gets unreadably small
+    if (this.trendElement) {
+      const valuePx = parseFloat(getComputedStyle(this.valueElement).fontSize) || 16;
+      const chipPx = Math.min(18, Math.max(12, valuePx * 0.32));
+      this.trendElement.style.fontSize = `${chipPx}px`;
+    }
   }
 
   componentDidLoad() {
@@ -286,7 +294,7 @@ export class KpiVisualization {
           <div class="kpi-value" ref={(el) => this.valueElement = el}>{this.formatValue(kpiData.value)}</div>
           
           {kpiData.previousValue !== undefined && (
-            <div class={`kpi-trend ${this.getTrendClass(kpiData.trend)}`}>
+            <div class={`kpi-trend ${this.getTrendClass(kpiData.trend)}`} part="trend" ref={(el) => this.trendElement = el}>
               <span class="trend-icon">{this.getTrendIcon(kpiData.trend)}</span>
               <span class="trend-percentage">
                 {Math.abs(Math.round((kpiData.value - kpiData.previousValue) / kpiData.previousValue * 100))}%

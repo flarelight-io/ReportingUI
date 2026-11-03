@@ -67,16 +67,17 @@
 .kpi-trend {
   display: flex;
   align-items: center;
-  font-size: 0.3em;
-  font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 12px;
+  // Real size is set from the value's size in kpi-visualization.tsx (12-18px); this is the fallback
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0.2em 0.7em;
+  border-radius: 999px;
   white-space: nowrap;
-  margin-top: 0.2em;
+  margin-top: 0.5em;
   font-family: var(--fl-chart-font-family);
 
   .trend-icon {
-    margin-right: 3px;
+    margin-right: 0.3em;
   }
 }
 
