@@ -3,8 +3,7 @@ import { FilterChangeEventDetail, VisualizationData, fieldLabel } from './base-v
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { PlotSizeTracker, computeBarFrame, clipLabel } from '../../../utils/bar-layout';
-import { niceScale } from '../../../utils/scale';
-import { renderValueAxis, formatTick } from '../../../utils/chart-axes';
+import { renderValueAxis, buildAxis } from '../../../utils/chart-axes';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface HistogramBin {
@@ -190,7 +189,8 @@ export class HistogramChartVisualization {
       return <div class="empty-data">No data available for histogram</div>;
     }
     
-    const scale = niceScale(0, Math.max(...histogramData.map(bin => bin.count), 0));
+    const axis = buildAxis(0, Math.max(...histogramData.map(bin => bin.count), 0), undefined, { length: this.plotHeight, fontSize: Math.max(10, (ChartThemeUtils.getTheme(this.colorTheme, this.el).fontSize || 12) - 1) });
+    const scale = axis.scale;
     const maxCount = scale.max || 1;
 
     const colors = this.getColors();
@@ -203,7 +203,7 @@ export class HistogramChartVisualization {
     const rawLabels = histogramData.map(bin => clipLabel(bin.label, 28));
     const frame = computeBarFrame({
       width: W, height: H, horizontal: false, labels: rawLabels, fontSize,
-      valueLabels: !!this.config.showLabels, showCategories: true, tickLabels: scale.ticks.map(formatTick)
+      valueLabels: !!this.config.showLabels, showCategories: true, tickLabels: axis.labels
     });
     const { plotX, plotY, plotW, plotH, rotate, slot, labelStride, charWidth } = frame;
     const labels = frame.labels;
@@ -211,7 +211,7 @@ export class HistogramChartVisualization {
     const valueStride = Math.max(1, Math.ceil((charWidth * 4) / slot));
 
     const bars = histogramData.map((bin, index) => {
-      const height = (bin.count / maxCount) * plotH;
+      const height = Math.min(plotH, (bin.count / maxCount) * plotH);
       return { x: plotX + index * slot, y: plotY + plotH - height, width: slot, height, color: colors[0], bin, index };
     });
 
@@ -236,7 +236,7 @@ export class HistogramChartVisualization {
               </filter>
             </defs>
             {renderValueAxis({
-              ticks: scale.ticks, min: scale.min, max: scale.max,
+              ticks: scale.ticks, labels: axis.labels, min: scale.min, max: scale.max,
               plotX, plotY, plotW, plotH, fontSize, fontFamily: theme.fontFamily,
               showGrid: !!this.config.showGrid, gridOpacity: theme.gridlines.opacity
             })}

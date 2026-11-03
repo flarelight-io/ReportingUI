@@ -3,8 +3,7 @@ import { FilterChangeEventDetail, VisualizationData, fieldLabel } from './base-v
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { PlotSizeTracker, computeBarFrame, clipLabel } from '../../../utils/bar-layout';
-import { niceScale } from '../../../utils/scale';
-import { renderValueAxis, formatTick } from '../../../utils/chart-axes';
+import { renderValueAxis, buildAxis } from '../../../utils/chart-axes';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface ChartDataItem {
@@ -172,7 +171,8 @@ export class LollipopChartVisualization {
     const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     const mainColor = colors[0]; // Use first color as the main color
     
-    const scale = niceScale(0, Math.max(...chartData.map(item => item.value), 0));
+    const axis = buildAxis(0, Math.max(...chartData.map(item => item.value), 0), this.config, { length: (isHorizontal ? this.plotWidth : this.plotHeight), fontSize: Math.max(10, (theme.fontSize || 12) - 1), horizontal: isHorizontal });
+    const scale = axis.scale;
     const maxValue = scale.max || 1;
 
     // Lay out in real pixels so text keeps a constant, readable size at any container size
@@ -183,7 +183,7 @@ export class LollipopChartVisualization {
     const showValues = !!this.config.showLabels;
     const frame = computeBarFrame({
       width: W, height: H, horizontal: isHorizontal, labels: rawLabels, fontSize, valueLabels: showValues, showCategories: true,
-      tickLabels: scale.ticks.map(formatTick)
+      tickLabels: axis.labels
     });
     const { plotX, plotY, plotW, plotH, rotate, slot, labelStride, charWidth } = frame;
     const labels = frame.labels;
@@ -195,7 +195,7 @@ export class LollipopChartVisualization {
       : Math.max(1, Math.ceil((charWidth * 4) / slot));
 
     const lollipops = chartData.map((item, index) => {
-      const length = (item.value / maxValue) * (isHorizontal ? plotW : plotH);
+      const length = Math.min(isHorizontal ? plotW : plotH, Math.max(0, (item.value / maxValue) * (isHorizontal ? plotW : plotH)));
       const center = (isHorizontal ? plotY : plotX) + index * slot + slot / 2;
       if (isHorizontal) {
         return {
@@ -232,7 +232,7 @@ export class LollipopChartVisualization {
               </filter>
             </defs>
             {renderValueAxis({
-              ticks: scale.ticks, min: scale.min, max: scale.max,
+              ticks: scale.ticks, labels: axis.labels, min: scale.min, max: scale.max,
               plotX, plotY, plotW, plotH, fontSize, fontFamily: theme.fontFamily,
               horizontal: isHorizontal, showGrid: !!this.config.showGrid, gridOpacity: theme.gridlines.opacity
             })}

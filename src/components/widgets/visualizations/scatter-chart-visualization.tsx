@@ -3,8 +3,7 @@ import { FilterChangeEventDetail, VisualizationData } from './base-visualization
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { PlotSizeTracker, clipLabel } from '../../../utils/bar-layout';
-import { niceScale } from '../../../utils/scale';
-import { renderValueAxis, formatTick } from '../../../utils/chart-axes';
+import { renderValueAxis, buildAxis, formatTick } from '../../../utils/chart-axes';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface ScatterDataPoint {
@@ -223,8 +222,11 @@ export class ScatterChartVisualization {
     // Numeric x values are plotted at their real position; otherwise points are spaced evenly
     const isNumericX = chartData.every(item => item.x !== null && item.x !== '' && isFinite(Number(item.x)));
     const xNumbers = chartData.map(item => Number(item.x));
-    const yScale = niceScale(Math.min(0, ...chartData.map(item => item.y)), Math.max(...chartData.map(item => item.y), 0));
-    const xScale = isNumericX ? niceScale(Math.min(...xNumbers), Math.max(...xNumbers)) : null;
+    const axisFont = Math.max(10, (theme.fontSize || 12) - 1);
+    const yAxis = buildAxis(Math.min(0, ...chartData.map(item => item.y)), Math.max(...chartData.map(item => item.y), 0), undefined, { length: this.plotHeight, fontSize: axisFont });
+    const yScale = yAxis.scale;
+    const xAxis = isNumericX ? buildAxis(Math.min(...xNumbers), Math.max(...xNumbers), undefined, { length: this.plotWidth, fontSize: axisFont, horizontal: true }) : null;
+    const xScale = xAxis ? xAxis.scale : null;
 
     // Lay out in real pixels so text keeps a constant, readable size at any container size
     const W = this.plotWidth;
@@ -232,7 +234,7 @@ export class ScatterChartVisualization {
     const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
     const charWidth = fontSize * 0.58;
     const pad = 8;
-    const yTickLabels = yScale.ticks.map(formatTick);
+    const yTickLabels = yAxis.labels;
     const plotX = pad + Math.max(...yTickLabels.map(t => t.length)) * charWidth + 12;
     const plotY = this.config.showLabels ? fontSize + 8 : pad + 4;
     const xLabels = chartData.map(item => clipLabel(String(item.x), 10));
@@ -287,7 +289,7 @@ export class ScatterChartVisualization {
               </filter>
             </defs>
             {renderValueAxis({
-              ticks: yScale.ticks, min: yScale.min, max: yScale.max,
+              ticks: yScale.ticks, labels: yAxis.labels, min: yScale.min, max: yScale.max,
               plotX, plotY, plotW, plotH, fontSize, fontFamily: theme.fontFamily,
               showGrid: !!this.config.showGrid, gridOpacity: theme.gridlines.opacity
             })}
@@ -381,7 +383,7 @@ export class ScatterChartVisualization {
                 fill="var(--fl-chart-text-secondary)"
                 font-family={theme.fontFamily}
               >
-                {formatTick(tick)}
+                {xAxis.labels[i]}
               </text>
             )) : points.map((point, i) => i % xStride === 0 && (
               <text

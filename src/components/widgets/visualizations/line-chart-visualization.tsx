@@ -3,8 +3,7 @@ import { FilterChangeEventDetail, VisualizationData, fieldLabel } from './base-v
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { PlotSizeTracker, clipLabel } from '../../../utils/bar-layout';
-import { niceScale } from '../../../utils/scale';
-import { renderValueAxis, formatTick } from '../../../utils/chart-axes';
+import { renderValueAxis, buildAxis } from '../../../utils/chart-axes';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface LineDataPoint {
@@ -170,7 +169,8 @@ export class LineChartVisualization {
       return <div class="empty-data">No data available</div>;
     }
     
-    const scale = niceScale(Math.min(0, ...chartData.map(item => item.y)), Math.max(...chartData.map(item => item.y), 0));
+    const axis = buildAxis(Math.min(0, ...chartData.map(item => item.y)), Math.max(...chartData.map(item => item.y), 0), this.config, { length: this.plotHeight, fontSize: Math.max(10, (ChartThemeUtils.getTheme(this.colorTheme, this.el).fontSize || 12) - 1) });
+    const scale = axis.scale;
     const minValue = scale.min;
     const maxValue = scale.max;
 
@@ -183,7 +183,7 @@ export class LineChartVisualization {
     const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
     const charWidth = fontSize * 0.58;
     const pad = 8;
-    const tickValues = scale.ticks.map(formatTick);
+    const tickValues = axis.labels;
     const plotXBase = pad + Math.max(...tickValues.map(t => t.length)) * charWidth + 6;
     const plotY = this.config.showLabels ? fontSize + 8 : pad;
     const xLabels = chartData.map(item => clipLabel(String(item.x), 15));
@@ -200,7 +200,7 @@ export class LineChartVisualization {
 
     const points = chartData.map((item, index) => ({
       x: chartData.length === 1 ? plotX + plotW / 2 : plotX + index * spacing,
-      y: plotY + plotH - ((item.y - minValue) / (maxValue - minValue || 1)) * plotH,
+      y: plotY + plotH - Math.min(1, Math.max(0, (item.y - minValue) / (maxValue - minValue || 1))) * plotH,
       category: item.x,
       value: item.y
     }));
@@ -229,7 +229,7 @@ export class LineChartVisualization {
               </filter>
             </defs>
             {renderValueAxis({
-              ticks: scale.ticks, min: scale.min, max: scale.max,
+              ticks: scale.ticks, labels: axis.labels, min: scale.min, max: scale.max,
               plotX, plotY, plotW, plotH, fontSize, fontFamily: theme.fontFamily,
               showGrid: !!this.config.showGrid, gridOpacity: theme.gridlines.opacity
             })}

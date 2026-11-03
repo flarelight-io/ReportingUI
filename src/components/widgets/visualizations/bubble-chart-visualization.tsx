@@ -3,8 +3,7 @@ import { FilterChangeEventDetail, VisualizationData } from './base-visualization
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { PlotSizeTracker } from '../../../utils/bar-layout';
-import { niceScale } from '../../../utils/scale';
-import { formatTick } from '../../../utils/chart-axes';
+import { buildAxis } from '../../../utils/chart-axes';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface BubbleDataPoint {
@@ -250,10 +249,12 @@ export class BubbleChartVisualization {
     const charWidth = fontSize * 0.58;
     const pad = 8;
     // Round axis domains so ticks are clean numbers; bubbles are positioned against the same domain
-    const xs = niceScale(minX, maxX);
-    const ys = niceScale(minY, maxY);
-    const yTicks = ys.ticks.map(formatTick);
-    const xTicks = xs.ticks.map(formatTick);
+    const xAxis = buildAxis(minX, maxX, undefined, { length: W, fontSize, horizontal: true });
+    const yAxis = buildAxis(minY, maxY, undefined, { length: H, fontSize });
+    const xs = xAxis.scale;
+    const ys = yAxis.scale;
+    const yTicks = yAxis.labels;
+    const xTicks = xAxis.labels;
     const axisLeft = pad + Math.max(...yTicks.map(t => t.length)) * charWidth + 6;
     const axisBottom = H - (xValues.length > 0 ? fontSize + 12 : pad);
     const axisTop = pad;

@@ -5,8 +5,7 @@ import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { placeTooltip } from '../../../utils/tooltip';
 import { PlotSizeTracker, computeBarFrame, clipLabel } from '../../../utils/bar-layout';
-import { niceScale } from '../../../utils/scale';
-import { renderValueAxis, formatTick } from '../../../utils/chart-axes';
+import { renderValueAxis, buildAxis } from '../../../utils/chart-axes';
 
 interface ClusteredChartItem {
   category: string;
@@ -206,7 +205,8 @@ export class ClusteredBarChartVisualization {
     const colors = this.getColors();
     const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
-    const scale = niceScale(0, Math.max(...chartData.map(item => item.maxValue), 0));
+    const axis = buildAxis(0, Math.max(...chartData.map(item => item.maxValue), 0), this.config, { length: (isHorizontal ? this.plotWidth : this.plotHeight), fontSize: Math.max(10, (theme.fontSize || 12) - 1), horizontal: isHorizontal });
+    const scale = axis.scale;
     const maxValue = scale.max || 1;
     const fieldCount = seriesNames.length || 1;
 
@@ -218,7 +218,7 @@ export class ClusteredBarChartVisualization {
     const showValues = !!this.config.showLabels;
     const frame = computeBarFrame({
       width: W, height: H, horizontal: isHorizontal, labels: rawLabels, fontSize, valueLabels: showValues, showCategories: true,
-      tickLabels: scale.ticks.map(formatTick)
+      tickLabels: axis.labels
     });
     const { plotX, plotY, plotW, plotH, rotate, slot, labelStride, charWidth } = frame;
     const labels = frame.labels;
@@ -231,7 +231,7 @@ export class ClusteredBarChartVisualization {
     const bars = chartData.map((item, categoryIndex) => {
       const groupStart = categoryIndex * slot + (slot - groupThickness) / 2;
       const segments = item.values.map((segment, segmentIndex) => {
-        const length = (segment.value / maxValue) * (isHorizontal ? plotW : plotH);
+        const length = Math.min(isHorizontal ? plotW : plotH, Math.max(0, (segment.value / maxValue) * (isHorizontal ? plotW : plotH)));
         const offset = groupStart + segmentIndex * (barThickness + barGap);
         const color = colors[segmentIndex % colors.length];
         return isHorizontal
@@ -264,7 +264,7 @@ export class ClusteredBarChartVisualization {
               </filter>
             </defs>
             {renderValueAxis({
-              ticks: scale.ticks, min: scale.min, max: scale.max,
+              ticks: scale.ticks, labels: axis.labels, min: scale.min, max: scale.max,
               plotX, plotY, plotW, plotH, fontSize, fontFamily: theme.fontFamily,
               horizontal: isHorizontal, showGrid: !!this.config.showGrid, gridOpacity: theme.gridlines.opacity
             })}

@@ -3,8 +3,7 @@ import { FilterChangeEventDetail, VisualizationData } from './base-visualization
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { PlotSizeTracker, clipLabel, fitRotatedLabels } from '../../../utils/bar-layout';
-import { niceScale } from '../../../utils/scale';
-import { renderValueAxis, tickLabelWidth } from '../../../utils/chart-axes';
+import { renderValueAxis, tickLabelWidth, buildAxis } from '../../../utils/chart-axes';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface BoxWhiskerDataItem {
@@ -266,14 +265,15 @@ export class BoxWhiskerChartVisualization {
     const charWidth = fontSize * 0.58;
     const pad = 8;
     // Round the value axis so ticks are clean numbers
-    const scale = niceScale(minValue, maxValue);
+    const axis = buildAxis(minValue, maxValue, undefined, { length: this.plotHeight, fontSize: Math.max(10, (theme.fontSize || 12) - 1) });
+    const scale = axis.scale;
     minValue = scale.min;
     maxValue = scale.max;
     const showTicks = true;
     const categoryLabels = chartData.map((item, i) => clipLabel(item.SampleSourceName || `Group ${i + 1}`));
     const longestPx = Math.max(...categoryLabels.map(l => l.length)) * charWidth;
 
-    const plotX = pad + (showTicks ? tickLabelWidth(scale.ticks, fontSize) + 2 : 0);
+    const plotX = pad + (showTicks ? tickLabelWidth(axis.labels, fontSize) + 2 : 0);
     const plotY = pad;
     const plotW = Math.max(0, W - plotX - pad);
     // Names that fit under their box stay horizontal; longer ones rotate within a capped area
@@ -361,7 +361,7 @@ export class BoxWhiskerChartVisualization {
               </filter>
             </defs>
             {renderValueAxis({
-              ticks: scale.ticks, min: scale.min, max: scale.max,
+              ticks: scale.ticks, labels: axis.labels, min: scale.min, max: scale.max,
               plotX, plotY, plotW, plotH, fontSize, fontFamily: theme.fontFamily,
               showGrid: !!this.config.showGrid, gridOpacity: theme.gridlines.opacity
             })}

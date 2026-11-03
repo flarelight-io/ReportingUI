@@ -4,8 +4,7 @@ import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { placeTooltip } from '../../../utils/tooltip';
 import { PlotSizeTracker, computeBarFrame, clipLabel } from '../../../utils/bar-layout';
-import { niceScale } from '../../../utils/scale';
-import { renderValueAxis, formatTick } from '../../../utils/chart-axes';
+import { renderValueAxis, buildAxis } from '../../../utils/chart-axes';
 
 interface ChartDataItem {
   category: string;
@@ -174,7 +173,8 @@ export class BarChartVisualization {
     const colors = this.getColors();
     const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
-    const scale = niceScale(0, Math.max(...chartData.map(item => item.value), 0));
+    const axis = buildAxis(0, Math.max(...chartData.map(item => item.value), 0), this.config, { length: (isHorizontal ? this.plotWidth : this.plotHeight), fontSize: Math.max(10, (theme.fontSize || 12) - 1), horizontal: isHorizontal });
+    const scale = axis.scale;
     const maxValue = scale.max || 1;
 
     // Lay out in real pixels so text keeps a constant, readable size at any container size
@@ -187,7 +187,7 @@ export class BarChartVisualization {
     const frame = computeBarFrame({
       width: W, height: H, horizontal: isHorizontal, labels: rawLabels, fontSize,
       valueLabels: !!this.config.showLabels, showCategories: wantCategories,
-      tickLabels: scale.ticks.map(formatTick)
+      tickLabels: axis.labels
     });
     const { plotX, plotY, plotW, plotH, rotate, slot: slotSize, labelStride, charWidth } = frame;
     const labels = frame.labels;
@@ -198,7 +198,7 @@ export class BarChartVisualization {
 
     const bars = chartData.map((item, index) => {
       const colorIndex = index % colors.length;
-      const length = (item.value / maxValue) * (isHorizontal ? plotW : plotH);
+      const length = Math.min(isHorizontal ? plotW : plotH, Math.max(0, (item.value / maxValue) * (isHorizontal ? plotW : plotH)));
       const thickness = Math.max(1, slotSize * 0.7);
       const gapOffset = (slotSize - thickness) / 2;
       if (isHorizontal) {
@@ -233,7 +233,7 @@ export class BarChartVisualization {
             </defs>
 
             {renderValueAxis({
-              ticks: scale.ticks, min: scale.min, max: scale.max,
+              ticks: scale.ticks, labels: axis.labels, min: scale.min, max: scale.max,
               plotX, plotY, plotW, plotH, fontSize, fontFamily: theme.fontFamily,
               horizontal: isHorizontal, showGrid: !!this.config.showGrid, gridOpacity: theme.gridlines.opacity
             })}

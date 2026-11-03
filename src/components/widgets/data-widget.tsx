@@ -25,6 +25,12 @@ interface BaseDataWidgetConfig {
   aggregation?: AggregationSpec;
   /** Per-field overrides of `aggregation`, by field name. */
   aggregations?: Record<string, AggregationSpec>;
+  /** Value axis (bar, clustered, stacked, lollipop and line charts): pin the lower end. */
+  axisMin?: number;
+  /** Value axis: pin the upper end, so the axis doesn't round up past it (data above it is clipped). */
+  axisMax?: number;
+  /** Value axis for percentages: pins 0-100 and labels ticks with %. axisMin/axisMax override the ends. */
+  percentAxis?: boolean;
 }
 
 // Box-whisker chart specific configuration
