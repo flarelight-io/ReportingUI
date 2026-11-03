@@ -2,6 +2,7 @@ import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
+import { placeTooltip } from '../../../utils/tooltip';
 
 interface BubbleDataPoint {
   x: string | number;
@@ -87,8 +88,8 @@ export class BubbleChartVisualization {
       this.tooltip = {
         visible: true,
         text: `${truncatedCategory}\nY: ${formattedValue}\nSize: ${formattedSize}`,
-        x: event.clientX - svgRect.left,
-        y: event.clientY - svgRect.top
+        x: event.clientX,
+        y: event.clientY
       };
     }
   }
@@ -464,11 +465,7 @@ export class BubbleChartVisualization {
           {this.tooltip.visible && (
             <div 
               class="chart-tooltip visible"
-              style={{ 
-                left: `${this.tooltip.x}px`, 
-                top: `${this.tooltip.y}px`,
-                transform: 'translate(-50%, -100%)'
-              }}
+              ref={(el) => placeTooltip(el, this.tooltip.x, this.tooltip.y)}
             >
               <div>{this.tooltip.text}</div>
             </div>

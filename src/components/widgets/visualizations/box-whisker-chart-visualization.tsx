@@ -2,6 +2,7 @@ import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
+import { placeTooltip } from '../../../utils/tooltip';
 
 interface BoxWhiskerDataItem {
   SampleSize: number;
@@ -155,8 +156,8 @@ export class BoxWhiskerChartVisualization {
       };
       
       this.tooltipPosition = {
-        x: event.clientX - svgRect.left,
-        y: event.clientY - svgRect.top
+        x: event.clientX,
+        y: event.clientY
       };
     }
   }
@@ -605,11 +606,7 @@ export class BoxWhiskerChartVisualization {
           {this.tooltipVisible && (
             <div 
               part="tooltip" class={`chart-tooltip ${this.tooltipVisible ? 'visible' : ''}`}
-              style={{ 
-                left: `${this.tooltipPosition.x}px`, 
-                top: `${this.tooltipPosition.y}px`,
-                transform: 'translate(-50%, -100%)'
-              }}
+              ref={(el) => placeTooltip(el, this.tooltipPosition.x, this.tooltipPosition.y)}
             >
               <div class="tooltip-title">{this.tooltipContent.title}</div>
               <div class="tooltip-content">

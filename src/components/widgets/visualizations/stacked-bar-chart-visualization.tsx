@@ -2,6 +2,7 @@ import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
+import { placeTooltip } from '../../../utils/tooltip';
 import { PlotSizeTracker, computeBarFrame, clipLabel } from '../../../utils/bar-layout';
 
 interface StackedChartItem {
@@ -139,8 +140,8 @@ export class StackedBarChartVisualization {
       this.tooltip = {
         visible: true,
         text: `${truncatedCategory}\n${segment.field}: ${formattedValue}`,
-        x: event.clientX - svgRect.left,
-        y: event.clientY - svgRect.top
+        x: event.clientX,
+        y: event.clientY
       };
     }
   }
@@ -331,11 +332,7 @@ export class StackedBarChartVisualization {
           {this.tooltip.visible && (
             <div 
               part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
-              style={{ 
-                left: `${this.tooltip.x}px`, 
-                top: `${this.tooltip.y}px`,
-                transform: 'translate(-50%, -100%)'
-              }}
+              ref={(el) => placeTooltip(el, this.tooltip.x, this.tooltip.y)}
             >
               <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
                 {this.tooltip.text}

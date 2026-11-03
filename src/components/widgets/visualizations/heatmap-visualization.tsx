@@ -2,6 +2,7 @@ import { Component, Prop, h, State, Event, EventEmitter, Element, Watch } from '
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { HeatmapConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
+import { placeTooltip } from '../../../utils/tooltip';
 
 interface HeatmapMatrix {
   rowLabels: string[];
@@ -265,8 +266,8 @@ export class HeatmapVisualization {
       this.tooltip = {
         visible: true,
         text: `${rowLabel} × ${colLabel}\n${formattedValue}`,
-        x: e.clientX - svgRect.left,
-        y: e.clientY - svgRect.top
+        x: e.clientX,
+        y: e.clientY
       };
     }
   }
@@ -525,11 +526,7 @@ export class HeatmapVisualization {
           {this.tooltip.visible && (
             <div 
               part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
-              style={{ 
-                left: `${this.tooltip.x}px`, 
-                top: `${this.tooltip.y}px`,
-                transform: 'translate(-50%, -100%)'
-              }}
+              ref={(el) => placeTooltip(el, this.tooltip.x, this.tooltip.y)}
             >
               <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
                 {this.tooltip.text}

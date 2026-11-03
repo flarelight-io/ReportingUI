@@ -2,6 +2,7 @@ import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
+import { placeTooltip } from '../../../utils/tooltip';
 
 interface LineDataPoint {
   x: string | number;
@@ -86,8 +87,8 @@ export class LineChartVisualization {
       this.tooltip = {
         visible: true,
         text: `${displayCategory}\n${formattedValue}`,
-        x: event.clientX - svgRect.left,
-        y: event.clientY - svgRect.top
+        x: event.clientX,
+        y: event.clientY
       };
     }
   }
@@ -377,11 +378,7 @@ export class LineChartVisualization {
           {this.tooltip.visible && (
             <div 
               part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
-              style={{ 
-                left: `${this.tooltip.x}px`, 
-                top: `${this.tooltip.y}px`,
-                transform: 'translate(-50%, -100%)'
-              }}
+              ref={(el) => placeTooltip(el, this.tooltip.x, this.tooltip.y)}
             >
               <div style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>
                 {this.tooltip.text}
