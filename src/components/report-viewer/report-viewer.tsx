@@ -4,6 +4,7 @@ import { WidgetData } from '../widgets/base-widget';
 import { ColorTheme, ChartThemeUtils } from '../../utils/chart-theme';
 import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
 import { filtersCacheKey, filterIdentity, stableStringify } from '../../utils/filters';
+import { resolveRect } from '../../utils/layout';
 
 interface WidgetDataCache {
   [widgetId: string]: any;
@@ -716,11 +717,8 @@ export class ReportViewer {
       // Position the widget using grid properties
       // Set both size (span) and position (start)
       // Using zero-based coordinates (add 1 when applying to grid since CSS grid is 1-based)
-      const columns = this.effectiveColumns;
-      const w = Math.max(1, Math.min(columns, widget.w || Math.max(1, Math.round(columns / 2)))); // Default: half the grid, clamped to it
-      const x = Math.max(0, Math.min(columns - w, (widget.x !== undefined) ? widget.x : 0)); // Default to first column (0)
-      const y = (widget.y !== undefined) ? widget.y : 0; // Default to first row (0) if not specified
-      const h = widget.h || 4; // Default height of 4 grid units
+      // Defaults and clamping to the grid live in resolveRect so the report builder places widgets identically
+      const { x, y, w, h } = resolveRect(widget, this.effectiveColumns);
       
       // Set both size (span) and position (start)
       // Add 1 to x and y because CSS grid is 1-based, but our coordinates are 0-based
