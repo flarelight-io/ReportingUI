@@ -533,7 +533,7 @@ export class SunburstChartVisualization {
       : legendItems;
     
     const legend = (this.config.showLegend !== false) ? (
-      <div class="chart-legend">
+      <div class="chart-legend" part="legend">
         {displayedLegendItems.map((node, index) => (
           <div key={index} class="legend-item">
             <div class="color-indicator" style={{ backgroundColor: node.color }}></div>
@@ -547,7 +547,7 @@ export class SunburstChartVisualization {
     ) : null;
     
     return (
-      <div class="sunburst-chart-container">
+      <div class="sunburst-chart-container" part="chart">
         <div class="chart-area">
           <svg 
             viewBox="0 0 100 100" 
@@ -572,7 +572,7 @@ export class SunburstChartVisualization {
           {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
-              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
+              part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltip.x}px`, 
                 top: `${this.tooltip.y}px`,

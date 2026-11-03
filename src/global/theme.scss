@@ -1,3 +1,19 @@
+/*
+ * Styling hooks (all optional). Set any of these on :root, on <report-viewer>, or on any ancestor
+ * to override the defaults; custom properties pass through the shadow DOM boundary.
+ *
+ * Layout & chrome:
+ *   --fl-report-padding, --fl-grid-gap
+ *   --fl-widget-radius, --fl-widget-shadow, --fl-widget-shadow-hover, --fl-widget-border
+ *   --fl-widget-header-padding, --fl-widget-header-background
+ *   --fl-widget-title-size, --fl-widget-title-weight
+ *   --fl-widget-body-padding, --fl-widget-body-padding-fixed
+ * Charts:
+ *   --fl-chart-padding, --fl-chart-legend-max-height, plus every --fl-chart-* below
+ * Parts (style with ::part from outside the shadow root):
+ *   base-widget: card | header | title | body
+ *   *-visualization: chart | plot | legend | tooltip
+ */
 :root {
   /* Default theme (light) */
   --fl-background-color: #f8fafc;

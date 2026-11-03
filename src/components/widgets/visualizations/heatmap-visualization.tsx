@@ -371,7 +371,7 @@ export class HeatmapVisualization {
     
     return (
       <div class="heatmap-container">
-        <div class="visualization-container">
+        <div class="visualization-container" part="plot">
           <svg 
             width="100%" 
             height="100%" 
@@ -524,7 +524,7 @@ export class HeatmapVisualization {
           {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
-              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
+              part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltip.x}px`, 
                 top: `${this.tooltip.y}px`,
@@ -540,7 +540,7 @@ export class HeatmapVisualization {
         
         {/* Color legend */}
         {(this.config.showLegend !== false) && (
-          <div class="chart-legend">
+          <div class="chart-legend" part="legend">
             {legendBuckets.map((bucket, idx) => {
               const startLabel = this.formatValue(bucket.start);
               const endLabel = this.formatValue(bucket.end);

@@ -279,8 +279,8 @@ export class ScatterChartVisualization {
     const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
     return (
-      <div class="scatter-chart-container">
-        <div class="visualization-container">
+      <div class="scatter-chart-container" part="chart">
+        <div class="visualization-container" part="plot">
           <svg 
             width="100%" 
             height="100%" 
@@ -489,7 +489,7 @@ export class ScatterChartVisualization {
           {/* Tooltip */}
           {this.tooltip.visible && (
             <div 
-              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
+              part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltip.x}px`, 
                 top: `${this.tooltip.y}px`,
@@ -504,7 +504,7 @@ export class ScatterChartVisualization {
         </div>
         
         {(this.config.showLegend !== false) && (
-          <div class="chart-legend">
+          <div class="chart-legend" part="legend">
             {chartData.length <= 10 ? (
               // If we have a reasonable number of points, show them each in the legend
               chartData.map((item, i) => (

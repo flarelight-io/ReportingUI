@@ -210,8 +210,8 @@ export class HistogramChartVisualization {
     });
     
     return (
-      <div class="bar-chart-container">
-        <div class="visualization-container">
+      <div class="bar-chart-container" part="chart">
+        <div class="visualization-container" part="plot">
           <svg 
             width="100%" 
             height="100%" 
@@ -386,7 +386,7 @@ export class HistogramChartVisualization {
           {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
-              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
+              part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltip.x}px`, 
                 top: `${this.tooltip.y}px`,
@@ -402,7 +402,7 @@ export class HistogramChartVisualization {
         
         {/* Legend with PowerBI-grade styling */}
         {(this.config.showLegend !== false) && (
-          <div class="chart-legend">
+          <div class="chart-legend" part="legend">
             <div class="legend-item">
               <div class="color-indicator" style={{ backgroundColor: colors[0] }}></div>
               <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>

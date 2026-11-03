@@ -282,8 +282,8 @@ export class BubbleChartVisualization {
     });
     
     return (
-      <div class="bubble-chart-container">
-        <div class="visualization-container">
+      <div class="bubble-chart-container" part="chart">
+        <div class="visualization-container" part="plot">
           <svg 
             width="100%" 
             height="100%" 
@@ -477,7 +477,7 @@ export class BubbleChartVisualization {
         
         {/* Legend */}
         {this.config.showLegend && categories.length > 0 && (
-          <div class="chart-legend">
+          <div class="chart-legend" part="legend">
             {categories.map((category, i) => (
               <div key={i} class="legend-item">
                 <div 

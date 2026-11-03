@@ -44,18 +44,18 @@ export class BaseWidget {
     const displayTitle = this.widgetTitle || '';
 
     return (
-      <div class="widget-card" 
+      <div class="widget-card" part="card" 
         onMouseEnter={this.handleMouseEnter} 
         onMouseLeave={this.handleMouseLeave}
       >
         {shouldShowTitleBar && (
-          <div class="widget-header">
+          <div class="widget-header" part="header">
             <div class="title-container">
-              <h3 class="widget-title">{displayTitle}</h3>
+              <h3 class="widget-title" part="title">{displayTitle}</h3>
             </div>
           </div>
         )}
-        <div class={`widget-body ${shouldShowTitleBar ? 'with-title' : 'no-title'}`}>
+        <div class={`widget-body ${shouldShowTitleBar ? 'with-title' : 'no-title'}`} part="body">
           <slot></slot>
         </div>
       </div>

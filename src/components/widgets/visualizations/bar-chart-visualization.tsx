@@ -261,8 +261,8 @@ export class BarChartVisualization {
     const { fontSize, maxTextLength } = calculateLabelProperties();
 
     return (
-      <div class="bar-chart-container">
-        <div class="visualization-container">
+      <div class="bar-chart-container" part="chart">
+        <div class="visualization-container" part="plot">
           <svg 
             width="100%" 
             height="100%" 
@@ -437,7 +437,7 @@ export class BarChartVisualization {
           {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
-              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
+              part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltip.x}px`, 
                 top: `${this.tooltip.y}px`,
@@ -452,7 +452,7 @@ export class BarChartVisualization {
         </div>
         
         {(this.config.showLegend !== false) && (
-          <div class="chart-legend">
+          <div class="chart-legend" part="legend">
             {bars.map((bar, i) => (
               <div key={i} class="legend-item">
                 <div class="color-indicator" style={{ backgroundColor: bar.color }}></div>

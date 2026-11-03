@@ -369,8 +369,8 @@ export class BoxWhiskerChartVisualization {
     });
 
     return (
-      <div class="box-whisker-chart-container">
-        <div class="visualization-container">
+      <div class="box-whisker-chart-container" part="chart">
+        <div class="visualization-container" part="plot">
           <svg 
             width="100%" 
             height="100%" 
@@ -604,7 +604,7 @@ export class BoxWhiskerChartVisualization {
           
           {this.tooltipVisible && (
             <div 
-              class={`chart-tooltip ${this.tooltipVisible ? 'visible' : ''}`}
+              part="tooltip" class={`chart-tooltip ${this.tooltipVisible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltipPosition.x}px`, 
                 top: `${this.tooltipPosition.y}px`,
@@ -625,7 +625,7 @@ export class BoxWhiskerChartVisualization {
         </div>
         
         {(this.config.showLegend !== false) && (
-          <div class="chart-legend">
+          <div class="chart-legend" part="legend">
             {chartData.map((item, i) => (
               <div key={i} class="legend-item">
                 <div 

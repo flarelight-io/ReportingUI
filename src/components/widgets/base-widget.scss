@@ -9,8 +9,9 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: var(--fl-widget-radius, 8px);
+  box-shadow: var(--fl-widget-shadow, 0 2px 4px rgba(0, 0, 0, 0.1));
+  border: var(--fl-widget-border, none);
   background-color: var(--fl-card-background, white);
   overflow: hidden;
   
@@ -25,8 +26,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 16px;
-  background-color: var(--fl-background-color, #f4f4f5);
+  padding: var(--fl-widget-header-padding, 8px 16px);
+  background-color: var(--fl-widget-header-background, var(--fl-background-color, #f4f4f5));
   border-bottom: 1px solid var(--fl-border-color, #e4e4e7);
   
   // In fixed height mode, make header smaller
@@ -43,8 +44,8 @@
 }
 
 .widget-title {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--fl-widget-title-size, 14px);
+  font-weight: var(--fl-widget-title-weight, 500);
   margin: 0;
   color: var(--fl-text-color-primary);
   
@@ -98,39 +99,19 @@
   overflow: auto;
   color: var(--fl-text-color-primary);
   
-  // In fixed height mode, allow scaling instead of scrolling
+  // In fixed height mode the body never scrolls; charts measure it and size themselves.
   :host-context(.height-mode-fixed) & {
     overflow: hidden;
-    font-size: 0.8em;
-    padding: 4px;
     min-height: 0;
-    
-    // Scale down visualization components
-    bar-chart-visualization,
-    line-chart-visualization,
-    pie-chart-visualization,
-    table-visualization,
-    heatmap-visualization {
-      font-size: 0.8em;
-      
-      svg {
-        font-size: 0.8em;
-      }
-      
-      .chart-legend {
-        font-size: 0.7em;
-        max-height: 40px;
-      }
-    }
   }
 }
 
 .widget-body.with-title {
-  padding: 16px;
+  padding: var(--fl-widget-body-padding, 16px);
   
   // In fixed height mode, reduce padding
   :host-context(.height-mode-fixed) & {
-    padding: 4px;
+    padding: var(--fl-widget-body-padding-fixed, 4px);
   }
 }
 

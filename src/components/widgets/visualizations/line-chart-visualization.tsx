@@ -181,8 +181,8 @@ export class LineChartVisualization {
     const theme = ChartThemeUtils.getTheme(this.colorTheme);
     
     return (
-      <div class="line-chart-container">
-        <div class="visualization-container">
+      <div class="line-chart-container" part="chart">
+        <div class="visualization-container" part="plot">
           <svg 
             width="100%" 
             height="100%" 
@@ -376,7 +376,7 @@ export class LineChartVisualization {
           {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
-              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
+              part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltip.x}px`, 
                 top: `${this.tooltip.y}px`,
@@ -391,7 +391,7 @@ export class LineChartVisualization {
         </div>
         
         {(this.config.showLegend !== false) && (
-          <div class="chart-legend">
+          <div class="chart-legend" part="legend">
             <div class="legend-item">
               <div class="color-indicator" style={{ backgroundColor: colors[0] }}></div>
               <span class="legend-text" style={{ fontSize: `${this.legendFontSize}px` }}>{valueField || "Value"}</span>

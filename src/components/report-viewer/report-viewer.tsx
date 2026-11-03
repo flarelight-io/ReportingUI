@@ -1645,7 +1645,9 @@ export class ReportViewer {
     
     // Calculate column width (account for gap)
     const numColumns = 12;
-    const gapSize = 15; // Should match the gap size in CSS
+    // Read the gap from CSS so --fl-grid-gap overrides stay in sync with the row-height math
+    const cssGap = parseFloat(getComputedStyle(this.gridContainer).columnGap);
+    const gapSize = isNaN(cssGap) ? 15 : cssGap;
     const totalGapWidth = gapSize * (numColumns - 1);
     const columnWidth = (gridWidth - totalGapWidth) / numColumns;
     

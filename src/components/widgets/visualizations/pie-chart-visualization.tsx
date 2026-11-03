@@ -223,8 +223,8 @@ export class PieChartVisualization {
       }
       
       return (
-        <div class="pie-chart-container">
-          <div class="visualization-container">
+        <div class="pie-chart-container" part="chart">
+          <div class="visualization-container" part="plot">
             <svg
               width="100%"
               height="100%"
@@ -305,7 +305,7 @@ export class PieChartVisualization {
             {/* Tooltip */}
             {this.tooltip.visible && (
               <div 
-                class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
+                part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
                 style={{ 
                   left: `${this.tooltip.x}px`, 
                   top: `${this.tooltip.y}px`,
@@ -320,7 +320,7 @@ export class PieChartVisualization {
           </div>
           
           {(this.config.showLegend !== false) && (
-            <div class="chart-legend">
+            <div class="chart-legend" part="legend">
               <div class="legend-item">
                 <div class="color-indicator" style={{ backgroundColor: colors[0] }}></div>
                 <span class="legend-text">{singleItem.category}: {singleItem.value} (100%)</span>
@@ -423,8 +423,8 @@ export class PieChartVisualization {
     const maxTextLength = this.calculateMaxTextLength(segments.length);
     
     return (
-      <div class="pie-chart-container">
-        <div class="visualization-container">
+      <div class="pie-chart-container" part="chart">
+        <div class="visualization-container" part="plot">
           <svg
             width="100%"
             height="100%"
@@ -577,7 +577,7 @@ export class PieChartVisualization {
           {/* Tooltip */}
           {this.tooltip.visible && (
             <div 
-              class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
+              part="tooltip" class={`chart-tooltip ${this.tooltip.visible ? 'visible' : ''}`}
               style={{ 
                 left: `${this.tooltip.x}px`, 
                 top: `${this.tooltip.y}px`,
@@ -592,7 +592,7 @@ export class PieChartVisualization {
         </div>
         
         {(this.config.showLegend !== false) && (
-          <div class="chart-legend">
+          <div class="chart-legend" part="legend">
             {segments.map((segment, i) => (
               <div key={i} class="legend-item">
                 <div class="color-indicator" style={{ backgroundColor: segment.color }}></div>
