@@ -250,19 +250,6 @@
           "description": "Height in grid units",
           "minimum": 1
         },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -356,19 +343,6 @@
           "enum": ["top", "middle", "bottom"],
           "default": "top"
         },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -407,19 +381,6 @@
       "type": "object",
       "description": "Configuration for source info widgets",
       "properties": {
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -439,19 +400,6 @@
           "type": "string",
           "description": "Name of the analysis"
         },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -470,19 +418,6 @@
         "analysisName": {
           "type": "string",
           "description": "Name of the analysis"
-        },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -533,19 +468,6 @@
         "analysisName": {
           "type": "string",
           "description": "Name of the analysis"
-        },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -620,19 +542,6 @@
         "analysisName": {
           "type": "string",
           "description": "Name of the analysis"
-        },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -747,19 +656,6 @@
         "analysisName": {
           "type": "string",
           "description": "Name of the analysis"
-        },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -890,19 +786,6 @@
           "type": "string",
           "description": "Name of the analysis"
         },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -992,19 +875,6 @@
           "type": "string",
           "description": "Name of the analysis"
         },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -1088,19 +958,6 @@
         "analysisName": {
           "type": "string",
           "description": "Name of the analysis"
-        },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -1191,19 +1048,6 @@
           "type": "string",
           "description": "Name of the analysis"
         },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -1258,19 +1102,6 @@
           "type": "string",
           "description": "Name of the analysis"
         },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -1324,19 +1155,6 @@
         "analysisName": {
           "type": "string",
           "description": "Name of the analysis"
-        },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -1467,19 +1285,6 @@
           "type": "string",
           "description": "Name of the analysis"
         },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -1579,19 +1384,6 @@
           "type": "string",
           "description": "Name of the analysis"
         },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -1671,19 +1463,6 @@
           "type": "string",
           "description": "Name of the analysis"
         },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -1762,19 +1541,6 @@
         "analysisName": {
           "type": "string",
           "description": "Name of the analysis"
-        },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -2057,19 +1823,6 @@
           "enum": ["box-whisker"],
           "default": "box-whisker"
         },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -2116,19 +1869,6 @@
         "analysisName": {
           "type": "string",
           "description": "Name of the analysis"
-        },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -2199,19 +1939,6 @@
         "groupByField": {
           "type": "string",
           "description": "Field to group data by (optional)"
-        },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -2295,19 +2022,6 @@
           "type": "string",
           "description": "Field to group data by (optional)"
         },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -2376,19 +2090,6 @@
           "type": "string",
           "description": "Field containing the previous value for trend comparison"
         },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -2454,19 +2155,6 @@
           "description": "Type of visualization",
           "enum": ["table"],
           "default": "table"
-        },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -2568,19 +2256,6 @@
           "description": "Format for displaying values",
           "enum": ["number", "percentage", "currency"],
           "default": "number"
-        },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -2685,19 +2360,6 @@
             },
             "required": ["value", "color", "operator"]
           }
-        },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
         },
         "hideTitle": {
           "type": "boolean",
@@ -3128,19 +2790,6 @@
             "type": "string"
           }
         },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
-        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -3195,19 +2844,6 @@
           "items": {
             "type": "string"
           }
-        },
-        "axisMin": {
-          "type": "number",
-          "description": "Pin the lower end of the value axis (bar, clustered, stacked, lollipop and line charts)."
-        },
-        "axisMax": {
-          "type": "number",
-          "description": "Pin the upper end of the value axis so it doesn't round up past it, e.g. 100. Data above it is clipped."
-        },
-        "percentAxis": {
-          "type": "boolean",
-          "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
-          "default": false
         },
         "hideTitle": {
           "type": "boolean",
