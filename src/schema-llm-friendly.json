@@ -15,7 +15,7 @@
         "xs": {"type": "array", "items": {"$ref": "#/definitions/LayoutItem"}}
       }
     },
-    "colorTheme": {"type": "string", "enum": ["brand", "rainbow", "blue", "grayscale", "rainbow-alt"], "default": "brand"}
+    "colorTheme": {"type": "string", "examples": ["brand", "rainbow", "blue", "grayscale", "rainbow-alt"], "default": "brand"}
   },
   "anyOf": [{"required": ["widgets"]}, {"required": ["layouts", "widgets"]}],
   "definitions": {

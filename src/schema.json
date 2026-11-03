@@ -55,7 +55,7 @@
     "colorTheme": {
       "type": "string",
       "description": "Global color theme for the report",
-      "enum": ["brand", "rainbow", "blue", "grayscale", "rainbow-alt"],
+      "examples": ["brand", "rainbow", "blue", "grayscale", "rainbow-alt"],
       "default": "brand"
     }
   },

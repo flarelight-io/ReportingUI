@@ -1,12 +1,29 @@
 export type ChartMode = "light" | "dark";
-export type ColorTheme = "brand" | "rainbow" | "blue" | "grayscale" | "rainbow-alt";
+export type BuiltInColorTheme = "brand" | "rainbow" | "blue" | "grayscale" | "rainbow-alt";
+// Any registered theme name is valid; the `string & {}` keeps autocomplete for the built-ins.
+export type ColorTheme = BuiltInColorTheme | (string & {});
+
+export interface ColorThemeDefinition {
+  /** Series colors used in light mode (cycled when there are more series than colors). */
+  light: string[];
+  /** Series colors used in dark mode. Falls back to `light` when omitted. */
+  dark?: string[];
+  /** Optional 5-color diverging scale [strong-, moderate-, neutral, moderate+, strong+] per mode. */
+  distinct?: { light: string[]; dark?: string[] };
+}
+
+/** Optional overrides for the non-palette theme tokens (fonts, surfaces, strokes...). */
+export interface ChartThemeOverrides {
+  light?: Record<string, any>;
+  dark?: Record<string, any>;
+}
 
 function alpha(hex: string, a: number) {
   return `${hex}${Math.round(a * 255).toString(16).padStart(2, "0")}`;
 }
 
 // Color theme definitions
-const colorThemes: Record<ColorTheme, { light: string[], dark: string[] }> = {
+const builtInColorThemes: Record<BuiltInColorTheme, { light: string[], dark: string[] }> = {
   brand: {
     light: [
       "#4d19a2", // primary brand color
@@ -119,10 +136,33 @@ const colorThemes: Record<ColorTheme, { light: string[], dark: string[] }> = {
   }
 };
 
+const customColorThemes: Record<string, ColorThemeDefinition> = {};
+let themeOverrides: ChartThemeOverrides = {};
+
+function getPalette(colorTheme: ColorTheme, mode: ChartMode): string[] {
+  const custom = customColorThemes[colorTheme];
+  if (custom) {
+    const palette = custom[mode] && custom[mode].length ? custom[mode] : custom.light;
+    return palette;
+  }
+  const builtIn = builtInColorThemes[colorTheme as BuiltInColorTheme] || builtInColorThemes.brand;
+  return builtIn[mode];
+}
+
 // Helper function to get distinct colors for correlation analysis
 // Returns 5 colors: [strong-, moderate-, neutral, moderate+, strong+]
 function getDistinctColors(colorTheme: ColorTheme, mode: ChartMode): string[] {
   const isLight = mode === "light";
+
+  const custom = customColorThemes[colorTheme];
+  if (custom) {
+    const explicit = custom.distinct && (custom.distinct[mode] || custom.distinct.light);
+    if (explicit && explicit.length === 5) return explicit;
+    // Derive a scale from the palette: ends and middle of the series colors
+    const palette = getPalette(colorTheme, mode);
+    const at = (f: number) => palette[Math.min(palette.length - 1, Math.round(f * (palette.length - 1)))];
+    return [at(0), at(0.25), at(0.5), at(0.75), at(1)];
+  }
   
   switch (colorTheme) {
     case 'brand':
@@ -211,10 +251,10 @@ function getDistinctColors(colorTheme: ColorTheme, mode: ChartMode): string[] {
 
 // Helper function to create theme with color palette
 function createTheme(mode: ChartMode, colorTheme: ColorTheme = "brand") {
-  const colors = colorThemes[colorTheme][mode];
+  const colors = getPalette(colorTheme, mode);
   const isLight = mode === "light";
   
-  return {
+  const theme = {
     mode,
     // layout
     grid: 8,
@@ -249,6 +289,9 @@ function createTheme(mode: ChartMode, colorTheme: ColorTheme = "brand") {
     dimOpacity: isLight ? 0.35 : 0.4,
     focusStrokeDarken: isLight ? 0.12 : 0.1,
   };
+
+  const overrides = themeOverrides[mode];
+  return overrides ? { ...theme, ...overrides } : theme;
 }
 
 export const chartTheme: Record<ChartMode, any> = {
@@ -302,6 +345,43 @@ export class ChartThemeUtils {
 
   static setTheme(mode: ChartMode): void {
     this._currentMode = mode;
+    this.notifyThemeChange();
+  }
+
+  /**
+   * Register (or replace) a named color theme. It can then be selected with
+   * `colorTheme: "<name>"` in the report configuration or via `setColorTheme`.
+   */
+  static registerColorTheme(name: string, definition: ColorThemeDefinition): void {
+    if (!definition || !Array.isArray(definition.light) || definition.light.length === 0) {
+      throw new Error(`registerColorTheme("${name}"): "light" must be a non-empty array of colors`);
+    }
+    customColorThemes[name] = definition;
+    if (this._currentColorTheme === name) {
+      this.updateCSSColorTheme(name);
+    }
+    this.notifyThemeChange();
+  }
+
+  static unregisterColorTheme(name: string): void {
+    delete customColorThemes[name];
+    this.notifyThemeChange();
+  }
+
+  static getColorThemeNames(): string[] {
+    return [...Object.keys(builtInColorThemes), ...Object.keys(customColorThemes)];
+  }
+
+  static hasColorTheme(name: string): boolean {
+    return name in builtInColorThemes || name in customColorThemes;
+  }
+
+  /**
+   * Override individual theme tokens (fontFamily, fontSize, bg, panel, labelColor, gridColor,
+   * regressionColor, lineStrokeWidth, ...) for one or both modes. Merged over the generated theme.
+   */
+  static setThemeOverrides(overrides: ChartThemeOverrides): void {
+    themeOverrides = overrides || {};
     this.notifyThemeChange();
   }
 
