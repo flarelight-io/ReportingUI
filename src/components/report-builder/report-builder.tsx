@@ -2,7 +2,7 @@ import { Component, Element, Event, EventEmitter, Method, Prop, State, Watch, h 
 import { DataSource } from '../../api/types/common';
 import { LayoutItem, addItem, moveItem, removeItems, sameLayout, setItemRect } from '../../utils/layout';
 import {
-  addWidgetToConfig, applyLayoutItems, getLayoutItems, nextWidgetId, removeWidgetsFromConfig, updateWidgetInConfig
+  addWidgetToConfig, applyLayoutItems, getLayoutItems, nextWidgetId, removeWidgetsFromConfig, replaceWidgetInConfig, updateWidgetInConfig
 } from '../../utils/report-layout';
 import { parseConfigObject } from '../../utils/config-keys';
 import { WidgetTypeDefinition, resolveWidgetType } from '../../utils/widget-catalog';
@@ -69,6 +69,19 @@ export class ReportBuilder {
    * title, which is cheaper and a clearer drop target; `live` keeps the content visible.
    */
   @Prop() interactionPreview: 'outline' | 'live' = 'outline';
+  /**
+   * Called to configure a widget: when one is added (`mode: 'add'`) and when the user double-clicks it, presses Enter
+   * or uses its settings button (`'edit'`). Open whatever UI you like, then resolve with the new widget definition
+   * (any keys the backend supports), or `null` to cancel: a cancelled add adds nothing, a cancelled edit changes nothing.
+   */
+  @Prop() configureWidget?: (request: {
+    mode: 'add' | 'edit';
+    widget: Record<string, any>;
+    definition: { type: string; label: string; defaultSize: { w: number; h: number }; minSize?: { w: number; h: number }; maxSize?: { w: number; h: number } };
+    sources: DataSource[];
+  }) => Promise<Record<string, any> | null> | Record<string, any> | null;
+  /** Whether `addWidget` calls `configureWidget` before adding. */
+  @Prop() configureOnAdd: boolean = true;
   /** Presentation, passed to the viewer (see `<report-viewer>`). */
   @Prop() columns?: number;
   @Prop() rowHeight?: number;
@@ -87,6 +100,8 @@ export class ReportBuilder {
   @Event() configurationChange: EventEmitter<any>;
   /** The selection changed. */
   @Event() widgetSelect: EventEmitter<{ ids: string[] }>;
+  /** The user asked to configure a widget (double-click, Enter, settings button) or `configure()` was called. */
+  @Event() widgetAction: EventEmitter<{ id: string; action: 'configure' }>;
 
   private rootEl?: HTMLElement;
   private interaction?: Interaction;
@@ -166,27 +181,92 @@ export class ReportBuilder {
     const config = parseConfigObject(this.configuration) || { widgets: [] };
     const definition = resolveWidgetType(type, this.widgetCatalog);
     const id = options.id || nextWidgetId(config, type);
-    const w = options.w || definition.defaultSize.w;
-    const h = options.h || definition.defaultSize.h;
-    const items = this.itemsFor(config);
-    if (items.some(i => i.id === id)) return null;
+    if (this.itemsFor(config).some(i => i.id === id)) return null;
 
-    const explicit = options.x !== undefined && options.y !== undefined;
-    const added = addItem(
-      items,
-      { id, w, h, ...(explicit ? { x: options.x, y: options.y } : {}), minW: definition.minSize && definition.minSize.w, minH: definition.minSize && definition.minSize.h, maxW: definition.maxSize && definition.maxSize.w, maxH: definition.maxSize && definition.maxSize.h },
-      this.layoutOptions
-    );
-    const placed = added.find(i => i.id === id);
+    const initial = definition.defaultConfig ? definition.defaultConfig({ sources: this.currentSources(config) }) : {};
+    let widget: Record<string, any> = { id, type, title: options.title !== undefined ? options.title : definition.label, config: { ...initial, ...(options.config || {}) } };
+
+    if (this.configureWidget && this.configureOnAdd) {
+      // Let the app configure the draft first; nothing is added if it cancels
+      const draft = this.placeNewWidget(config, widget, options, definition);
+      if (!draft) return null;
+      const result = await this.runConfigureHook('add', { ...widget, ...draft.rect }, definition);
+      if (!result) return null;
+      widget = { ...result, id, type: result.type || type };
+    }
+
+    // Place against the latest configuration: it may have changed while the app's UI was open
+    const latest = parseConfigObject(this.configuration) || { widgets: [] };
+    if (this.itemsFor(latest).some(i => i.id === id)) return null;
+    const placed = this.placeNewWidget(latest, widget, options, definition);
     if (!placed) return null;
-
-    const initial = definition.defaultConfig ? definition.defaultConfig({ sources: this.sources || config.sources || [] }) : {};
-    const widget = { id, type, title: options.title !== undefined ? options.title : definition.label, config: { ...initial, ...(options.config || {}) } };
-    let next = addWidgetToConfig(config, widget, { x: placed.x, y: placed.y, w: placed.w, h: placed.h });
-    next = applyLayoutItems(next, added, this.columnCount);
-    this.emitChange(next);
+    this.emitChange(placed.config);
     this.setSelection([id]);
     return id;
+  }
+
+  private currentSources(config: any): DataSource[] {
+    return this.sources || config.sources || [];
+  }
+
+  /** The configuration with the widget added at a free spot (or the requested one), or null if it doesn't fit. */
+  private placeNewWidget(config: any, widget: Record<string, any>, options: { x?: number; y?: number; w?: number; h?: number }, definition: ReturnType<typeof resolveWidgetType>) {
+    const id = String(widget.id);
+    const explicit = options.x !== undefined && options.y !== undefined;
+    const added = addItem(
+      this.itemsFor(config),
+      {
+        id,
+        w: options.w || definition.defaultSize.w,
+        h: options.h || definition.defaultSize.h,
+        ...(explicit ? { x: options.x, y: options.y } : {}),
+        minW: definition.minSize && definition.minSize.w, minH: definition.minSize && definition.minSize.h,
+        maxW: definition.maxSize && definition.maxSize.w, maxH: definition.maxSize && definition.maxSize.h
+      },
+      this.layoutOptions
+    );
+    const item = added.find(i => i.id === id);
+    if (!item) return null;
+    const rect = { x: item.x, y: item.y, w: item.w, h: item.h };
+    const { x, y, w, h, ...rest } = widget;
+    let next = addWidgetToConfig(config, rest as any, rect);
+    next = applyLayoutItems(next, added, this.columnCount);
+    return { config: next, rect };
+  }
+
+  /** Calls the app's hook; a hook that throws counts as a cancel (and is reported to the console). */
+  private async runConfigureHook(mode: 'add' | 'edit', widget: Record<string, any>, definition: ReturnType<typeof resolveWidgetType>): Promise<Record<string, any> | null> {
+    if (!this.configureWidget) return null;
+    try {
+      const result = await this.configureWidget({ mode, widget, definition, sources: this.currentSources(this.config) });
+      return result && typeof result === 'object' ? result : null;
+    } catch (error) {
+      console.error('[report-builder] configureWidget failed', error);
+      return null;
+    }
+  }
+
+  /**
+   * Starts configuring a widget: emits `widgetAction` (`configure`) and, when a `configureWidget` hook is set, calls it
+   * and applies the widget it resolves with. Resolves with whether a change was applied. Without a hook, apps listen
+   * for `widgetAction` and call `updateWidget`.
+   */
+  @Method()
+  async configure(id: string): Promise<boolean> {
+    const config = parseConfigObject(this.configuration) || { widgets: [] };
+    const defs: any[] = Array.isArray(config.widgets) ? config.widgets : [];
+    const def = defs.find(d => String(d.id) === id);
+    if (!def || this.readOnly) return false;
+    this.widgetAction.emit({ id, action: 'configure' });
+    if (!this.configureWidget) return false;
+    const item = this.itemsFor(config).find(i => i.id === id);
+    const result = await this.runConfigureHook('edit', { ...def, ...(item ? { x: item.x, y: item.y, w: item.w, h: item.h } : {}) }, resolveWidgetType(def.type, this.widgetCatalog));
+    if (!result) return false;
+    const latest = parseConfigObject(this.configuration) || { widgets: [] };
+    const next = replaceWidgetInConfig(latest, id, { ...result, id });
+    if (next === latest) return false;
+    this.emitChange(next);
+    return true;
   }
 
   /** Removes widgets and closes the gaps they leave (unless `compact` is `none`). */
@@ -386,6 +466,9 @@ export class ReportBuilder {
     if (event.key === 'Escape') {
       if (this.interaction) this.finishInteraction(false);
       else this.setSelection([]);
+    } else if (event.key === 'Enter' && this.selection.length === 1 && !this.interaction) {
+      event.preventDefault();
+      this.configure(this.selection[0]);
     } else if ((event.key === 'Delete' || event.key === 'Backspace') && this.selection.length && !this.interaction) {
       event.preventDefault();
       this.removeWidgets([...this.selection]);
@@ -455,7 +538,24 @@ export class ReportBuilder {
                   onPointerMove={this.onPointerMove}
                   onPointerUp={this.onPointerUp}
                   onPointerCancel={this.onPointerCancel}
+                  onDblClick={() => this.configure(item.id)}
                 >
+                  {single === item.id && (
+                    <button
+                      type="button"
+                      class="builder-settings"
+                      part="settings-button"
+                      title="Configure"
+                      aria-label="Configure widget"
+                      onPointerDown={(e: PointerEvent) => e.stopPropagation()}
+                      onClick={() => this.configure(item.id)}
+                    >
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                      </svg>
+                    </button>
+                  )}
                   {single === item.id && !item.locked && EDGES.map(edge => (
                     <div
                       key={edge}

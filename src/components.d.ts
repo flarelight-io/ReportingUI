@@ -603,6 +603,24 @@ export namespace Components {
          */
         "configuration": any;
         /**
+          * Starts configuring a widget: emits `widgetAction` (`configure`) and, when a `configureWidget` hook is set, calls it and applies the widget it resolves with. Resolves with whether a change was applied. Without a hook, apps listen for `widgetAction` and call `updateWidget`.
+         */
+        "configure": (id: string) => Promise<boolean>;
+        /**
+          * Whether `addWidget` calls `configureWidget` before adding.
+          * @default true
+         */
+        "configureOnAdd": boolean;
+        /**
+          * Called to configure a widget: when one is added (`mode: 'add'`) and when the user double-clicks it, presses Enter or uses its settings button (`'edit'`). Open whatever UI you like, then resolve with the new widget definition (any keys the backend supports), or `null` to cancel: a cancelled add adds nothing, a cancelled edit changes nothing.
+         */
+        "configureWidget"?: (request: {
+    mode: 'add' | 'edit';
+    widget: Record<string, any>;
+    definition: { type: string; label: string; defaultSize: { w: number; h: number }; minSize?: { w: number; h: number }; maxSize?: { w: number; h: number } };
+    sources: DataSource[];
+  }) => Promise<Record<string, any> | null> | Record<string, any> | null;
+        /**
           * Same data function the viewer takes, so widgets show real data while editing.
          */
         "fetchChartData": Function;
@@ -1238,6 +1256,7 @@ declare global {
     interface HTMLReportBuilderElementEventMap {
         "configurationChange": any;
         "widgetSelect": { ids: string[] };
+        "widgetAction": { id: string; action: 'configure' };
     }
     /**
      * Edit layer for a report: select, move, resize, add and delete widgets on the grid. The configuration is
@@ -1980,6 +1999,20 @@ declare namespace LocalJSX {
          */
         "configuration"?: any;
         /**
+          * Whether `addWidget` calls `configureWidget` before adding.
+          * @default true
+         */
+        "configureOnAdd"?: boolean;
+        /**
+          * Called to configure a widget: when one is added (`mode: 'add'`) and when the user double-clicks it, presses Enter or uses its settings button (`'edit'`). Open whatever UI you like, then resolve with the new widget definition (any keys the backend supports), or `null` to cancel: a cancelled add adds nothing, a cancelled edit changes nothing.
+         */
+        "configureWidget"?: (request: {
+    mode: 'add' | 'edit';
+    widget: Record<string, any>;
+    definition: { type: string; label: string; defaultSize: { w: number; h: number }; minSize?: { w: number; h: number }; maxSize?: { w: number; h: number } };
+    sources: DataSource[];
+  }) => Promise<Record<string, any> | null> | Record<string, any> | null;
+        /**
           * Same data function the viewer takes, so widgets show real data while editing.
          */
         "fetchChartData"?: Function;
@@ -1993,6 +2026,10 @@ declare namespace LocalJSX {
           * The full next configuration, whenever the user changes the layout or the app calls a method.
          */
         "onConfigurationChange"?: (event: ReportBuilderCustomEvent<any>) => void;
+        /**
+          * The user asked to configure a widget (double-click, Enter, settings button) or `configure()` was called.
+         */
+        "onWidgetAction"?: (event: ReportBuilderCustomEvent<{ id: string; action: 'configure' }>) => void;
         /**
           * The selection changed.
          */

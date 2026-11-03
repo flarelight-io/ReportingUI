@@ -20,7 +20,7 @@ export type { WidgetFactory, WidgetCreateContext, WidgetTypeRegistration, Regist
 export { resolveRect, moveItem, resizeItem, addItem, removeItems, normalizeLayout, compactVertical, collides, findFreePosition } from './utils/layout';
 export type { LayoutItem, LayoutOptions } from './utils/layout';
 export { setItemRect } from './utils/layout';
-export { getLayoutItems, applyLayoutItems, addWidgetToConfig, removeWidgetsFromConfig, updateWidgetInConfig, nextWidgetId } from './utils/report-layout';
+export { getLayoutItems, applyLayoutItems, addWidgetToConfig, removeWidgetsFromConfig, replaceWidgetInConfig, updateWidgetInConfig, nextWidgetId } from './utils/report-layout';
 export type { ReportWidgetDef } from './utils/report-layout';
 export { resolveWidgetType } from './utils/widget-catalog';
 export type { WidgetTypeDefinition, ResolvedWidgetType } from './utils/widget-catalog';

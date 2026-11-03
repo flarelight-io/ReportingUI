@@ -72,3 +72,26 @@ report-builder .builder-handle {
   &.handle-nw { top: -6px; left: -6px; cursor: nwse-resize; }
   &.handle-se { bottom: -6px; right: -6px; cursor: nwse-resize; }
 }
+
+// Settings button on the selected widget; hide it with `report-builder::part(settings-button)` or `.builder-settings`
+report-builder .builder-settings {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--fl-chart-primary, #4d19a2);
+  background: #fff;
+  border: 1px solid var(--fl-chart-primary, #4d19a2);
+  border-radius: 4px;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--fl-chart-primary, #4d19a2);
+    color: #fff;
+  }
+}

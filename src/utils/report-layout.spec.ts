@@ -1,5 +1,5 @@
 import {
-  addWidgetToConfig, applyLayoutItems, getLayoutItems, layoutKey, nextWidgetId, removeWidgetsFromConfig, updateWidgetInConfig
+  addWidgetToConfig, applyLayoutItems, getLayoutItems, layoutKey, nextWidgetId, removeWidgetsFromConfig, replaceWidgetInConfig, updateWidgetInConfig
 } from './report-layout';
 
 const plain = () => ({
@@ -111,5 +111,20 @@ describe('updateWidgetInConfig', () => {
     expect(next.widgets[0]).toMatchObject({ x: 0, y: 5, w: 3, h: 4 });
     const withL: any = updateWidgetInConfig(withLayouts(), 'a', { x: 2 });
     expect(withL.layouts.lg[0]).toMatchObject({ i: 'a', x: 2, y: 0, w: 6 });
+  });
+});
+
+describe('replaceWidgetInConfig', () => {
+  it('replaces the definition as a whole and keeps the position', () => {
+    const cfg = plain();
+    const next: any = replaceWidgetInConfig(cfg, 'a', { id: 'zzz', type: 'bar', x: 9, config: { custom: 1 } });
+    expect(next.widgets[0]).toEqual({ id: 'a', type: 'bar', config: { custom: 1 }, x: 0, y: 0, w: 6, h: 4 });
+    expect(next.widgets[1]).toBe(cfg.widgets[1]);
+    expect(replaceWidgetInConfig(cfg, 'missing', { id: 'm', type: 'bar' })).toBe(cfg);
+  });
+
+  it('does not add a position to definitions whose position lives in the layout', () => {
+    const next: any = replaceWidgetInConfig(withLayouts(), 'a', { id: 'a', type: 'bar', title: 'T' });
+    expect(next.widgets[0]).toEqual({ id: 'a', type: 'bar', title: 'T' });
   });
 });

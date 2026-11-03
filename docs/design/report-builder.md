@@ -397,7 +397,16 @@ its own root to measure once the grid exists.
 Not done in Phase 1: puppeteer e2e tests (the repo has none yet), touch-specific tuning, keyboard moves, a visible
 placeholder for the drop target, the `layouts` format in the browser (only covered by unit tests).
 
-### Phase 2 (next)
+### Phase 2: configuration hooks (done)
 
-Configuration hook: `configureWidget` / `widgetAction` so apps open their own UI when a widget is added or edited,
-and `updateWidget` to apply the result (the method already exists).
+`configureWidget` prop (add and edit modes, async, null cancels, throwing counts as cancel), `configureOnAdd`, `configure(id)`
+method, `widgetAction` event, double-click / Enter / settings button, `replaceWidgetInConfig` (whole-widget replacement,
+position preserved). Verified in the browser: add applies custom keys, cancelled add adds nothing, cancelled edit is a
+no-op, dblclick, Enter and the button all call the hook. 110 unit tests pass.
+
+Not done from the Phase 2 list: `validate` in the catalog and validation messages on the frame (defer until a real need
+shows up; apps can validate inside their own UI).
+
+### Phase 3 (next)
+
+Undo/redo, keyboard moves, duplicate, copy/paste, drop placeholder.

@@ -26,6 +26,8 @@ If the app doesn't apply a change, the builder falls back to the configuration i
 | `sources` | Data sources available to the report. |
 | `widgetCatalog` | `WidgetTypeDefinition[]`: default/min/max sizes, label and initial config per widget type. Unlisted types use built-in defaults. |
 | `fetchChartData` | The same data function the viewer takes. |
+| `configureWidget` | Your hook for configuring widgets, see below. |
+| `configureOnAdd` | Whether `addWidget` calls the hook first (default `true`). |
 | `readOnly` | Turns editing off; the report just renders. |
 | `compact` | `vertical` (default): colliding widgets are pushed down and gaps close. `none`: widgets stay where they're put; moves that would overlap are rejected. |
 | `interactionPreview` | `outline` (default) hides a widget's content while it is dragged or resized and keeps its frame and title; `live` keeps the content. |
@@ -34,6 +36,7 @@ If the app doesn't apply a change, the builder falls back to the configuration i
 ## Events
 
 - `configurationChange` – `detail` is the full next configuration.
+- `widgetAction` – `detail` is `{ id, action: 'configure' }`: the user double-clicked a widget, pressed Enter on it or used its settings button.
 - `widgetSelect` – `detail.ids` is the new selection.
 
 ## Methods
@@ -41,11 +44,27 @@ If the app doesn't apply a change, the builder falls back to the configuration i
 - `addWidget(type, { id?, title?, x?, y?, w?, h?, config? })` – adds at the first free spot (or at `x`/`y`), selects it, resolves with the id (or `null`).
 - `removeWidgets(ids)` – removes widgets and closes the gaps. Widgets with `locked: true` are kept.
 - `updateWidget(id, patch)` – merges a patch (title, config, position...). Position changes go through the layout engine so others make room. Use this to apply your own configuration UI.
+- `configure(id)` – same as the user asking to configure the widget; resolves with whether a change was applied.
 - `select(ids)` / `getSelection()`.
+
+## Configuring widgets with your own UI
+
+The builder has no configuration form. Give it a hook and open whatever you like (a modal, a side panel, a backend round trip):
+
+```js
+builder.configureWidget = async ({ mode, widget, definition, sources }) => {
+  const result = await openMyDialog(widget, sources); // mode is 'add' or 'edit'
+  return result ? { ...widget, config: result } : null; // null cancels
+};
+```
+
+The widget you resolve with replaces the old one as a whole, so you can set any keys your backend supports. Its position stays where the layout has it. Cancelling an add adds nothing; cancelling an edit changes nothing. A hook that throws counts as a cancel.
+
+If promises are awkward in your framework, skip the hook: listen to `widgetAction` and call `updateWidget(id, patch)` when your UI is done. `addWidget(type, { config })` then adds directly.
 
 ## Interaction
 
-Drag a widget to move it; select it to get eight resize handles. Shift/Ctrl/Cmd-click adds to the selection, `Delete` removes the selection, `Escape` cancels a drag or clears the selection. Widgets with `locked: true` can't be moved, resized or deleted.
+Drag a widget to move it; select it to get eight resize handles. Double-click, `Enter` or the settings button on a selected widget starts configuring it. Shift/Ctrl/Cmd-click adds to the selection, `Delete` removes the selection, `Escape` cancels a drag or clears the selection. Widgets with `locked: true` can't be moved, resized or deleted.
 
 ## Styling
 

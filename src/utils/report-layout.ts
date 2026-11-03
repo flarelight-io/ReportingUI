@@ -165,3 +165,21 @@ export function updateWidgetInConfig(config: Config, id: string, patch: Partial<
   }
   return next;
 }
+
+/**
+ * Replaces a widget definition as a whole (keys missing from `widget` are dropped, unlike `updateWidgetInConfig`).
+ * The position stays where the layout has it: position keys in `widget` are ignored when the widget's position is held
+ * by the layout, and applied otherwise.
+ */
+export function replaceWidgetInConfig(config: Config, id: string, widget: ReportWidgetDef): Config {
+  const defs = definitions(config);
+  const index = defs.findIndex(d => String(d.id) === String(id));
+  if (index < 0) return config;
+  const current = getLayoutItems(config).find(i => i.id === String(id));
+  const { x, y, w, h, ...rest } = widget;
+  const key = layoutKey(config);
+  const own = !key || hasOwnPosition(defs[index]);
+  const widgets = defs.slice();
+  widgets[index] = { ...rest, id: defs[index].id, ...(own && current ? { x: current.x, y: current.y, w: current.w, h: current.h } : {}) };
+  return { ...config, widgets };
+}
