@@ -111,7 +111,7 @@ Moves, resizes, adds and removals are announced through a polite live region.
 
 ## Styling
 
-The frames and handles are plain elements: `.builder-frame`, `.builder-frame.selected`, `.builder-handle` (also exposed as `part="frame"`, `"frame-selected"`, `"handle"`). They use `--fl-chart-primary` for color.
+The builder is light DOM, so its elements are styled with ordinary selectors: `.builder-frame`, `.builder-frame.selected`, `.builder-handle`, `.builder-settings` (the settings button) and `.builder-panel` (the configuration drawer or modal). They use `--fl-chart-primary` for color; the form uses the card, border, text and background variables. To hide the settings button, use `report-builder .builder-settings { display: none }`.
 
 ## Helpers
 

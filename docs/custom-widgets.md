@@ -44,3 +44,12 @@ registerWidgetType('gauge', { create: factory, fetchesData: true });
 
 `unregisterWidgetType`, `getWidgetType` and `getRegisteredWidgetTypes` are also exported. An unknown type renders a
 placeholder instead of breaking the report. Register types before the viewer renders (at app start).
+
+## In the report builder
+
+To let users add and edit your type in `<report-builder>`, describe it in the builder's `widgetCatalog`: its label, default and minimum sizes, an initial config and a `configSchema` that the built-in configuration form is generated from. See [report-builder.md](report-builder.md#configuring-widgets).
+
+```js
+builder.widgetCatalog = [{ type: 'gauge', label: 'Gauge', defaultSize: { w: 3, h: 3 }, minSize: { w: 2, h: 2 },
+  configSchema: { properties: { sourceId: { type: 'string' }, valueField: { type: 'string' }, max: { type: 'number' } } } }];
+```

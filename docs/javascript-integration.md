@@ -342,3 +342,20 @@ window.addEventListener('filter-change', (event) => {
 ## Browser Support
 
 StencilJS Web Components are supported by all modern browsers (Chrome, Firefox, Safari, Edge).
+
+## Report builder
+
+To let users edit the report, use `<report-builder>` instead of `<report-viewer>`. It takes the same `configuration` and `fetchChartData`, and emits the next configuration for you to apply and save:
+
+```javascript
+const builder = document.querySelector('report-builder');
+builder.configuration = report;
+builder.sources = sources;
+builder.fetchChartData = fetchChartData;
+builder.addEventListener('configurationChange', e => {
+  report = e.detail;
+  builder.configuration = report; // apply (and save) it
+});
+```
+
+See [report-builder.md](report-builder.md) for methods, keyboard shortcuts and the configuration form.

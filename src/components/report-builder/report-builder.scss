@@ -73,7 +73,7 @@ report-builder .builder-handle {
   &.handle-se { bottom: -6px; right: -6px; cursor: nwse-resize; }
 }
 
-// Settings button on the selected widget; hide it with `report-builder::part(settings-button)` or `.builder-settings`
+// Settings button on the selected widget; hide it with `.builder-settings`
 report-builder .builder-settings {
   position: absolute;
   top: 4px;

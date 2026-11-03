@@ -11,7 +11,8 @@ A StencilJS web components library for building interactive reporting dashboards
 - **20+ visualization types** — bar, line, pie, scatter, bubble, heatmap, KPI, sunburst, histogram, lollipop, box & whisker, table, and more
 - **Statistical analysis widgets** — normality tests (Shapiro-Wilk, Anderson-Darling, Kolmogorov-Smirnov), ANOVA, Mann-Whitney, Kruskal-Wallis, Wilcoxon, correlation, descriptive statistics
 - **Bring your own data** — a single `fetchChartData(request)` callback is all the library needs; you control how data is fetched, cached, and transformed
-- **Grid-based layout** via [Gridstack](https://gridstackjs.com/) — draggable, resizable widgets
+- **Grid-based layout** — a CSS grid with configurable columns, row height and gap; widgets are placed with `x/y/w/h`
+- **Report builder** — `<report-builder>` adds an editing layer: move, resize, add, duplicate and delete widgets, undo/redo, keyboard control, your own configuration UI or the built-in form ([docs](docs/report-builder.md))
 - **Framework-agnostic** Web Components — works with any frontend stack
 - **PDF generation** support via PuppeteerSharp / headless Chrome
 - **Standalone esbuild bundle** — single `<script>` tag, no build step required
@@ -191,7 +192,8 @@ const configuration = {
 - [Pivoted series](docs/series.md) — turn a dimension into the series of a stacked/clustered chart
 - [Chart options](docs/chart-options.md) — top-N with Other, pinned/percent value axis, tick behavior
 - [Custom widget types](docs/custom-widgets.md) — register your own widget types in the viewer
-- [Report builder](docs/report-builder.md) — `<report-builder>`: move, resize, add and delete widgets
+- [Report builder](docs/report-builder.md) — `<report-builder>`: edit layouts, configure widgets, undo/redo, keyboard
+- [Changelog](CHANGELOG.md) — what changed in each version
 - [React Integration](docs/react-integration.md) — detailed React setup and examples
 - [JavaScript Integration](docs/javascript-integration.md) — vanilla JS / CDN usage
 - [.NET Integration](docs/dotnet-integration.md) — PuppeteerSharp PDF generation

@@ -86,6 +86,10 @@ data-widget::part(legend) { display: none; }
 data-widget::part(card) { border-radius: 0; }
 ```
 
+## Report builder
+
+The builder is light DOM like the viewer, so you restyle it with ordinary selectors: `.builder-frame`, `.builder-frame.selected`, `.builder-handle`, `.builder-settings` (the settings button) and `.builder-panel` (the configuration drawer or modal). Its frames, handles and settings button use `--fl-chart-primary`, and the built-in configuration form uses the card, border, text and background variables above, so it follows your theme and dark mode. Details in [report-builder.md](report-builder.md#styling).
+
 ## Chart colors from CSS
 
 Chart colors can also be set from CSS. These variables are **not defined by default**: when unset, charts use the

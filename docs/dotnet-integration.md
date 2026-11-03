@@ -334,7 +334,7 @@ public async Task<IActionResult> GeneratePdf(string reportId, [FromBody] string 
 - Verify the `getChartData` bridge is registered before `SetContentAsync` is called.
 
 **PDF cuts widgets in half**
-- Confirm `.widget-item` elements exist in the DOM (they come from Gridstack's layout).
+- Confirm `.widget-item` elements exist in the DOM (the viewer renders one per widget in its grid).
 - Check the `replaced` log count — if it's 0, the widget screenshot step is not finding elements.
 
 **`file://` path errors on Windows**
