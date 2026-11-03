@@ -179,13 +179,15 @@ export class LollipopChartVisualization {
     const W = this.plotWidth;
     const H = this.plotHeight;
     const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
-    const labels = chartData.map(item => clipLabel(item.category));
+    const rawLabels = chartData.map(item => clipLabel(item.category, 28));
     const showValues = !!this.config.showLabels;
     const frame = computeBarFrame({
-      width: W, height: H, horizontal: isHorizontal, labels, fontSize, valueLabels: showValues, showCategories: true,
+      width: W, height: H, horizontal: isHorizontal, labels: rawLabels, fontSize, valueLabels: showValues, showCategories: true,
       tickLabels: scale.ticks.map(formatTick)
     });
     const { plotX, plotY, plotW, plotH, rotate, slot, labelStride, charWidth } = frame;
+    const labels = frame.labels;
+    const showCategories = frame.showCategories;
     const circleRadius = Math.max(3, Math.min(6, slot * 0.25));
     const strokeWidth = 1.5;
     const valueStride = isHorizontal
@@ -312,7 +314,7 @@ export class LollipopChartVisualization {
             )}
 
             <g>
-              {lollipops.map((lollipop, i) => {
+              {showCategories && lollipops.map((lollipop, i) => {
                 if (i % labelStride !== 0) return null;
                 if (isHorizontal) {
                   return (

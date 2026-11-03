@@ -1,7 +1,7 @@
 import { Component, Prop, h, Host, State, Watch, Element, Event, EventEmitter } from '@stencil/core';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../utils/chart-theme';
 import { placeTooltip } from '../../utils/tooltip';
-import { PlotSizeTracker, clipLabel } from '../../utils/bar-layout';
+import { PlotSizeTracker, clipLabel, fitRotatedLabels } from '../../utils/bar-layout';
 import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
 
 export interface CorrelationAnalysisWidgetConfig {
@@ -371,7 +371,8 @@ export class CorrelationAnalysisWidget {
     const longestColPx = Math.max(...colLabels.map(l => l.length), 1) * charWidth;
     // Rotate column labels only when they don't fit side by side
     const rotateCols = cellWidth < longestColPx + 6;
-    const paddingTop = pad + (rotateCols ? Math.min(longestColPx * Math.SQRT1_2 + fontSize + 8, H * 0.4) : fontSize + 10);
+    const rotated = rotateCols ? fitRotatedLabels(colLabels, H, fontSize) : null;
+    const paddingTop = pad + (rotated ? rotated.height : fontSize + 10);
     const gridHeight = Math.max(0, H - paddingTop - pad);
     const cellHeight = gridHeight / Math.max(1, rowFields.length);
     const rowStride = Math.max(1, Math.ceil((fontSize * 1.3) / Math.max(1, cellHeight)));
@@ -414,7 +415,7 @@ export class CorrelationAnalysisWidget {
               </text>
             ))}
 
-            {colLabels.map((field, i) => {
+            {(rotated ? rotated.labels : colLabels).map((field, i) => {
               if (i % colStride !== 0) return null;
               const x = paddingLeft + i * cellWidth + cellWidth / 2;
               const y = paddingTop - 6;

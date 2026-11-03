@@ -2,7 +2,7 @@ import { Component, Prop, h, State, Event, EventEmitter, Element, Watch } from '
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { HeatmapConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
-import { PlotSizeTracker, clipLabel } from '../../../utils/bar-layout';
+import { PlotSizeTracker, clipLabel, fitRotatedLabels } from '../../../utils/bar-layout';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface HeatmapMatrix {
@@ -283,9 +283,8 @@ export class HeatmapVisualization {
     const longestColPx = Math.max(...colLabels.map(l => l.length), 1) * charWidth;
     // Rotate column labels only when they don't fit side by side
     const rotateCols = cellWidth < longestColPx + 6;
-    const colLabelHeight = rotateCols
-      ? Math.min(longestColPx * Math.SQRT1_2 + fontSize + 8, H * 0.4)
-      : fontSize + 10;
+    const rotated = rotateCols ? fitRotatedLabels(colLabels, H, fontSize) : null;
+    const colLabelHeight = rotated ? rotated.height : fontSize + 10;
     const heatmapOffsetY = pad + colLabelHeight;
     const heatmapHeight = Math.max(0, H - heatmapOffsetY - pad);
     const cellHeight = heatmapHeight / Math.max(1, rowCount);
@@ -379,7 +378,7 @@ export class HeatmapVisualization {
               </text>
             ))}
 
-            {colLabels.map((label, idx) => {
+            {(rotated ? rotated.labels : colLabels).map((label, idx) => {
               if (idx % colStride !== 0) return null;
               const xPos = heatmapOffsetX + (idx * cellWidth) + (cellWidth / 2);
               const yPos = heatmapOffsetY - 6;

@@ -185,13 +185,15 @@ export class ClusteredBarChartVisualization {
     const W = this.plotWidth;
     const H = this.plotHeight;
     const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
-    const labels = chartData.map(item => clipLabel(item.category));
+    const rawLabels = chartData.map(item => clipLabel(item.category, 28));
     const showValues = !!this.config.showLabels;
     const frame = computeBarFrame({
-      width: W, height: H, horizontal: isHorizontal, labels, fontSize, valueLabels: showValues, showCategories: true,
+      width: W, height: H, horizontal: isHorizontal, labels: rawLabels, fontSize, valueLabels: showValues, showCategories: true,
       tickLabels: scale.ticks.map(formatTick)
     });
     const { plotX, plotY, plotW, plotH, rotate, slot, labelStride, charWidth } = frame;
+    const labels = frame.labels;
+    const showCategories = frame.showCategories;
 
     const groupThickness = Math.max(1, slot * 0.8);
     const barGap = fieldCount > 1 ? Math.min(2, groupThickness / fieldCount * 0.1) : 0;
@@ -245,6 +247,7 @@ export class ClusteredBarChartVisualization {
                     key={`${i}-${j}`}
                     x={segment.x}
                     y={segment.y}
+                    rx={2}
                     width={segment.width}
                     height={segment.height}
                     fill={`url(#clusteredGradient-${j % colors.length})`}
@@ -298,7 +301,7 @@ export class ClusteredBarChartVisualization {
             )}
 
             <g>
-              {bars.map((bar, i) => {
+              {showCategories && bars.map((bar, i) => {
                 if (i % labelStride !== 0) return null;
                 if (isHorizontal) {
                   return (

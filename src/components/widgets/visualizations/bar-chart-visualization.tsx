@@ -181,15 +181,17 @@ export class BarChartVisualization {
     const W = this.plotWidth;
     const H = this.plotHeight;
     const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
-    const labels = chartData.map(item => clipLabel(item.category));
+    const rawLabels = chartData.map(item => clipLabel(item.category, 28));
     // In a small cell the legend already names every category, so skip axis labels rather than cram them
-    const showCategories = !(this.config.showLegend !== false && H < 140);
+    const wantCategories = !(this.config.showLegend !== false && H < 140);
     const frame = computeBarFrame({
-      width: W, height: H, horizontal: isHorizontal, labels, fontSize,
-      valueLabels: !!this.config.showLabels, showCategories,
+      width: W, height: H, horizontal: isHorizontal, labels: rawLabels, fontSize,
+      valueLabels: !!this.config.showLabels, showCategories: wantCategories,
       tickLabels: scale.ticks.map(formatTick)
     });
     const { plotX, plotY, plotW, plotH, rotate, slot: slotSize, labelStride, charWidth } = frame;
+    const labels = frame.labels;
+    const showCategories = frame.showCategories;
     const valueStride = isHorizontal
       ? Math.max(1, Math.ceil((fontSize * 1.3) / slotSize))
       : Math.max(1, Math.ceil((charWidth * 4) / slotSize));
@@ -241,6 +243,7 @@ export class BarChartVisualization {
                 <rect
                   x={bar.x}
                   y={bar.y}
+                  rx={2}
                   width={bar.width}
                   height={bar.height}
                   fill={`url(#barGradient-${bar.colorIndex})`}
