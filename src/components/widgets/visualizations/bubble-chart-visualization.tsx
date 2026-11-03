@@ -204,7 +204,7 @@ export class BubbleChartVisualization {
   }
   
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     return theme.series;
   }
 
@@ -223,7 +223,7 @@ export class BubbleChartVisualization {
     const idField = 'idField' in this.config ? this.config.idField : undefined;
     
     const bubbleData = this.processData();
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
     if (bubbleData.length === 0) {
       return <div class="empty-data">No data available</div>;

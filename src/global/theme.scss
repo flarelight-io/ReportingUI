@@ -14,8 +14,9 @@
  *   base-widget: card | header | title | body
  *   *-visualization: chart | plot | legend | tooltip
  */
-:root {
-  /* Default theme (light) */
+:root,
+[data-theme="light"] {
+  /* Default theme (light); also re-applied by data-theme="light" so a viewer can be light on a dark page */
   --fl-background-color: #f8fafc;
   --fl-card-background: #ffffff;
   --fl-text-color-primary: #333333;

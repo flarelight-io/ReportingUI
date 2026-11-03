@@ -27,4 +27,18 @@ describe('ChartThemeUtils color theme registry', () => {
     ChartThemeUtils.setThemeOverrides({ [mode]: { fontFamily: 'Comic Sans MS' } });
     expect(ChartThemeUtils.getTheme('brand').fontFamily).toBe('Comic Sans MS');
   });
+
+  it('resolves light/dark from the nearest data-theme ancestor', () => {
+    const outer = document.createElement('div');
+    outer.setAttribute('data-theme', 'dark');
+    const inner = document.createElement('div');
+    outer.appendChild(inner);
+    const leaf = document.createElement('span');
+    inner.appendChild(leaf);
+    expect(ChartThemeUtils.resolveMode(leaf)).toBe('dark');
+    inner.setAttribute('data-theme', 'light');
+    expect(ChartThemeUtils.resolveMode(leaf)).toBe('light');
+    expect(ChartThemeUtils.getTheme('brand', leaf).mode).toBe('light');
+    expect(ChartThemeUtils.getTheme('brand', outer).mode).toBe('dark');
+  });
 });

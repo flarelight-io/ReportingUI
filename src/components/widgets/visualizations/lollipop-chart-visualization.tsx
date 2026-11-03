@@ -79,7 +79,7 @@ export class LollipopChartVisualization {
   }
 
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     return theme.series;
   }
 
@@ -169,7 +169,7 @@ export class LollipopChartVisualization {
     // Use safe string comparison to avoid type errors
     const isHorizontal = String(this.config.visualizationType) === 'lollipop-h';
     const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     const mainColor = colors[0]; // Use first color as the main color
     
     const scale = niceScale(0, Math.max(...chartData.map(item => item.value), 0));

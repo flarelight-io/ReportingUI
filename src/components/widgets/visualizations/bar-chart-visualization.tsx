@@ -83,7 +83,7 @@ export class BarChartVisualization {
   }
 
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     return theme.series;
   }
 
@@ -172,7 +172,7 @@ export class BarChartVisualization {
     // Determine if this is a horizontal bar chart
     const isHorizontal = this.config.visualizationType === 'hbar';
     const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
     const scale = niceScale(0, Math.max(...chartData.map(item => item.value), 0));
     const maxValue = scale.max || 1;

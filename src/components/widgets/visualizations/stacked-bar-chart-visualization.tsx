@@ -82,7 +82,7 @@ export class StackedBarChartVisualization {
   }
 
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     return theme.series;
   }
 
@@ -175,7 +175,7 @@ export class StackedBarChartVisualization {
     const visualizationType = this.config.visualizationType || '';
     const isHorizontal = visualizationType === 'stacked-hbar';
     const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
     const scale = niceScale(0, Math.max(...chartData.map(item => item.total), 0));
     const maxValue = scale.max || 1;

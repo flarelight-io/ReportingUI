@@ -138,7 +138,7 @@ export class BoxWhiskerChartVisualization {
   }
   
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     return theme.series;
   }
   
@@ -208,7 +208,7 @@ export class BoxWhiskerChartVisualization {
     }
     
     const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
     // Find the min and max values for scaling
     // First, get the main data range (whiskers, not outliers)

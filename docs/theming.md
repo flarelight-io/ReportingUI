@@ -22,6 +22,27 @@ report-viewer {
 | Widget | `--fl-widget-radius`, `--fl-widget-shadow`, `--fl-widget-shadow-hover`, `--fl-widget-border`, `--fl-widget-header-padding`, `--fl-widget-header-background`, `--fl-widget-title-size`, `--fl-widget-title-weight`, `--fl-widget-body-padding`, `--fl-widget-body-padding-fixed` |
 | Chart  | `--fl-chart-padding`, `--fl-chart-legend-max-height`, and the existing `--fl-chart-*` colors, fonts and effects |
 
+## Light / dark
+
+`report-viewer` has a `theme` property: `"light"`, `"dark"` or `"auto"` (default). Use it to drive the report from your
+app's own toggle.
+
+```html
+<report-viewer theme="dark"></report-viewer>
+```
+
+```js
+viewer.theme = isDark ? 'dark' : 'light';   // from your toggle
+viewer.theme = 'auto';                      // follow the page again
+```
+
+- `auto` follows the page: a `data-theme="dark|light"` attribute or a `dark`/`light` class on `<html>`, otherwise the
+  system `prefers-color-scheme`.
+- `light` / `dark` apply to that viewer only, even on a page of the opposite mode. The viewer sets `data-theme` on
+  itself, so the CSS variables switch for everything inside it, and charts pick the matching palette.
+- This is separate from `colorTheme`, which chooses the chart palette (`brand`, `rainbow`, or your own).
+- Make sure `@flarelight-io/reporting/styles.css` is loaded; it defines the light and dark variable sets.
+
 ## Layout: row height and gap
 
 By default the grid has 12 columns, square rows (row height = column width) and a 15px gap. Change this with

@@ -609,6 +609,11 @@ export namespace Components {
           * @default true
          */
         "showPlaceholder": boolean;
+        /**
+          * Light or dark appearance for this report. `auto` (default) follows the page: a `data-theme` attribute or `dark`/`light` class on <html>, otherwise the system preference. `light`/`dark` forces it for this viewer only, so apps can drive it from their own toggle.
+          * @default 'auto'
+         */
+        "theme": 'light' | 'dark' | 'auto';
     }
     interface ScatterChartVisualization {
         /**
@@ -1840,6 +1845,11 @@ declare namespace LocalJSX {
           * @default true
          */
         "showPlaceholder"?: boolean;
+        /**
+          * Light or dark appearance for this report. `auto` (default) follows the page: a `data-theme` attribute or `dark`/`light` class on <html>, otherwise the system preference. `light`/`dark` forces it for this viewer only, so apps can drive it from their own toggle.
+          * @default 'auto'
+         */
+        "theme"?: 'light' | 'dark' | 'auto';
     }
     interface ScatterChartVisualization {
         /**

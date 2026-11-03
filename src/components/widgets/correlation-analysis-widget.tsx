@@ -182,7 +182,7 @@ export class CorrelationAnalysisWidget {
   
   // Helper function to get color for correlation value using theme
   private getCorrelationColor(value: number): string {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
     // Use the theme's distinct colors for correlation analysis
     // distinct[0] = strong-, distinct[1] = moderate-, distinct[2] = neutral, 
@@ -243,7 +243,7 @@ export class CorrelationAnalysisWidget {
       return <div class="empty-data">No correlation data available</div>;
     }
     
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
     // Get the first row (should be the only one for KPI mode)
     const row = this.correlationData[0];
@@ -355,7 +355,7 @@ export class CorrelationAnalysisWidget {
       matrix.push(matrixRow);
     });
     
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
     // Lay out in real pixels so text keeps a constant, readable size at any container size
     const W = this.plotWidth;
@@ -570,7 +570,7 @@ export class CorrelationAnalysisWidget {
   
   // Helper to determine text color based on background color brightness
   private getTextColor(value: number): string {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     const backgroundColor = this.getCorrelationColor(value);
     
     // Calculate the brightness of the background color

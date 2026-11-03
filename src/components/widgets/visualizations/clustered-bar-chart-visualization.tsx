@@ -82,7 +82,7 @@ export class ClusteredBarChartVisualization {
   }
 
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     return theme.series;
   }
 
@@ -175,7 +175,7 @@ export class ClusteredBarChartVisualization {
     // Use safe string comparison to avoid type errors
     const isHorizontal = String(this.config.visualizationType) === 'clustered-hbar';
     const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
     const scale = niceScale(0, Math.max(...chartData.map(item => item.maxValue), 0));
     const maxValue = scale.max || 1;

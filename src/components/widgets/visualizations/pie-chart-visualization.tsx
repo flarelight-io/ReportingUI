@@ -182,7 +182,7 @@ export class PieChartVisualization {
     const dataWithPercentages = this.calculatePercentages(chartData);
     const total = dataWithPercentages.reduce((sum, item) => sum + item.value, 0);
     const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
     // Lay out in real pixels so text keeps a constant, readable size at any container size
     const W = this.plotWidth;
@@ -613,7 +613,7 @@ export class PieChartVisualization {
   }
 
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     return theme.series;
   }
 }

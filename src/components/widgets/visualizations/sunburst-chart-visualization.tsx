@@ -416,7 +416,7 @@ export class SunburstChartVisualization {
   }
   
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     return theme.series;
   }
 
@@ -440,7 +440,7 @@ export class SunburstChartVisualization {
     }
     
     const nodes = this.processData();
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
     if (nodes.length === 0) {
       return <div class="empty-data">No data available</div>;

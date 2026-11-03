@@ -218,7 +218,7 @@ export class ScatterChartVisualization {
     }
     
     const colors = this.getColors();
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
 
     // Numeric x values are plotted at their real position; otherwise points are spaced evenly
     const isNumericX = chartData.every(item => item.x !== null && item.x !== '' && isFinite(Number(item.x)));
@@ -466,7 +466,7 @@ export class ScatterChartVisualization {
   }
   
   private getColors(): string[] {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     return theme.series;
   }
 } 

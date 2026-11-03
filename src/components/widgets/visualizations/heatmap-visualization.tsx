@@ -178,7 +178,7 @@ export class HeatmapVisualization {
   }
 
   private getColorForValue(value: number, min: number, max: number): string {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
     // Create a professional heatmap color scale using theme colors
     // Use the theme's series colors as base and create a gradient
@@ -208,7 +208,7 @@ export class HeatmapVisualization {
   
   // Helper to determine text color based on background color
   private getTextColor(value: number, min: number, max: number): string {
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     // If value is in the upper half of the range, use light text
     // Otherwise use dark text for better contrast
     const midPoint = (min + max) / 2;
@@ -259,7 +259,7 @@ export class HeatmapVisualization {
     }
     
     const heatmapData = this.processData();
-    const theme = ChartThemeUtils.getTheme(this.colorTheme);
+    const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
     
     if (heatmapData.rowLabels.length === 0 || heatmapData.colLabels.length === 0) {
       return <div class="empty-data">No data available for heatmap</div>;

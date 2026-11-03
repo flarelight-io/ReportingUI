@@ -1,7 +1,7 @@
 import { Component, Prop, h, State, Watch, Element, Listen } from '@stencil/core';
 import { DataSource, Filter, ChartDataRequest } from '../../api/types/common';
 import { WidgetData } from '../widgets/base-widget';
-import { ColorTheme } from '../../utils/chart-theme';
+import { ColorTheme, ChartThemeUtils } from '../../utils/chart-theme';
 import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
 
 interface WidgetDataCache {
@@ -38,6 +38,12 @@ export class ReportViewer {
    * report configuration and over the `--fl-grid-gap` CSS variable.
    */
   @Prop() gap?: number;
+  /**
+   * Light or dark appearance for this report. `auto` (default) follows the page: a `data-theme` attribute or
+   * `dark`/`light` class on <html>, otherwise the system preference. `light`/`dark` forces it for this viewer
+   * only, so apps can drive it from their own toggle.
+   */
+  @Prop() theme: 'light' | 'dark' | 'auto' = 'auto';
   
   @State() widgets: WidgetData[] = [];
   @State() dataSources: DataSource[] = [];
@@ -123,6 +129,26 @@ export class ReportViewer {
     }
   }
   
+  @Watch('theme')
+  onThemeModeChange() {
+    this.applyThemeMode();
+  }
+
+  private themeAttributeSet = false;
+
+  /** Scopes light/dark to this viewer via data-theme (CSS variables) and re-renders the charts. */
+  private applyThemeMode() {
+    if (this.theme === 'light' || this.theme === 'dark') {
+      this.el.setAttribute('data-theme', this.theme);
+      this.themeAttributeSet = true;
+    } else if (this.themeAttributeSet) {
+      // Only remove what this component set; an app-provided data-theme stays
+      this.el.removeAttribute('data-theme');
+      this.themeAttributeSet = false;
+    }
+    ChartThemeUtils.refreshTheme();
+  }
+
   @Watch('rowHeight')
   @Watch('rowAspectRatio')
   @Watch('gap')
@@ -141,6 +167,7 @@ export class ReportViewer {
   }
   
   connectedCallback() {
+    this.applyThemeMode();
     if (this.configuration) {
       let parsedConfig = this.configuration;
       if (typeof this.configuration === 'string') {

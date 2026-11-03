@@ -440,8 +440,29 @@ export class ChartThemeUtils {
     }
   }
 
-  static getTheme(colorTheme?: ColorTheme): any {
-    const mode = this._currentMode || this.getCurrentMode();
+  /**
+   * Resolves light/dark for an element: the nearest ancestor (crossing shadow roots) with
+   * data-theme="light|dark" wins, e.g. a <report-viewer theme="dark">. Falls back to the
+   * page-level detection (document attribute / class / system preference).
+   */
+  static resolveMode(host?: Element | null): ChartMode {
+    let node: Element | null | undefined = host;
+    while (node) {
+      const value = node.getAttribute && node.getAttribute('data-theme');
+      if (value === 'dark' || value === 'light') return value;
+      const parent: Element | null = node.parentElement;
+      if (parent) {
+        node = parent;
+      } else {
+        const root = node.getRootNode && node.getRootNode();
+        node = root && (root as ShadowRoot).host ? (root as ShadowRoot).host : null;
+      }
+    }
+    return this._currentMode || this.getCurrentMode();
+  }
+
+  static getTheme(colorTheme?: ColorTheme, host?: Element | null): any {
+    const mode = host ? this.resolveMode(host) : (this._currentMode || this.getCurrentMode());
     const theme = colorTheme || this._currentColorTheme;
     return createTheme(mode, theme);
   }
