@@ -26,7 +26,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--fl-widget-header-padding, 8px 16px);
+  // The defaults shrink with the widget (--fl-widget-scale, set by base-widget); the variables are fixed overrides
+  padding: var(--fl-widget-header-padding, calc(8px * var(--fl-widget-scale, 1)) calc(16px * var(--fl-widget-scale, 1)));
   background-color: var(--fl-widget-header-background, var(--fl-background-color, #f4f4f5));
   border-bottom: 1px solid var(--fl-border-color, #e4e4e7);
   
@@ -44,7 +45,7 @@
 }
 
 .widget-title {
-  font-size: var(--fl-widget-title-size, 14px);
+  font-size: var(--fl-widget-title-size, max(11px, calc(14px * var(--fl-widget-scale, 1))));
   font-weight: var(--fl-widget-title-weight, 500);
   margin: 0;
   color: var(--fl-text-color-primary);
@@ -109,7 +110,7 @@
 }
 
 .widget-body.with-title {
-  padding: var(--fl-widget-body-padding, 16px);
+  padding: var(--fl-widget-body-padding, calc(16px * var(--fl-widget-scale, 1)));
   
   // In fixed height mode, reduce padding
   :host-context(.height-mode-fixed) & {

@@ -39,38 +39,38 @@
   justify-content: flex-end;
 }
 
-/* Font size classes */
+/* Font size classes. Text shrinks with the widget (--fl-widget-scale, from base-widget) but stays readable. */
 .text-small {
-  font-size: 0.875rem;
+  font-size: max(0.7rem, calc(0.875rem * var(--fl-widget-scale, 1)));
 }
 
 .text-medium {
-  font-size: 1rem;
+  font-size: max(0.75rem, calc(1rem * var(--fl-widget-scale, 1)));
 }
 
 .text-large {
-  font-size: 1.125rem;
+  font-size: max(0.8rem, calc(1.125rem * var(--fl-widget-scale, 1)));
 }
 
 /* Title sizes */
 .title-large {
-  font-size: 1.5rem;
+  font-size: max(0.95rem, calc(1.5rem * var(--fl-widget-scale, 1)));
   font-weight: bold;
-  margin-bottom: 0.5rem;
+  margin-bottom: calc(0.5rem * var(--fl-widget-scale, 1));
   color: var(--fl-text-color-primary);
 }
 
 .title-medium {
-  font-size: 1.25rem;
+  font-size: max(0.9rem, calc(1.25rem * var(--fl-widget-scale, 1)));
   font-weight: bold;
-  margin-bottom: 0.5rem;
+  margin-bottom: calc(0.5rem * var(--fl-widget-scale, 1));
   color: var(--fl-text-color-primary);
 }
 
 .title-small {
-  font-size: 1.125rem;
+  font-size: max(0.85rem, calc(1.125rem * var(--fl-widget-scale, 1)));
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: calc(0.5rem * var(--fl-widget-scale, 1));
   color: var(--fl-text-color-primary);
 }
 

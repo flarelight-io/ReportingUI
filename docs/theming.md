@@ -20,6 +20,8 @@ report-viewer {
 | ------ | --------- |
 | Layout | `--fl-report-padding`, `--fl-grid-gap` |
 | Widget | `--fl-widget-radius`, `--fl-widget-shadow`, `--fl-widget-shadow-hover`, `--fl-widget-border`, `--fl-widget-header-padding`, `--fl-widget-header-background`, `--fl-widget-title-size`, `--fl-widget-title-weight`, `--fl-widget-body-padding`, `--fl-widget-body-padding-fixed` |
+
+By default a widget's padding, title and text sizes shrink as the widget gets small (down to 40% for cards under about 140 × 220 px), so a one-row text widget still shows its text. The padding and title variables above set a fixed value instead and turn that scaling off for the part they set. Inside a widget, `--fl-widget-scale` (0.4 to 1) is available for your own styles.
 | Chart  | `--fl-chart-padding`, `--fl-chart-legend-max-height`, and the existing `--fl-chart-*` colors, fonts and effects |
 
 ## Light / dark
