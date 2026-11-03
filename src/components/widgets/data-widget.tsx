@@ -1,6 +1,7 @@
 import { Component, Prop, h, Host, State, Watch, Element, Listen } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData, buildFieldLabels } from './visualizations/base-visualization';
 import { Filter } from '../../api/types/common';
+import { filtersCacheKey } from '../../utils/filters';
 import { ColorTheme } from '../../utils/chart-theme';
 import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
 
@@ -458,7 +459,7 @@ export class DataWidget {
       const filterKey = visualizationType === 'filter' ? 
         `filter-${this.widgetId}-${now}` : 
         (sourceFilters.length > 0 ? 
-          JSON.stringify(sourceFilters.map(f => `${f.field}:${f.value}`).sort()) : 
+          filtersCacheKey(sourceFilters) : 
           'nofilters');
       
       // Prepare config object for the builder

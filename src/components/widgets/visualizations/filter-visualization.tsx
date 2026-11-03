@@ -52,8 +52,10 @@ export class FilterVisualization {
     }
 
     // Find filters for this specific source and field
+    // Only plain equality/membership filters map onto the selection; custom operations (between, ...) are left alone
     const relevantFilters = this.activeFilters.filter(filter => 
-      filter.sourceId === sourceId && filter.field === valueField
+      filter.sourceId === sourceId && filter.field === valueField &&
+      (!filter.operation || filter.operation === 'eq' || filter.operation === 'in')
     );
 
     if (relevantFilters.length > 0) {
@@ -62,7 +64,7 @@ export class FilterVisualization {
       relevantFilters.forEach(filter => {
         if (Array.isArray(filter.value)) {
           values.push(...filter.value);
-        } else if (filter.value !== null && filter.value !== undefined) {
+        } else if (filter.value !== null && filter.value !== undefined && typeof filter.value !== 'object') {
           values.push(String(filter.value));
         }
       });

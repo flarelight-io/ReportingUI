@@ -1,4 +1,5 @@
 import { ChartDataRequest, ChartField, ChartFilter, ChartSort, DataSource, Filter, Pagination } from '../api/types/common';
+import { toChartFilter } from './filters';
 
 export interface ChartDataRequestBuilderOptions {
   reportId: string;
@@ -166,11 +167,7 @@ export class ChartDataRequestBuilder {
     // For filter visualization, always use empty filters array
     const filters: ChartFilter[] = widgetType === 'filter' 
       ? [] 
-      : sourceFilters.map(filter => ({
-          fieldName: filter.field,
-          operation: 'eq' as const,
-          value: filter.value
-        }));
+      : sourceFilters.map(toChartFilter);
     
     const sorts: ChartSort[] = config.sortField
       ? [{ fieldName: config.sortField, direction: config.sortDirection || 'Ascending' }]
