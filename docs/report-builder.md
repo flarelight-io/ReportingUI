@@ -37,6 +37,7 @@ If the app doesn't apply a change, the builder falls back to the configuration i
 
 - `configurationChange` – `detail` is the full next configuration.
 - `widgetAction` – `detail` is `{ id, action: 'configure' }`: the user double-clicked a widget, pressed Enter on it or used its settings button.
+- `historyChange` – `detail` is `{ canUndo, canRedo }`, for enabling your own undo/redo buttons.
 - `widgetSelect` – `detail.ids` is the new selection.
 
 ## Methods
@@ -45,6 +46,9 @@ If the app doesn't apply a change, the builder falls back to the configuration i
 - `removeWidgets(ids)` – removes widgets and closes the gaps. Widgets with `locked: true` are kept.
 - `updateWidget(id, patch)` – merges a patch (title, config, position...). Position changes go through the layout engine so others make room. Use this to apply your own configuration UI.
 - `configure(id)` – same as the user asking to configure the widget; resolves with whether a change was applied.
+- `undo()` / `redo()` – step through the changes the builder made (up to 100). Resolve with whether anything changed. The history ends when the app sets a configuration the builder didn't propose.
+- `duplicate(ids)` – adds copies (same settings and size, new ids) and selects them.
+- `copy(ids)` / `paste()` – a clipboard private to the builder.
 - `select(ids)` / `getSelection()`.
 
 ## Configuring widgets with your own UI
@@ -65,6 +69,21 @@ If promises are awkward in your framework, skip the hook: listen to `widgetActio
 ## Interaction
 
 Drag a widget to move it; select it to get eight resize handles. Double-click, `Enter` or the settings button on a selected widget starts configuring it. Shift/Ctrl/Cmd-click adds to the selection, `Delete` removes the selection, `Escape` cancels a drag or clears the selection. Widgets with `locked: true` can't be moved, resized or deleted.
+
+## Keyboard
+
+| Keys | Action |
+| --- | --- |
+| `Tab` / `Shift+Tab` | Select the next / previous widget (focus leaves the builder after the last one) |
+| Arrow keys | Move the selected widget one cell |
+| `Shift` + arrow keys | Resize it one cell |
+| `Enter` | Configure |
+| `Delete` | Remove the selection |
+| `Ctrl/Cmd+Z`, `Ctrl/Cmd+Shift+Z` or `Ctrl+Y` | Undo, redo |
+| `Ctrl/Cmd+D`, `+C`, `+V`, `+A` | Duplicate, copy, paste, select all |
+| `Escape` | Cancel a drag, or clear the selection |
+
+Moves, resizes, adds and removals are announced through a polite live region.
 
 ## Styling
 

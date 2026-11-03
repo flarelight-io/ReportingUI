@@ -621,6 +621,14 @@ export namespace Components {
     sources: DataSource[];
   }) => Promise<Record<string, any> | null> | Record<string, any> | null;
         /**
+          * Remembers widgets for `paste()` (also Ctrl/Cmd+C). The clipboard belongs to the builder, not the system.
+         */
+        "copy": (ids: string[]) => Promise<void>;
+        /**
+          * Duplicates widgets (settings and size included) and selects the copies. Resolves with their ids.
+         */
+        "duplicate": (ids: string[]) => Promise<string[]>;
+        /**
           * Same data function the viewer takes, so widgets show real data while editing.
          */
         "fetchChartData": Function;
@@ -635,10 +643,18 @@ export namespace Components {
          */
         "interactionPreview": 'outline' | 'live';
         /**
+          * Adds copies of what `copy()` remembered. Resolves with the new ids.
+         */
+        "paste": () => Promise<string[]>;
+        /**
           * Turns the editing layer off: the report just renders.
           * @default false
          */
         "readOnly": boolean;
+        /**
+          * Re-applies a change that was undone. Resolves with whether it did.
+         */
+        "redo": () => Promise<boolean>;
         /**
           * Removes widgets and closes the gaps they leave (unless `compact` is `none`).
          */
@@ -658,6 +674,10 @@ export namespace Components {
           * @default 'auto'
          */
         "theme": 'light' | 'dark' | 'auto';
+        /**
+          * Steps back to the configuration before the last change the builder made. Resolves with whether it did.
+         */
+        "undo": () => Promise<boolean>;
         /**
           * Merges a patch into a widget (title, config, position, anything). This is how an app applies its own configuration UI. A position change is run through the layout engine so other widgets make room.
          */
@@ -1256,6 +1276,7 @@ declare global {
     interface HTMLReportBuilderElementEventMap {
         "configurationChange": any;
         "widgetSelect": { ids: string[] };
+        "historyChange": { canUndo: boolean; canRedo: boolean };
         "widgetAction": { id: string; action: 'configure' };
     }
     /**
@@ -2027,8 +2048,9 @@ declare namespace LocalJSX {
          */
         "onConfigurationChange"?: (event: ReportBuilderCustomEvent<any>) => void;
         /**
-          * The user asked to configure a widget (double-click, Enter, settings button) or `configure()` was called.
+          * Undo/redo availability changed.
          */
+        "onHistoryChange"?: (event: ReportBuilderCustomEvent<{ canUndo: boolean; canRedo: boolean }>) => void;
         "onWidgetAction"?: (event: ReportBuilderCustomEvent<{ id: string; action: 'configure' }>) => void;
         /**
           * The selection changed.

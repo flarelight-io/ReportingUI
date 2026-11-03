@@ -407,6 +407,17 @@ no-op, dblclick, Enter and the button all call the hook. 110 unit tests pass.
 Not done from the Phase 2 list: `validate` in the catalog and validation messages on the frame (defer until a real need
 shows up; apps can validate inside their own UI).
 
-### Phase 3 (next)
+### Phase 3: editing ergonomics (done)
 
-Undo/redo, keyboard moves, duplicate, copy/paste, drop placeholder.
+Undo/redo (history of emitted configurations, cleared when the app sets a configuration the builder didn't propose,
+`historyChange` event), `duplicate`, `copy` / `paste`, keyboard (Tab through widgets, arrows move, Shift+arrows resize,
+Enter, Delete, Ctrl+Z/Y/D/C/V/A) and a live region announcing moves, resizes and edits. Verified in the browser with
+synthetic key events: move, resize, two undos, redo, duplicate and its undo, copy/paste, Tab selection and the history
+reset on an external change. Min/max sizes were already enforced via `widgetCatalog`.
+
+Not done: alignment guides and nudging with modifier keys (the outline preview already shows the target), a drop
+placeholder (the neighbours moving in the live layout serves as one), multi-select moves.
+
+### Phase 4 (next)
+
+Default configuration panel (schema-driven form), used when no `configureWidget` hook is given.

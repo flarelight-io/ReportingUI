@@ -7,6 +7,8 @@ import {
 import { parseConfigObject } from '../../utils/config-keys';
 import { WidgetTypeDefinition, resolveWidgetType } from '../../utils/widget-catalog';
 
+const HISTORY_LIMIT = 100;
+
 type Edge = 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw';
 const EDGES: Edge[] = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'];
 
@@ -95,12 +97,16 @@ export class ReportBuilder {
   @State() preview?: any;
   @State() interactingId?: string;
   @State() metrics?: GridMetrics;
+  @State() history?: { canUndo: boolean; canRedo: boolean };
+  @State() announcement = '';
 
   /** The full next configuration, whenever the user changes the layout or the app calls a method. */
   @Event() configurationChange: EventEmitter<any>;
   /** The selection changed. */
   @Event() widgetSelect: EventEmitter<{ ids: string[] }>;
   /** The user asked to configure a widget (double-click, Enter, settings button) or `configure()` was called. */
+  /** Undo/redo availability changed. */
+  @Event() historyChange: EventEmitter<{ canUndo: boolean; canRedo: boolean }>;
   @Event() widgetAction: EventEmitter<{ id: string; action: 'configure' }>;
 
   private rootEl?: HTMLElement;
@@ -109,6 +115,11 @@ export class ReportBuilder {
   private observedGrid?: Element;
   private revertTimer?: number;
   private measureFrame?: number;
+  private past: any[] = [];
+  private future: any[] = [];
+  /** Serialized form of the configuration we expect the app to hold (what we last emitted or were given). */
+  private knownKey?: string;
+  private clipboard: any[] = [];
 
   // --- configuration ---------------------------------------------------------------------------------------------
 
@@ -143,12 +154,73 @@ export class ReportBuilder {
     });
   }
 
-  private emitChange(next: any) {
+  private emitChange(next: any, record = true) {
+    const current = parseConfigObject(this.configuration);
+    if (record && current) {
+      this.past.push(current);
+      if (this.past.length > HISTORY_LIMIT) this.past.shift();
+      this.future = [];
+    }
+    this.knownKey = JSON.stringify(next);
     this.configurationChange.emit(next);
+    this.notifyHistory();
+  }
+
+  // --- history ---------------------------------------------------------------------------------------------------
+
+  private notifyHistory() {
+    const state = { canUndo: this.past.length > 0, canRedo: this.future.length > 0 };
+    if (!this.history || this.history.canUndo !== state.canUndo || this.history.canRedo !== state.canRedo) {
+      this.history = state;
+      this.historyChange.emit(state);
+    }
+  }
+
+  /** Steps back to the configuration before the last change the builder made. Resolves with whether it did. */
+  @Method()
+  async undo(): Promise<boolean> {
+    const previous = this.past.pop();
+    if (!previous) return false;
+    const current = parseConfigObject(this.configuration);
+    if (current) this.future.push(current);
+    this.emitChange(previous, false);
+    this.announce('Undone');
+    return true;
+  }
+
+  /** Re-applies a change that was undone. Resolves with whether it did. */
+  @Method()
+  async redo(): Promise<boolean> {
+    const next = this.future.pop();
+    if (!next) return false;
+    const current = parseConfigObject(this.configuration);
+    if (current) this.past.push(current);
+    this.emitChange(next, false);
+    this.announce('Redone');
+    return true;
+  }
+
+  /** Screen reader message, spoken through a polite live region. */
+  private announce(message: string) {
+    this.announcement = message;
+  }
+
+  private titleOf(id: string): string {
+    const def = (Array.isArray(this.config.widgets) ? this.config.widgets : []).find((d: any) => String(d.id) === id);
+    return (def && def.title) || id;
   }
 
   @Watch('configuration')
   onConfigurationChange() {
+    // A configuration the builder didn't propose (the app loaded another report, edited it itself) ends the history:
+    // going back would silently discard that change
+    const key = JSON.stringify(parseConfigObject(this.configuration));
+    if (key !== this.knownKey) {
+      this.past = [];
+      this.future = [];
+      this.notifyHistory();
+    }
+    this.knownKey = key;
     // The app applied (or replaced) the configuration: the preview is no longer needed
     if (this.revertTimer) { clearTimeout(this.revertTimer); this.revertTimer = undefined; }
     if (!this.interaction) this.preview = undefined;
@@ -302,6 +374,60 @@ export class ReportBuilder {
     if (next !== config) this.emitChange(next);
   }
 
+  /** Adds copies of widgets (new ids, same settings and size) at free spots and selects them. */
+  private insertCopies(entries: { def: Record<string, any>; w: number; h: number }[]): string[] {
+    let config = parseConfigObject(this.configuration) || { widgets: [] };
+    const created: string[] = [];
+    for (const { def, w, h } of entries) {
+      const { x, y, w: _w, h: _h, locked, ...rest } = def;
+      const copy = JSON.parse(JSON.stringify(rest));
+      copy.id = nextWidgetId(config, String(def.id));
+      const placed = this.placeNewWidget(config, copy, { w, h }, resolveWidgetType(def.type, this.widgetCatalog));
+      if (!placed) continue;
+      config = placed.config;
+      created.push(copy.id);
+    }
+    if (created.length) {
+      this.emitChange(config);
+      this.setSelection(created);
+    }
+    return created;
+  }
+
+  private entriesFor(ids: string[]) {
+    const config = this.config;
+    const defs: any[] = Array.isArray(config.widgets) ? config.widgets : [];
+    const items = this.itemsFor(config);
+    return ids.map(id => {
+      const def = defs.find(d => String(d.id) === id);
+      const item = items.find(i => i.id === id);
+      return def && item ? { def, w: item.w, h: item.h } : undefined;
+    }).filter(Boolean) as { def: Record<string, any>; w: number; h: number }[];
+  }
+
+  /** Duplicates widgets (settings and size included) and selects the copies. Resolves with their ids. */
+  @Method()
+  async duplicate(ids: string[]): Promise<string[]> {
+    const created = this.insertCopies(this.entriesFor(ids));
+    if (created.length) this.announce(created.length === 1 ? `Duplicated ${this.titleOf(ids[0])}` : `Duplicated ${created.length} widgets`);
+    return created;
+  }
+
+  /** Remembers widgets for `paste()` (also Ctrl/Cmd+C). The clipboard belongs to the builder, not the system. */
+  @Method()
+  async copy(ids: string[]): Promise<void> {
+    this.clipboard = this.entriesFor(ids).map(e => ({ ...e, def: JSON.parse(JSON.stringify(e.def)) }));
+    if (this.clipboard.length) this.announce(`Copied ${this.clipboard.length} widget${this.clipboard.length === 1 ? '' : 's'}`);
+  }
+
+  /** Adds copies of what `copy()` remembered. Resolves with the new ids. */
+  @Method()
+  async paste(): Promise<string[]> {
+    const created = this.insertCopies(this.clipboard);
+    if (created.length) this.announce(`Pasted ${created.length} widget${created.length === 1 ? '' : 's'}`);
+    return created;
+  }
+
   /** Selects widgets by id (an empty list clears the selection). */
   @Method()
   async select(ids: string[]): Promise<void> {
@@ -353,6 +479,10 @@ export class ReportBuilder {
 
   private scheduleMeasure() {
     if (this.measureFrame === undefined) this.measureFrame = requestAnimationFrame(this.measure);
+  }
+
+  componentWillLoad() {
+    this.knownKey = JSON.stringify(parseConfigObject(this.configuration));
   }
 
   componentDidLoad() {
@@ -446,6 +576,8 @@ export class ReportBuilder {
     this.interactingId = undefined;
     if (commit && preview && preview !== it.baseConfig) {
       this.emitChange(preview);
+      const done = this.itemsFor(preview).find(i => i.id === it.id);
+      if (done) this.announce(it.mode === 'move' ? `${this.titleOf(it.id)} moved to column ${done.x + 1}, row ${done.y + 1}` : `${this.titleOf(it.id)} resized to ${done.w} by ${done.h}`);
       // Keep showing the result until the app applies it; if it never does, fall back to the real configuration
       this.revertTimer = window.setTimeout(() => { this.preview = undefined; this.revertTimer = undefined; }, 80);
     } else {
@@ -463,17 +595,82 @@ export class ReportBuilder {
 
   private onKeyDown = (event: KeyboardEvent) => {
     if (this.readOnly) return;
-    if (event.key === 'Escape') {
-      if (this.interaction) this.finishInteraction(false);
-      else this.setSelection([]);
-    } else if (event.key === 'Enter' && this.selection.length === 1 && !this.interaction) {
+    // Keys on the settings button belong to the button
+    const target = event.target as HTMLElement;
+    if (target && target.closest && target.closest('button')) return;
+    const mod = event.ctrlKey || event.metaKey;
+    const key = event.key;
+    if (this.interaction) {
+      if (key === 'Escape') this.finishInteraction(false);
+      return;
+    }
+    if (mod && (key === 'z' || key === 'Z')) {
+      event.preventDefault();
+      if (event.shiftKey) this.redo(); else this.undo();
+    } else if (mod && (key === 'y' || key === 'Y')) {
+      event.preventDefault();
+      this.redo();
+    } else if (mod && (key === 'd' || key === 'D') && this.selection.length) {
+      event.preventDefault();
+      this.duplicate([...this.selection]);
+    } else if (mod && (key === 'c' || key === 'C') && this.selection.length) {
+      event.preventDefault();
+      this.copy([...this.selection]);
+    } else if (mod && (key === 'v' || key === 'V') && this.clipboard.length) {
+      event.preventDefault();
+      this.paste();
+    } else if (mod && (key === 'a' || key === 'A')) {
+      event.preventDefault();
+      this.setSelection(this.itemsFor(this.config).map(i => i.id));
+    } else if (key === 'Escape') {
+      this.setSelection([]);
+    } else if (key === 'Enter' && this.selection.length === 1) {
       event.preventDefault();
       this.configure(this.selection[0]);
-    } else if ((event.key === 'Delete' || event.key === 'Backspace') && this.selection.length && !this.interaction) {
+    } else if ((key === 'Delete' || key === 'Backspace') && this.selection.length) {
       event.preventDefault();
-      this.removeWidgets([...this.selection]);
+      const ids = [...this.selection];
+      const label = ids.length === 1 ? this.titleOf(ids[0]) : `${ids.length} widgets`;
+      this.removeWidgets(ids);
+      this.announce(`Removed ${label}`);
+    } else if (key.startsWith('Arrow') && !mod && this.selection.length === 1) {
+      event.preventDefault();
+      this.nudge(this.selection[0], key, event.shiftKey);
+    } else if (key === 'Tab' && !mod) {
+      this.moveFocus(event);
     }
   };
+
+  /** Arrow keys move the selected widget a cell; with Shift they resize it. */
+  private nudge(id: string, key: string, resize: boolean) {
+    const items = this.itemsFor(this.config);
+    const item = items.find(i => i.id === id);
+    if (!item || item.locked) return;
+    const dx = key === 'ArrowRight' ? 1 : key === 'ArrowLeft' ? -1 : 0;
+    const dy = key === 'ArrowDown' ? 1 : key === 'ArrowUp' ? -1 : 0;
+    const next = resize
+      ? setItemRect(items, id, { x: item.x, y: item.y, w: item.w + dx, h: item.h + dy }, this.layoutOptions)
+      : moveItem(items, id, item.x + dx, item.y + dy, this.layoutOptions);
+    if (sameLayout(next, items)) return;
+    this.emitChange(applyLayoutItems(parseConfigObject(this.configuration) || { widgets: [] }, next, this.columnCount));
+    const after = next.find(i => i.id === id) as LayoutItem;
+    this.announce(resize ? `${this.titleOf(id)} resized to ${after.w} by ${after.h}` : `${this.titleOf(id)} moved to column ${after.x + 1}, row ${after.y + 1}`);
+  }
+
+  /** Tab walks through the widgets before it lets focus leave the builder. */
+  private moveFocus(event: KeyboardEvent) {
+    const ids = this.itemsFor(this.config).map(i => i.id);
+    if (!ids.length) return;
+    const current = this.selection.length === 1 ? ids.indexOf(this.selection[0]) : -1;
+    const target = event.shiftKey ? (current < 0 ? ids.length - 1 : current - 1) : current + 1;
+    if (target < 0 || target >= ids.length) {
+      if (this.selection.length) this.setSelection([]);
+      return;
+    }
+    event.preventDefault();
+    this.setSelection([ids[target]]);
+    this.announce(`${this.titleOf(ids[target])} selected`);
+  }
 
   private onBackgroundPointerDown = (event: PointerEvent) => {
     if (event.target === event.currentTarget && !event.shiftKey) {
@@ -503,7 +700,8 @@ export class ReportBuilder {
     const single = this.selection.length === 1 ? this.selection[0] : undefined;
 
     return (
-      <div class="builder-root" ref={el => (this.rootEl = el)} tabindex={this.readOnly ? -1 : 0} onKeyDown={this.onKeyDown}>
+      <div class="builder-root" ref={el => (this.rootEl = el)} tabindex={this.readOnly ? -1 : 0} onKeyDown={this.onKeyDown} role="group" aria-label="Report builder">
+        <div class="builder-live" aria-live="polite" role="status">{this.announcement}</div>
         <report-viewer
           configuration={config}
           sources={this.sources}

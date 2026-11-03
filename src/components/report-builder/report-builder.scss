@@ -95,3 +95,19 @@ report-builder .builder-settings {
     color: #fff;
   }
 }
+
+// Visually hidden, read out by screen readers
+report-builder .builder-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+report-builder .builder-root:focus-visible {
+  outline: 2px solid var(--fl-chart-primary, #4d19a2);
+  outline-offset: 2px;
+}

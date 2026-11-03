@@ -36,11 +36,12 @@ edit is what the viewer shows. The builder has no toolbar or palette: apps build
 
 ## Events
 
-| Event                 | Description                                                                                              | Type                                                |
-| --------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| `configurationChange` | The full next configuration, whenever the user changes the layout or the app calls a method.             | `CustomEvent<any>`                                  |
-| `widgetAction`        | The user asked to configure a widget (double-click, Enter, settings button) or `configure()` was called. | `CustomEvent<{ id: string; action: "configure"; }>` |
-| `widgetSelect`        | The selection changed.                                                                                   | `CustomEvent<{ ids: string[]; }>`                   |
+| Event                 | Description                                                                                  | Type                                                   |
+| --------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `configurationChange` | The full next configuration, whenever the user changes the layout or the app calls a method. | `CustomEvent<any>`                                     |
+| `historyChange`       | Undo/redo availability changed.                                                              | `CustomEvent<{ canUndo: boolean; canRedo: boolean; }>` |
+| `widgetAction`        |                                                                                              | `CustomEvent<{ id: string; action: "configure"; }>`    |
+| `widgetSelect`        | The selection changed.                                                                       | `CustomEvent<{ ids: string[]; }>`                      |
 
 
 ## Methods
@@ -81,6 +82,38 @@ Type: `Promise<boolean>`
 
 
 
+### `copy(ids: string[]) => Promise<void>`
+
+Remembers widgets for `paste()` (also Ctrl/Cmd+C). The clipboard belongs to the builder, not the system.
+
+#### Parameters
+
+| Name  | Type       | Description |
+| ----- | ---------- | ----------- |
+| `ids` | `string[]` |             |
+
+#### Returns
+
+Type: `Promise<void>`
+
+
+
+### `duplicate(ids: string[]) => Promise<string[]>`
+
+Duplicates widgets (settings and size included) and selects the copies. Resolves with their ids.
+
+#### Parameters
+
+| Name  | Type       | Description |
+| ----- | ---------- | ----------- |
+| `ids` | `string[]` |             |
+
+#### Returns
+
+Type: `Promise<string[]>`
+
+
+
 ### `getSelection() => Promise<string[]>`
 
 The ids of the selected widgets.
@@ -88,6 +121,26 @@ The ids of the selected widgets.
 #### Returns
 
 Type: `Promise<string[]>`
+
+
+
+### `paste() => Promise<string[]>`
+
+Adds copies of what `copy()` remembered. Resolves with the new ids.
+
+#### Returns
+
+Type: `Promise<string[]>`
+
+
+
+### `redo() => Promise<boolean>`
+
+Re-applies a change that was undone. Resolves with whether it did.
+
+#### Returns
+
+Type: `Promise<boolean>`
 
 
 
@@ -120,6 +173,16 @@ Selects widgets by id (an empty list clears the selection).
 #### Returns
 
 Type: `Promise<void>`
+
+
+
+### `undo() => Promise<boolean>`
+
+Steps back to the configuration before the last change the builder made. Resolves with whether it did.
+
+#### Returns
+
+Type: `Promise<boolean>`
 
 
 
