@@ -3,6 +3,14 @@
   "version": "0.33.0",
   "description": "Report Viewer and Widgets packaged as Web Components",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flarelight-io/ReportingUI.git"
+  },
+  "bugs": {
+    "url": "https://github.com/flarelight-io/ReportingUI/issues"
+  },
+  "homepage": "https://github.com/flarelight-io/ReportingUI#readme",
   "keywords": [
     "web-components",
     "stencil",
