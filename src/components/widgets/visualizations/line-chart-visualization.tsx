@@ -3,6 +3,8 @@ import { FilterChangeEventDetail, VisualizationData } from './base-visualization
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { PlotSizeTracker, clipLabel } from '../../../utils/bar-layout';
+import { niceScale } from '../../../utils/scale';
+import { renderValueAxis, formatTick } from '../../../utils/chart-axes';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface LineDataPoint {
@@ -168,7 +170,9 @@ export class LineChartVisualization {
       return <div class="empty-data">No data available</div>;
     }
     
-    const maxValue = Math.max(...chartData.map(item => item.y), 0) * 1.1 || 1; // Add 10% padding
+    const scale = niceScale(Math.min(0, ...chartData.map(item => item.y)), Math.max(...chartData.map(item => item.y), 0));
+    const minValue = scale.min;
+    const maxValue = scale.max;
 
     const colors = this.getColors();
     const theme = ChartThemeUtils.getTheme(this.colorTheme);
@@ -179,11 +183,12 @@ export class LineChartVisualization {
     const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
     const charWidth = fontSize * 0.58;
     const pad = 8;
-    const tickValues = [0, 0.25, 0.5, 0.75, 1].map(ratio => ChartThemeUtils.formatNumber(ratio * maxValue));
-    const plotX = pad + Math.max(...tickValues.map(t => t.length)) * charWidth + 6;
+    const tickValues = scale.ticks.map(formatTick);
+    const plotXBase = pad + Math.max(...tickValues.map(t => t.length)) * charWidth + 6;
     const plotY = this.config.showLabels ? fontSize + 8 : pad;
     const xLabels = chartData.map(item => clipLabel(String(item.x), 15));
     const longestPx = Math.max(...xLabels.map(l => l.length)) * charWidth;
+    const plotX = this.config.showXAxisLabels ? Math.max(plotXBase, pad + longestPx * Math.SQRT1_2 + 2) : plotXBase;
     const bottom = this.config.showXAxisLabels
       ? Math.min(longestPx * Math.SQRT1_2 + fontSize + 8, H * 0.45)
       : pad + 4;
@@ -195,7 +200,7 @@ export class LineChartVisualization {
 
     const points = chartData.map((item, index) => ({
       x: chartData.length === 1 ? plotX + plotW / 2 : plotX + index * spacing,
-      y: plotY + plotH - (item.y / maxValue) * plotH,
+      y: plotY + plotH - ((item.y - minValue) / (maxValue - minValue || 1)) * plotH,
       category: item.x,
       value: item.y
     }));
@@ -223,26 +228,20 @@ export class LineChartVisualization {
                 <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
               </filter>
             </defs>
-            {this.config.showGrid && (
-              <g>
-                {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const y = plotY + plotH - ratio * plotH;
-                  return (
-                    <line
-                      key={`h-${i}`}
-                      x1={plotX}
-                      y1={ChartThemeUtils.snapToPixel(y)}
-                      x2={plotX + plotW}
-                      y2={ChartThemeUtils.snapToPixel(y)}
-                      stroke="var(--fl-chart-grid-color)"
-                      stroke-width="1"
-                      opacity="0.5"
-                    />
-                  );
-                })}
-              </g>
-            )}
+            {renderValueAxis({
+              ticks: scale.ticks, min: scale.min, max: scale.max,
+              plotX, plotY, plotW, plotH, fontSize, fontFamily: theme.fontFamily,
+              showGrid: !!this.config.showGrid, gridOpacity: theme.gridlines.opacity
+            })}
 
+            {points.length > 1 && (
+              <path
+                d={`${pathString} L${points[points.length - 1].x},${plotY + plotH} L${points[0].x},${plotY + plotH} Z`}
+                fill="url(#lineGradient)"
+                stroke="none"
+                class="line-area"
+              />
+            )}
             <path
               d={pathString}
               fill="none"
@@ -352,20 +351,7 @@ export class LineChartVisualization {
               );
             })}
 
-            {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
-              <text
-                key={`y-label-${i}`}
-                x={plotX - 6}
-                y={plotY + plotH - ratio * plotH}
-                font-size={fontSize}
-                text-anchor="end"
-                dominant-baseline="middle"
-                fill="var(--fl-chart-text-color, #666)"
-                font-family={theme.fontFamily}
-              >
-                {tickValues[i]}
-              </text>
-            ))}
+            
           </svg>
           )}
 

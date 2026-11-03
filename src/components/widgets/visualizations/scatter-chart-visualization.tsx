@@ -3,6 +3,8 @@ import { FilterChangeEventDetail, VisualizationData } from './base-visualization
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { PlotSizeTracker, clipLabel } from '../../../utils/bar-layout';
+import { niceScale } from '../../../utils/scale';
+import { renderValueAxis, formatTick } from '../../../utils/chart-axes';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface ScatterDataPoint {
@@ -215,10 +217,14 @@ export class ScatterChartVisualization {
       return <div class="empty-data">No data available</div>;
     }
     
-    const maxValue = Math.max(...chartData.map(item => item.y), 0) * 1.1 || 1; // Add 10% padding
-
     const colors = this.getColors();
     const theme = ChartThemeUtils.getTheme(this.colorTheme);
+
+    // Numeric x values are plotted at their real position; otherwise points are spaced evenly
+    const isNumericX = chartData.every(item => item.x !== null && item.x !== '' && isFinite(Number(item.x)));
+    const xNumbers = chartData.map(item => Number(item.x));
+    const yScale = niceScale(Math.min(0, ...chartData.map(item => item.y)), Math.max(...chartData.map(item => item.y), 0));
+    const xScale = isNumericX ? niceScale(Math.min(...xNumbers), Math.max(...xNumbers)) : null;
 
     // Lay out in real pixels so text keeps a constant, readable size at any container size
     const W = this.plotWidth;
@@ -226,46 +232,41 @@ export class ScatterChartVisualization {
     const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
     const charWidth = fontSize * 0.58;
     const pad = 8;
-    const tickValues = [0, 0.25, 0.5, 0.75, 1].map(ratio => ChartThemeUtils.formatNumber(ratio * maxValue));
-    const plotX = pad + Math.max(...tickValues.map(t => t.length)) * charWidth + 6;
-    const plotY = this.config.showLabels ? fontSize + 8 : pad;
+    const yTickLabels = yScale.ticks.map(formatTick);
+    const plotX = pad + Math.max(...yTickLabels.map(t => t.length)) * charWidth + 12;
+    const plotY = this.config.showLabels ? fontSize + 8 : pad + 4;
     const xLabels = chartData.map(item => clipLabel(String(item.x), 10));
     const longestPx = Math.max(...xLabels.map(l => l.length)) * charWidth;
-    const bottom = fontSize + 12;
-    const plotW = Math.max(0, W - plotX - pad);
+    const bottom = fontSize + 14;
+    const plotW = Math.max(0, W - plotX - pad - 6);
     const plotH = Math.max(0, H - plotY - bottom);
     const spacing = plotW / Math.max(1, chartData.length - 1);
     const xStride = Math.max(1, Math.ceil((longestPx + 6) / Math.max(1, spacing)));
     const valueStride = Math.max(1, Math.ceil((charWidth * 4) / Math.max(1, spacing)));
-    const mapY = (value: number) => plotY + plotH - (value / maxValue) * plotH;
+    const mapY = (value: number) => plotY + plotH - ((value - yScale.min) / (yScale.max - yScale.min || 1)) * plotH;
+    const mapX = (value: number) => plotX + ((value - xScale.min) / (xScale.max - xScale.min || 1)) * plotW;
 
     const points = chartData.map((item, index) => ({
-      x: chartData.length === 1 ? plotX + plotW / 2 : plotX + index * spacing,
+      x: isNumericX ? mapX(xNumbers[index]) : chartData.length === 1 ? plotX + plotW / 2 : plotX + index * spacing,
       y: mapY(item.y),
       category: item.x,
       value: item.y
     }));
 
-    // Regression line over the numeric x values, drawn from the first to the last point
+    // Regression line over the numeric x values, spanning the data's x range
     let regressionLine = null;
-    if (showRegressionLine) {
-      const numericPoints = chartData
-        .filter(item => typeof item.x === 'number' || (typeof item.x === 'string' && !isNaN(Number(item.x))))
-        .map(item => ({ x: Number(item.x), y: item.y }));
-
-      if (numericPoints.length >= 2) {
-        const regression = this.calculateLinearRegression(numericPoints);
-        if (regression) {
-          const first = chartData[0];
-          const last = chartData[chartData.length - 1];
-          regressionLine = {
-            x1: points[0].x,
-            y1: mapY(regression.slope * Number(first.x) + regression.intercept),
-            x2: points[points.length - 1].x,
-            y2: mapY(regression.slope * Number(last.x) + regression.intercept),
-            r2: regression.r2
-          };
-        }
+    if (showRegressionLine && isNumericX) {
+      const regression = this.calculateLinearRegression(chartData.map((item, i) => ({ x: xNumbers[i], y: item.y })));
+      if (regression) {
+        const x1 = Math.min(...xNumbers);
+        const x2 = Math.max(...xNumbers);
+        regressionLine = {
+          x1: mapX(x1),
+          y1: mapY(regression.slope * x1 + regression.intercept),
+          x2: mapX(x2),
+          y2: mapY(regression.slope * x2 + regression.intercept),
+          r2: regression.r2
+        };
       }
     }
 
@@ -285,40 +286,24 @@ export class ScatterChartVisualization {
                 <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
               </filter>
             </defs>
-            {this.config.showGrid && (
-              <>
-                {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const y = plotY + plotH - ratio * plotH;
-                  return (
-                    <line
-                      key={`h-${i}`}
-                      x1={plotX}
-                      y1={ChartThemeUtils.snapToPixel(y)}
-                      x2={plotX + plotW}
-                      y2={ChartThemeUtils.snapToPixel(y)}
-                      stroke="var(--fl-chart-grid-color)"
-                      stroke-width="1"
-                      opacity="0.5"
-                    />
-                  );
-                })}
-                {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const x = plotX + ratio * plotW;
-                  return (
-                    <line
-                      key={`v-${i}`}
-                      x1={ChartThemeUtils.snapToPixel(x)}
-                      y1={plotY}
-                      x2={ChartThemeUtils.snapToPixel(x)}
-                      y2={plotY + plotH}
-                      stroke="var(--fl-chart-grid-color)"
-                      stroke-width="1"
-                      opacity="0.5"
-                    />
-                  );
-                })}
-              </>
-            )}
+            {renderValueAxis({
+              ticks: yScale.ticks, min: yScale.min, max: yScale.max,
+              plotX, plotY, plotW, plotH, fontSize, fontFamily: theme.fontFamily,
+              showGrid: !!this.config.showGrid, gridOpacity: theme.gridlines.opacity
+            })}
+            {this.config.showGrid && xScale && xScale.ticks.slice(1).map((tick, i) => {
+              const x = ChartThemeUtils.snapToPixel(mapX(tick));
+              return (
+                <line
+                  key={`v-${i}`}
+                  x1={x} y1={plotY} x2={x} y2={plotY + plotH}
+                  stroke="var(--fl-chart-grid-color)"
+                  stroke-width="1"
+                  stroke-dasharray="3,3"
+                  opacity={theme.gridlines.opacity}
+                />
+              );
+            })}
 
             {showRegressionLine && regressionLine && (
               <line
@@ -328,7 +313,7 @@ export class ScatterChartVisualization {
                 y2={regressionLine.y2}
                 stroke={theme.regressionColor}
                 stroke-width={theme.lineStrokeWidth || 2}
-                stroke-dasharray="none"
+                stroke-linecap="round"
                 opacity="0.9"
                 class="regression-line"
                 style={{
@@ -383,22 +368,29 @@ export class ScatterChartVisualization {
             <line
               x1={plotX} y1={ChartThemeUtils.snapToPixel(plotY + plotH)}
               x2={plotX + plotW} y2={ChartThemeUtils.snapToPixel(plotY + plotH)}
-              stroke="var(--fl-chart-axis-color)" stroke-width="1" opacity="0.6"
-            />
-            <line
-              x1={ChartThemeUtils.snapToPixel(plotX)} y1={plotY}
-              x2={ChartThemeUtils.snapToPixel(plotX)} y2={plotY + plotH}
-              stroke="var(--fl-chart-axis-color)" stroke-width="1" opacity="0.6"
+              stroke="var(--fl-chart-axis-color)" stroke-width="1" opacity="0.8"
             />
 
-            {points.map((point, i) => i % xStride === 0 && (
+            {xScale ? xScale.ticks.map((tick, i) => (
+              <text
+                key={`xt-${i}`}
+                x={mapX(tick)}
+                y={plotY + plotH + fontSize + 6}
+                font-size={fontSize}
+                text-anchor={i === 0 ? 'start' : i === xScale.ticks.length - 1 ? 'end' : 'middle'}
+                fill="var(--fl-chart-text-secondary)"
+                font-family={theme.fontFamily}
+              >
+                {formatTick(tick)}
+              </text>
+            )) : points.map((point, i) => i % xStride === 0 && (
               <text
                 key={i}
                 x={point.x}
-                y={plotY + plotH + fontSize + 4}
+                y={plotY + plotH + fontSize + 6}
                 font-size={fontSize}
                 text-anchor="middle"
-                fill="var(--fl-chart-text-color, #666)"
+                fill="var(--fl-chart-text-secondary)"
                 font-family={theme.fontFamily}
               >
                 {xLabels[i]}
@@ -409,28 +401,14 @@ export class ScatterChartVisualization {
               <text
                 key={`value-${i}`}
                 x={point.x}
-                y={point.y - 8}
+                y={point.y - 9}
                 font-size={fontSize}
                 text-anchor="middle"
                 fill="var(--fl-chart-text-color, #444)"
                 font-family={theme.fontFamily}
+                font-weight="600"
               >
-                {ChartThemeUtils.formatNumber(point.value)}
-              </text>
-            ))}
-
-            {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
-              <text
-                key={`y-label-${i}`}
-                x={plotX - 6}
-                y={plotY + plotH - ratio * plotH}
-                font-size={fontSize}
-                text-anchor="end"
-                dominant-baseline="middle"
-                fill="var(--fl-chart-text-color, #666)"
-                font-family={theme.fontFamily}
-              >
-                {tickValues[i]}
+                {formatTick(point.value)}
               </text>
             ))}
           </svg>

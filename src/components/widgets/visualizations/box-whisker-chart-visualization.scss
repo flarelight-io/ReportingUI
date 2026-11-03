@@ -310,4 +310,26 @@
 
 [data-theme="dark"] .box-glow:hover {
   filter: brightness(1.15) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.3));
-} 
+}
+
+// Polish: entry animations anchor to each element's own box (not the SVG corner),
+// legends use a slim scrollbar, and swatches are softly rounded.
+.bar-animated,
+.point-animated,
+.cell-animated {
+  transform-box: fill-box;
+}
+
+.point-animated,
+.cell-animated {
+  transform-origin: center;
+}
+
+.chart-legend {
+  scrollbar-width: thin;
+  scrollbar-color: var(--fl-chart-axis-color) transparent;
+}
+
+.color-indicator {
+  border-radius: 2px;
+}

@@ -3,6 +3,8 @@ import { FilterChangeEventDetail, VisualizationData } from './base-visualization
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { PlotSizeTracker, computeBarFrame, clipLabel } from '../../../utils/bar-layout';
+import { niceScale } from '../../../utils/scale';
+import { renderValueAxis, formatTick } from '../../../utils/chart-axes';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface HistogramBin {
@@ -188,7 +190,8 @@ export class HistogramChartVisualization {
       return <div class="empty-data">No data available for histogram</div>;
     }
     
-    const maxCount = Math.max(...histogramData.map(bin => bin.count), 0) || 1;
+    const scale = niceScale(0, Math.max(...histogramData.map(bin => bin.count), 0));
+    const maxCount = scale.max || 1;
 
     const colors = this.getColors();
     const theme = ChartThemeUtils.getTheme(this.colorTheme);
@@ -197,14 +200,14 @@ export class HistogramChartVisualization {
     const W = this.plotWidth;
     const H = this.plotHeight;
     const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
-    const labels = histogramData.map(bin => clipLabel(bin.label));
-    const tickValues = [0, 0.25, 0.5, 0.75, 1].map(ratio => ChartThemeUtils.formatNumber(Math.round(ratio * maxCount)));
-    const tickWidth = Math.max(...tickValues.map(t => t.length)) * fontSize * 0.58 + 6;
+    const rawLabels = histogramData.map(bin => clipLabel(bin.label, 28));
     const frame = computeBarFrame({
-      width: W, height: H, horizontal: false, labels, fontSize,
-      valueLabels: !!this.config.showLabels, showCategories: true, leftInset: tickWidth
+      width: W, height: H, horizontal: false, labels: rawLabels, fontSize,
+      valueLabels: !!this.config.showLabels, showCategories: true, tickLabels: scale.ticks.map(formatTick)
     });
     const { plotX, plotY, plotW, plotH, rotate, slot, labelStride, charWidth } = frame;
+    const labels = frame.labels;
+    const showCategories = frame.showCategories;
     const valueStride = Math.max(1, Math.ceil((charWidth * 4) / slot));
 
     const bars = histogramData.map((bin, index) => {
@@ -232,25 +235,11 @@ export class HistogramChartVisualization {
                 <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
               </filter>
             </defs>
-            {this.config.showGrid && (
-              <g>
-                {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const yPos = plotY + plotH - ratio * plotH;
-                  return (
-                    <line
-                      key={i}
-                      x1={plotX}
-                      y1={ChartThemeUtils.snapToPixel(yPos)}
-                      x2={plotX + plotW}
-                      y2={ChartThemeUtils.snapToPixel(yPos)}
-                      stroke="var(--fl-chart-grid-color)"
-                      stroke-width="1"
-                      opacity={theme.gridlines.opacity}
-                    />
-                  );
-                })}
-              </g>
-            )}
+            {renderValueAxis({
+              ticks: scale.ticks, min: scale.min, max: scale.max,
+              plotX, plotY, plotW, plotH, fontSize, fontFamily: theme.fontFamily,
+              showGrid: !!this.config.showGrid, gridOpacity: theme.gridlines.opacity
+            })}
 
             {bars.map((bar, i) => (
               <g
@@ -310,7 +299,7 @@ export class HistogramChartVisualization {
               stroke="var(--fl-chart-axis-color)" stroke-width="1"
             />
 
-            {bars.map((bar, i) => {
+            {showCategories && bars.map((bar, i) => {
               if (i % labelStride !== 0) return null;
               const cx = bar.x + bar.width / 2;
               const ty = plotY + plotH + fontSize + 4;
@@ -331,26 +320,12 @@ export class HistogramChartVisualization {
                     transformOrigin: `${cx}px ${ty}px`
                   }}
                 >
-                  {bar.bin.label.length > 18 ? `${bar.bin.label.substring(0, 17)}…` : bar.bin.label}
+                  {labels[i]}
                 </text>
               );
             })}
 
-            {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
-              <text
-                key={`y-label-${i}`}
-                x={plotX - 6}
-                y={plotY + plotH - ratio * plotH}
-                font-size={fontSize}
-                text-anchor="end"
-                dominant-baseline="middle"
-                fill="var(--fl-chart-text-color)"
-                font-family={theme.fontFamily}
-                font-weight="500"
-              >
-                {tickValues[i]}
-              </text>
-            ))}
+            
           </svg>
           )}
 

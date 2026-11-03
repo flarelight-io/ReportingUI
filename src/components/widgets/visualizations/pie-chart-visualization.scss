@@ -235,3 +235,24 @@
   line-height: 1.3;
 }
 
+// Polish: entry animations anchor to each element's own box (not the SVG corner),
+// legends use a slim scrollbar, and swatches are softly rounded.
+.bar-animated,
+.point-animated,
+.cell-animated {
+  transform-box: fill-box;
+}
+
+.point-animated,
+.cell-animated {
+  transform-origin: center;
+}
+
+.chart-legend {
+  scrollbar-width: thin;
+  scrollbar-color: var(--fl-chart-axis-color) transparent;
+}
+
+.color-indicator {
+  border-radius: 2px;
+}

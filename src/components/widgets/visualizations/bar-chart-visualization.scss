@@ -348,4 +348,26 @@
   color: var(--fl-chart-text-secondary);
   font-family: var(--fl-chart-font-family);
   border: 1px solid var(--fl-chart-border);
-} 
+}
+
+// Polish: entry animations anchor to each element's own box (not the SVG corner),
+// legends use a slim scrollbar, and swatches are softly rounded.
+.bar-animated,
+.point-animated,
+.cell-animated {
+  transform-box: fill-box;
+}
+
+.point-animated,
+.cell-animated {
+  transform-origin: center;
+}
+
+.chart-legend {
+  scrollbar-width: thin;
+  scrollbar-color: var(--fl-chart-axis-color) transparent;
+}
+
+.color-indicator {
+  border-radius: 2px;
+}
