@@ -216,6 +216,10 @@ Type: `Promise<void>`
 
 ## Dependencies
 
+### Used by
+
+ - [builder-demo](../builder-demo)
+
 ### Depends on
 
 - [report-viewer](../report-viewer)
@@ -243,6 +247,7 @@ graph TD;
   data-widget --> box-whisker-chart-visualization
   data-widget --> filter-visualization
   data-widget --> base-widget
+  builder-demo --> report-builder
   style report-builder fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

@@ -5,7 +5,31 @@
 <!-- Auto Generated Below -->
 
 
+## Properties
+
+| Property   | Attribute  | Description                                                                                                | Type      | Default |
+| ---------- | ---------- | ---------------------------------------------------------------------------------------------------------- | --------- | ------- |
+| `headless` | `headless` | Renders nothing: the builder demo borrows this component's sample report and data function (`getDemoKit`). | `boolean` | `false` |
+
+
+## Methods
+
+### `getDemoKit() => Promise<{ configuration: any; fetchChartData: (request: any) => Promise<any>; }>`
+
+The sample report (a copy) and the function that answers its data requests.
+
+#### Returns
+
+Type: `Promise<{ configuration: any; fetchChartData: (request: any) => Promise<any>; }>`
+
+
+
+
 ## Dependencies
+
+### Used by
+
+ - [builder-demo](../builder-demo)
 
 ### Depends on
 
@@ -34,6 +58,7 @@ graph TD;
   data-widget --> box-whisker-chart-visualization
   data-widget --> filter-visualization
   data-widget --> base-widget
+  builder-demo --> report-demo
   style report-demo fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

@@ -162,6 +162,12 @@ export namespace Components {
         "config": DataWidgetConfig;
         "data": VisualizationData;
     }
+    /**
+     * Demo page for `<report-builder>`: the sample report from the viewer demo, an app-built toolbar around the builder's
+     * methods, a `configureWidget` hook with a small dialog of its own, and a live view of what the builder emits.
+     */
+    interface BuilderDemo {
+    }
     interface ClusteredBarChartVisualization {
         /**
           * @default "brand"
@@ -690,6 +696,15 @@ export namespace Components {
         "widgetCatalog"?: WidgetTypeDefinition[];
     }
     interface ReportDemo {
+        /**
+          * The sample report (a copy) and the function that answers its data requests.
+         */
+        "getDemoKit": () => Promise<{ configuration: any; fetchChartData: (request: any) => Promise<any>; }>;
+        /**
+          * Renders nothing: the builder demo borrows this component's sample report and data function (`getDemoKit`).
+          * @default false
+         */
+        "headless": boolean;
     }
     interface ReportViewer {
         /**
@@ -1055,6 +1070,16 @@ declare global {
     var HTMLBubbleChartVisualizationElement: {
         prototype: HTMLBubbleChartVisualizationElement;
         new (): HTMLBubbleChartVisualizationElement;
+    };
+    /**
+     * Demo page for `<report-builder>`: the sample report from the viewer demo, an app-built toolbar around the builder's
+     * methods, a `configureWidget` hook with a small dialog of its own, and a live view of what the builder emits.
+     */
+    interface HTMLBuilderDemoElement extends Components.BuilderDemo, HTMLStencilElement {
+    }
+    var HTMLBuilderDemoElement: {
+        prototype: HTMLBuilderDemoElement;
+        new (): HTMLBuilderDemoElement;
     };
     interface HTMLClusteredBarChartVisualizationElementEventMap {
         "filterChange": FilterChangeEventDetail;
@@ -1430,6 +1455,7 @@ declare global {
         "box-whisker-chart-visualization": HTMLBoxWhiskerChartVisualizationElement;
         "box-whisker-normality-plot-widget": HTMLBoxWhiskerNormalityPlotWidgetElement;
         "bubble-chart-visualization": HTMLBubbleChartVisualizationElement;
+        "builder-demo": HTMLBuilderDemoElement;
         "clustered-bar-chart-visualization": HTMLClusteredBarChartVisualizationElement;
         "correlation-analysis-widget": HTMLCorrelationAnalysisWidgetElement;
         "data-widget": HTMLDataWidgetElement;
@@ -1573,6 +1599,12 @@ declare namespace LocalJSX {
         "config"?: DataWidgetConfig;
         "data"?: VisualizationData;
         "onFilterChange"?: (event: BubbleChartVisualizationCustomEvent<FilterChangeEventDetail>) => void;
+    }
+    /**
+     * Demo page for `<report-builder>`: the sample report from the viewer demo, an app-built toolbar around the builder's
+     * methods, a `configureWidget` hook with a small dialog of its own, and a live view of what the builder emits.
+     */
+    interface BuilderDemo {
     }
     interface ClusteredBarChartVisualization {
         /**
@@ -2080,6 +2112,11 @@ declare namespace LocalJSX {
         "widgetCatalog"?: WidgetTypeDefinition[];
     }
     interface ReportDemo {
+        /**
+          * Renders nothing: the builder demo borrows this component's sample report and data function (`getDemoKit`).
+          * @default false
+         */
+        "headless"?: boolean;
     }
     interface ReportViewer {
         /**
@@ -2306,6 +2343,7 @@ declare namespace LocalJSX {
         "box-whisker-chart-visualization": BoxWhiskerChartVisualization;
         "box-whisker-normality-plot-widget": BoxWhiskerNormalityPlotWidget;
         "bubble-chart-visualization": BubbleChartVisualization;
+        "builder-demo": BuilderDemo;
         "clustered-bar-chart-visualization": ClusteredBarChartVisualization;
         "correlation-analysis-widget": CorrelationAnalysisWidget;
         "data-widget": DataWidget;
@@ -2350,6 +2388,11 @@ declare module "@stencil/core" {
             "box-whisker-chart-visualization": LocalJSX.BoxWhiskerChartVisualization & JSXBase.HTMLAttributes<HTMLBoxWhiskerChartVisualizationElement>;
             "box-whisker-normality-plot-widget": LocalJSX.BoxWhiskerNormalityPlotWidget & JSXBase.HTMLAttributes<HTMLBoxWhiskerNormalityPlotWidgetElement>;
             "bubble-chart-visualization": LocalJSX.BubbleChartVisualization & JSXBase.HTMLAttributes<HTMLBubbleChartVisualizationElement>;
+            /**
+             * Demo page for `<report-builder>`: the sample report from the viewer demo, an app-built toolbar around the builder's
+             * methods, a `configureWidget` hook with a small dialog of its own, and a live view of what the builder emits.
+             */
+            "builder-demo": LocalJSX.BuilderDemo & JSXBase.HTMLAttributes<HTMLBuilderDemoElement>;
             "clustered-bar-chart-visualization": LocalJSX.ClusteredBarChartVisualization & JSXBase.HTMLAttributes<HTMLClusteredBarChartVisualizationElement>;
             "correlation-analysis-widget": LocalJSX.CorrelationAnalysisWidget & JSXBase.HTMLAttributes<HTMLCorrelationAnalysisWidgetElement>;
             "data-widget": LocalJSX.DataWidget & JSXBase.HTMLAttributes<HTMLDataWidgetElement>;

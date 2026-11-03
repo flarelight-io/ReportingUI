@@ -94,3 +94,7 @@ The frames and handles are plain elements: `.builder-frame`, `.builder-frame.sel
 The layout engine and the config helpers are exported for apps that need them (`moveItem`, `setItemRect`, `getLayoutItems`, `applyLayoutItems`, `addWidgetToConfig`, `updateWidgetInConfig`, `resolveWidgetType`...).
 
 See [design/report-builder.md](design/report-builder.md) for the plan and what comes next (configuration hooks, undo/redo, a default configuration panel).
+
+## Demo
+
+`npm start` serves two demo pages: the viewer at `/` and the builder at `/builder.html` (`src/components/builder-demo/`). The builder demo is a worked example of an app around the builder: a toolbar built on `addWidget`, `undo`, `duplicate` and `removeWidgets`, a `configureWidget` hook with its own dialog, and a view of the events the builder emits.
