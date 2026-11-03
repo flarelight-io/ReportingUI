@@ -36,6 +36,7 @@ export class ReportViewer {
   private resizeObserver: ResizeObserver | null = null;
   private configurationPollingInterval?: number;
   private lastConfiguration?: any;
+  private lastDataConfigKey?: string;
   private handleResize = () => {
     if (this.isMounted && this.gridContainer) {
       this.setEqualGridDimensions();
@@ -79,11 +80,8 @@ export class ReportViewer {
     }
     
     if (parsedConfig) {
-      this.parseConfiguration(parsedConfig);
-      // Reset widget data cache when configuration changes
-      this.widgetData = {};
-      // Rerender widgets when configuration changes
-      this.renderWidgets();
+      this.lastConfiguration = newValue;
+      this.applyConfiguration(parsedConfig);
     }
   }
   
@@ -188,24 +186,8 @@ export class ReportViewer {
       // Set equal row height to column width
       this.setEqualGridDimensions();
       
-      // If we already have widget data pre-fetched, render widgets
-      if (Object.keys(this.widgetData).length > 0) {
-        this.renderWidgets();
-      } else if (this.widgets.length > 0 && this.fetchChartData) {
-        // If no data yet but widgets exist, fetch data first
-        this.prefetchWidgetData().then(() => {
-          if (this.gridContainer) {
-            this.renderWidgets();
-            // Call setEqualGridDimensions again after rendering in case container size changed
-            this.setEqualGridDimensions();
-          }
-        });
-      } else {
-        // Otherwise just render widgets (will show empty/loading state)
-        this.renderWidgets();
-        // Call setEqualGridDimensions again after rendering
-        this.setEqualGridDimensions();
-      }
+      // Wait for the (single) prefetch to finish so widgets render with data instead of fetching themselves
+      this.prefetchAndRender();
       
       // Add resize observer to update grid dimensions when window resizes
       if (typeof ResizeObserver !== 'undefined') {
@@ -219,6 +201,9 @@ export class ReportViewer {
       console.error('Could not find grid container element');
     }
     
+    // Configuration handled above is the baseline; polling only reacts to later changes
+    this.lastConfiguration = this.configuration;
+    this.lastDataConfigKey = this.dataConfigKey(this.configuration);
     // Add a polling mechanism to check for configuration changes
     this.startConfigurationPolling();
   }
@@ -334,6 +319,48 @@ export class ReportViewer {
     }));
   }
   
+  /** Identifies the parts of a configuration that determine fetched data (everything except presentation such as colorTheme). */
+  private dataConfigKey(config: any): string | undefined {
+    try {
+      const parsed = typeof config === 'string' ? JSON.parse(config) : config;
+      if (!parsed) return undefined;
+      const { colorTheme, ...rest } = parsed;
+      return JSON.stringify(rest);
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Applies a changed configuration. The data cache is only invalidated when something that affects the
+   * fetched data changed; presentation-only changes (such as the color theme) re-render with the cached data.
+   */
+  private applyConfiguration(parsedConfig: any) {
+    const key = this.dataConfigKey(parsedConfig);
+    if (key === undefined || key !== this.lastDataConfigKey || this.widgets.length === 0) {
+      this.widgetData = {};
+      this.dataFetchPromises = {};
+    }
+    this.lastDataConfigKey = key;
+    this.parseConfiguration(parsedConfig);
+    // Rerender once data is in (parseConfiguration started or reused the prefetch)
+    this.prefetchAndRender();
+  }
+
+  /**
+   * Waits for the prefetch (starting it if needed) and then renders once, so widgets are created
+   * with their data and never need to fetch it themselves. Without a fetch function it renders at once.
+   */
+  private async prefetchAndRender() {
+    if (this.widgets.length > 0 && this.fetchChartData) {
+      await this.prefetchWidgetData();
+    }
+    if (!this.gridContainer) return;
+    this.renderWidgets();
+    // Container size can change once content is rendered
+    this.setEqualGridDimensions();
+  }
+
   private async prefetchWidgetData() {
     // Create fetch promises for each widget that needs data
     this.widgets.forEach(widget => {
@@ -344,7 +371,8 @@ export class ReportViewer {
         const source = this.dataSources.find(s => s.id === sourceId);
         if (!source) return;
         
-        // Create the data fetch promise
+        // Reuse an in-flight (or finished) request; callers invalidate by resetting dataFetchPromises
+        if (this.dataFetchPromises[widget.id]) return;
         this.dataFetchPromises[widget.id] = this.fetchDataForWidget(widget, source);
       }
     });
@@ -1702,9 +1730,7 @@ export class ReportViewer {
           }
         }
         
-        this.parseConfiguration(parsedConfig);
-        this.widgetData = {};
-        this.renderWidgets();
+        this.applyConfiguration(parsedConfig);
       }
     }, 500);
     
