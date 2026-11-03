@@ -2,6 +2,7 @@ import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
+import { PlotSizeTracker, clipLabel } from '../../../utils/bar-layout';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface LineDataPoint {
@@ -29,12 +30,22 @@ export class LineChartVisualization {
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0;
   @State() legendFontSize: number = 10;
+  @State() plotWidth: number = 0;
+  @State() plotHeight: number = 0;
 
   @Element() el: HTMLElement;
 
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
   private adjustingFont: boolean = false;
+  private plotSize = new PlotSizeTracker(({ width, height }) => {
+    if (width !== this.plotWidth) this.plotWidth = width;
+    if (height !== this.plotHeight) this.plotHeight = height;
+  });
+
+  disconnectedCallback() {
+    this.plotSize.detach();
+  }
 
   componentWillLoad() {
     ChartThemeUtils.onThemeChange(() => {
@@ -157,41 +168,52 @@ export class LineChartVisualization {
       return <div class="empty-data">No data available</div>;
     }
     
-    // Find the maximum value for scaling
-    const maxValue = Math.max(...chartData.map(item => item.y)) * 1.1; // Add 10% padding
-    
-    // Calculate optimal aspect ratio
-    const viewBoxWidth = 100;
-    const viewBoxHeight = 60;
-    const svgViewBoxHeight = this.config.showXAxisLabels ? 80 : viewBoxHeight;
-    
-    // Generate points for the line, spaced evenly across the width
-    const points = chartData.map((item, index) => {
-      const x = 5 + index * ((viewBoxWidth - 10) / (chartData.length - 1 || 1));
-      const y = (viewBoxHeight - 5) - (item.y / maxValue) * (viewBoxHeight - 10);
-      return { x, y, category: item.x, value: item.y };
-    });
-    
-    // Create the path string for the line
-    const pathString = points.map((point, i) => 
-      `${i === 0 ? 'M' : 'L'}${point.x},${point.y}`
-    ).join(' ');
-    
-    // Define colors and theme
+    const maxValue = Math.max(...chartData.map(item => item.y), 0) * 1.1 || 1; // Add 10% padding
+
     const colors = this.getColors();
     const theme = ChartThemeUtils.getTheme(this.colorTheme);
-    
+
+    // Lay out in real pixels so text keeps a constant, readable size at any container size
+    const W = this.plotWidth;
+    const H = this.plotHeight;
+    const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
+    const charWidth = fontSize * 0.58;
+    const pad = 8;
+    const tickValues = [0, 0.25, 0.5, 0.75, 1].map(ratio => ChartThemeUtils.formatNumber(ratio * maxValue));
+    const plotX = pad + Math.max(...tickValues.map(t => t.length)) * charWidth + 6;
+    const plotY = this.config.showLabels ? fontSize + 8 : pad;
+    const xLabels = chartData.map(item => clipLabel(String(item.x), 15));
+    const longestPx = Math.max(...xLabels.map(l => l.length)) * charWidth;
+    const bottom = this.config.showXAxisLabels
+      ? Math.min(longestPx * Math.SQRT1_2 + fontSize + 8, H * 0.45)
+      : pad + 4;
+    const plotW = Math.max(0, W - plotX - pad);
+    const plotH = Math.max(0, H - plotY - bottom);
+    const spacing = plotW / Math.max(1, chartData.length - 1);
+    const xStride = Math.max(1, Math.ceil((fontSize * 1.4) / Math.max(1, spacing)));
+    const valueStride = Math.max(1, Math.ceil((charWidth * 4) / Math.max(1, spacing)));
+
+    const points = chartData.map((item, index) => ({
+      x: chartData.length === 1 ? plotX + plotW / 2 : plotX + index * spacing,
+      y: plotY + plotH - (item.y / maxValue) * plotH,
+      category: item.x,
+      value: item.y
+    }));
+    const pathString = points.map((point, i) =>
+      `${i === 0 ? 'M' : 'L'}${point.x},${point.y}`
+    ).join(' ');
+
     return (
       <div class="line-chart-container" part="chart">
-        <div class="visualization-container" part="plot">
-          <svg 
-            width="100%" 
-            height="100%" 
-            viewBox={`0 0 ${viewBoxWidth} ${svgViewBoxHeight}`}
-            preserveAspectRatio="xMidYMid meet"
+        <div class="visualization-container" part="plot" ref={this.plotSize.attach}>
+          {W > 0 && H > 0 && (
+          <svg
+            width={W}
+            height={H}
+            viewBox={`0 0 ${W} ${H}`}
+            style={{ position: 'absolute', inset: '0' }}
             {...ChartThemeUtils.getSVGAttributes()}
           >
-            {/* Define gradients and filters for modern styling */}
             <defs>
               <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stop-color={colors[0]} stop-opacity="0.3"/>
@@ -201,33 +223,31 @@ export class LineChartVisualization {
                 <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
               </filter>
             </defs>
-            {/* Draw subtle grid lines if enabled */}
             {this.config.showGrid && (
               <g>
                 {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                  const y = viewBoxHeight - 5 - ratio * (viewBoxHeight - 10);
+                  const y = plotY + plotH - ratio * plotH;
                   return (
-                    <line 
-                      key={`h-${i}`} 
-                      x1="5" 
-                      y1={ChartThemeUtils.snapToPixel(y)} 
-                      x2={viewBoxWidth - 5} 
-                      y2={ChartThemeUtils.snapToPixel(y)} 
-                      stroke="var(--fl-chart-grid-color)" 
-                      stroke-width="0.5" 
-                      opacity="0.2"
+                    <line
+                      key={`h-${i}`}
+                      x1={plotX}
+                      y1={ChartThemeUtils.snapToPixel(y)}
+                      x2={plotX + plotW}
+                      y2={ChartThemeUtils.snapToPixel(y)}
+                      stroke="var(--fl-chart-grid-color)"
+                      stroke-width="1"
+                      opacity="0.5"
                     />
                   );
                 })}
               </g>
             )}
-            
-            {/* Draw line with clean styling */}
-            <path 
-              d={pathString} 
-              fill="none" 
-              stroke={colors[0]} 
-              stroke-width="1"
+
+            <path
+              d={pathString}
+              fill="none"
+              stroke={colors[0]}
+              stroke-width={theme.lineStrokeWidth || 2}
               stroke-linecap="round"
               stroke-linejoin="round"
               class="line-animated"
@@ -237,13 +257,12 @@ export class LineChartVisualization {
                 animationFillMode: 'both'
               }}
             />
-            
-            {/* Draw points with subtle styling */}
+
             {points.map((point, i) => (
-              <g 
-                key={i} 
+              <g
+                key={i}
                 transform={`translate(${point.x}, ${point.y})`}
-                style={{ 
+                style={{
                   cursor: 'pointer',
                   transition: ChartAnimations.getHoverTransition()
                 }}
@@ -251,25 +270,25 @@ export class LineChartVisualization {
                 onMouseEnter={(event) => this.handleMouseMove(event, point.category, point.value)}
                 onMouseLeave={() => this.handleMouseLeave()}
               >
-                <circle 
-                  cx="0" 
-                  cy="0" 
-                  r="0.8" 
+                <circle
+                  cx="0"
+                  cy="0"
+                  r={theme.pointRadius || 3}
                   fill={colors[0]}
                   stroke="white"
-                  stroke-width="0.5"
-                  opacity="0.6"
+                  stroke-width="1"
+                  opacity="0.8"
                   class="point-animated"
                   style={{
                     animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
                     animationFillMode: 'both'
                   }}
                 />
-                {/* Subtle hover state */}
-                <circle 
-                  cx="0" 
-                  cy="0" 
-                  r="2" 
+                {/* Larger invisible target so points are easy to hover */}
+                <circle
+                  cx="0"
+                  cy="0"
+                  r={Math.max(8, (theme.pointRadius || 3) + 4)}
                   fill="transparent"
                   stroke="transparent"
                   stroke-width="0"
@@ -280,100 +299,76 @@ export class LineChartVisualization {
                 />
               </g>
             ))}
-            
-            {/* X and Y axis with subtle styling */}
-            <line 
-              x1="5" 
-              y1={ChartThemeUtils.snapToPixel(viewBoxHeight - 5)} 
-              x2={viewBoxWidth - 5} 
-              y2={ChartThemeUtils.snapToPixel(viewBoxHeight - 5)} 
-              stroke="var(--fl-chart-axis-color)" 
-              stroke-width="0.5" 
-              opacity="0.6"
-            />
-            <line 
-              x1={ChartThemeUtils.snapToPixel(5)} 
-              y1="5" 
-              x2={ChartThemeUtils.snapToPixel(5)} 
-              y2={viewBoxHeight - 5} 
-              stroke="var(--fl-chart-axis-color)" 
-              stroke-width="0.5" 
-              opacity="0.6"
-            />
-            
-            {/* X-axis category labels */}
-            {this.config.showXAxisLabels && (() => {
-              const skipStep = Math.max(1, Math.ceil(chartData.length / 10));
-              return points.map((point, i) => {
-                if (i % skipStep !== 0) return null;
-                const displayText = String(point.category);
-                const truncated = displayText.length > 15
-                  ? displayText.substring(0, 15) + '...'
-                  : displayText;
-                return (
-                  <text
-                    key={`x-${i}`}
-                    x={point.x}
-                    y={58}
-                    font-size="2.5"
-                    text-anchor="end"
-                    fill="var(--fl-chart-text-secondary)"
-                    font-family={theme.fontFamily}
-                    font-weight="500"
-                    transform={`rotate(-45, ${point.x}, 58)`}
-                  >
-                    {truncated}
-                  </text>
-                );
-              });
-            })()}
 
-            {/* Value labels above points */}
-            {this.config.showLabels && (() => {
-              const skipStep = Math.max(1, Math.ceil(chartData.length / 8));
-              return points.map((point, i) => {
-                if (i % skipStep !== 0) return null;
-                return (
-                  <text
-                    key={`value-${i}`}
-                    x={point.x}
-                    y={point.y - 3}
-                    font-size="2.5"
-                    text-anchor="middle"
-                    fill="var(--fl-chart-text-color)"
-                    font-family={theme.fontFamily}
-                    font-weight="600"
-                    paint-order="stroke fill"
-                    stroke="white"
-                    stroke-width="0.5"
-                  >
-                    {ChartThemeUtils.formatNumber(point.value)}
-                  </text>
-                );
-              });
-            })()}
-            
-            {/* Y-axis labels */}
-            {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-              const y = viewBoxHeight - 5 - ratio * (viewBoxHeight - 10);
-              const value = Math.round(ratio * maxValue);
-              
+            <line
+              x1={plotX} y1={ChartThemeUtils.snapToPixel(plotY + plotH)}
+              x2={plotX + plotW} y2={ChartThemeUtils.snapToPixel(plotY + plotH)}
+              stroke="var(--fl-chart-axis-color)" stroke-width="1" opacity="0.6"
+            />
+            <line
+              x1={ChartThemeUtils.snapToPixel(plotX)} y1={plotY}
+              x2={ChartThemeUtils.snapToPixel(plotX)} y2={plotY + plotH}
+              stroke="var(--fl-chart-axis-color)" stroke-width="1" opacity="0.6"
+            />
+
+            {this.config.showXAxisLabels && points.map((point, i) => {
+              if (i % xStride !== 0) return null;
+              const ty = plotY + plotH + fontSize + 2;
               return (
-                <text 
-                  key={`y-label-${i}`} 
-                  x="3" 
-                  y={y} 
-                  font-size="2.5" 
-                  text-anchor="end" 
-                  dominant-baseline="middle" 
-                  fill="var(--fl-chart-text-color, #666)"
+                <text
+                  key={`x-${i}`}
+                  x={point.x}
+                  y={ty}
+                  font-size={fontSize}
+                  text-anchor="end"
+                  fill="var(--fl-chart-text-secondary)"
+                  font-family={theme.fontFamily}
+                  font-weight="500"
+                  transform={`rotate(-45, ${point.x}, ${ty})`}
                 >
-                  {value}
+                  {xLabels[i]}
                 </text>
               );
             })}
+
+            {this.config.showLabels && points.map((point, i) => {
+              if (i % valueStride !== 0) return null;
+              return (
+                <text
+                  key={`value-${i}`}
+                  x={point.x}
+                  y={point.y - 8}
+                  font-size={fontSize}
+                  text-anchor="middle"
+                  fill="var(--fl-chart-text-color)"
+                  font-family={theme.fontFamily}
+                  font-weight="600"
+                  paint-order="stroke fill"
+                  stroke="white"
+                  stroke-width="2"
+                >
+                  {ChartThemeUtils.formatNumber(point.value)}
+                </text>
+              );
+            })}
+
+            {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
+              <text
+                key={`y-label-${i}`}
+                x={plotX - 6}
+                y={plotY + plotH - ratio * plotH}
+                font-size={fontSize}
+                text-anchor="end"
+                dominant-baseline="middle"
+                fill="var(--fl-chart-text-color, #666)"
+                font-family={theme.fontFamily}
+              >
+                {tickValues[i]}
+              </text>
+            ))}
           </svg>
-          
+          )}
+
           {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
