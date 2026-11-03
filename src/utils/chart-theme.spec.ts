@@ -1,4 +1,4 @@
-import { ChartThemeUtils } from './chart-theme';
+import { ChartThemeUtils, readCssList, parseColor, interpolateColor } from './chart-theme';
 
 describe('ChartThemeUtils color theme registry', () => {
   afterEach(() => {
@@ -40,5 +40,33 @@ describe('ChartThemeUtils color theme registry', () => {
     expect(ChartThemeUtils.resolveMode(leaf)).toBe('light');
     expect(ChartThemeUtils.getTheme('brand', leaf).mode).toBe('light');
     expect(ChartThemeUtils.getTheme('brand', outer).mode).toBe('dark');
+  });
+});
+
+describe('CSS variable helpers', () => {
+  const style = (values: Record<string, string>) => ({ getPropertyValue: (name: string) => values[name] || '' });
+
+  it('reads consecutive numbered variables and stops at the first gap', () => {
+    const s = style({ '--x-1': ' #111 ', '--x-2': '#222', '--x-4': '#444' });
+    expect(readCssList(s, '--x-')).toEqual(['#111', '#222']);
+    expect(readCssList(style({}), '--x-')).toEqual([]);
+  });
+
+  it('parses hex and rgb colors', () => {
+    expect(parseColor('#fff')).toEqual([255, 255, 255]);
+    expect(parseColor('#336699')).toEqual([51, 102, 153]);
+    expect(parseColor('#33669980')).toEqual([51, 102, 153]);
+    expect(parseColor('rgb(10, 20, 30)')).toEqual([10, 20, 30]);
+    expect(parseColor('rgba(10 20 30 / 0.5)')).toEqual([10, 20, 30]);
+    expect(parseColor('hotpink')).toBeNull();
+  });
+
+  it('blends across stops and clamps', () => {
+    expect(interpolateColor(['#000000', '#ffffff'], 0)).toBe('rgb(0, 0, 0)');
+    expect(interpolateColor(['#000000', '#ffffff'], 1)).toBe('rgb(255, 255, 255)');
+    expect(interpolateColor(['#000000', '#ffffff'], 0.5)).toBe('rgb(128, 128, 128)');
+    expect(interpolateColor(['#000000', '#ff0000', '#ffffff'], 0.5)).toBe('rgb(255, 0, 0)');
+    expect(interpolateColor(['#000000', '#ffffff'], 9)).toBe('rgb(255, 255, 255)');
+    expect(interpolateColor(['red', 'blue'], 0.9)).toBe('blue');
   });
 });

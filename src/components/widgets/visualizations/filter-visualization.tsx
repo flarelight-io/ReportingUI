@@ -1,4 +1,4 @@
-import { Component, Prop, h, Event, EventEmitter, State, Watch } from '@stencil/core';
+import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ColorTheme, ChartThemeUtils } from '../../../utils/chart-theme';
@@ -10,6 +10,8 @@ import { Filter } from '../../../api/types/common';
   shadow: true
 })
 export class FilterVisualization {
+  @Element() el: HTMLElement;
+
   @Prop() config: DataWidgetConfig;
   @Prop() data: VisualizationData;
   @Prop() colorTheme: ColorTheme = "brand";
@@ -19,8 +21,13 @@ export class FilterVisualization {
 
   @State() selectedValues: string[] = [];
   @State() uniqueValues: string[] = [];
+  @State() themeVersion: number = 0;
 
   componentWillLoad() {
+    // Re-render when the light/dark mode, color theme or CSS color variables change
+    ChartThemeUtils.onThemeChange(() => {
+      this.themeVersion++;
+    });
     this.extractUniqueValues();
     this.updateSelectedValuesFromActiveFilters();
   }
@@ -157,7 +164,7 @@ export class FilterVisualization {
   }
 
   private getButtonColor(index: number): string {
-    return ChartThemeUtils.getSeriesColor(index, this.colorTheme);
+    return ChartThemeUtils.getSeriesColor(index, this.colorTheme, this.el);
   }
 
   private renderButtons() {

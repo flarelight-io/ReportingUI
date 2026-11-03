@@ -1,7 +1,7 @@
 import { Component, Prop, h, State, Event, EventEmitter, Element, Watch } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { HeatmapConfig } from '../data-widget';
-import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
+import { ChartThemeUtils, ChartAnimations, ColorTheme, interpolateColor } from '../../../utils/chart-theme';
 import { PlotSizeTracker, clipLabel, fitRotatedLabels } from '../../../utils/bar-layout';
 import { placeTooltip } from '../../../utils/tooltip';
 
@@ -179,6 +179,12 @@ export class HeatmapVisualization {
 
   private getColorForValue(value: number, min: number, max: number): string {
     const theme = ChartThemeUtils.getTheme(this.colorTheme, this.el);
+
+    // An explicit scale from --fl-heatmap-color-N wins; blend smoothly across its stops
+    if (theme.heatmap && theme.heatmap.length >= 2) {
+      if (min === max) return theme.heatmap[Math.floor(theme.heatmap.length / 2)];
+      return interpolateColor(theme.heatmap, (value - min) / (max - min));
+    }
     
     // Create a professional heatmap color scale using theme colors
     // Use the theme's series colors as base and create a gradient
@@ -424,6 +430,7 @@ export class HeatmapVisualization {
             })}
 
             {cells.map((cell, idx) => {
+              const cssScale = !!(theme.heatmap && theme.heatmap.length >= 2);
               const normalizedValue = (cell.value - heatmapData.minValue) / (heatmapData.maxValue - heatmapData.minValue);
               const gradientIndex = Math.min(5, Math.max(0, Math.floor((normalizedValue || 0) * 5)));
               const valueText = this.config.showValues ? this.formatValue(cell.value) : '';
@@ -449,7 +456,7 @@ export class HeatmapVisualization {
                     y={heatmapOffsetY + (cell.rowIdx * cellHeight)}
                     width={cellWidth}
                     height={cellHeight}
-                    fill={`url(#heatmapGradient-${gradientIndex})`}
+                    fill={cssScale ? cell.color : `url(#heatmapGradient-${gradientIndex})`}
                     stroke={theme.border}
                     stroke-width="1"
                     class="cell-animated cell-glow"

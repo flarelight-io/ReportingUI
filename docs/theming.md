@@ -83,6 +83,39 @@ data-widget::part(legend) { display: none; }
 data-widget::part(card) { border-radius: 0; }
 ```
 
+## Chart colors from CSS
+
+Chart colors can also be set from CSS. These variables are **not defined by default**: when unset, charts use the
+`colorTheme` palette (below); when set, they win. Define them on `:root`, on `<report-viewer>`, or on any ancestor, and
+per mode with `[data-theme="dark"]`.
+
+| Variables | Used by | Notes |
+| --------- | ------- | ----- |
+| `--fl-chart-series-1` … `--fl-chart-series-24` | all charts, filter buttons | Series colors in order, set at least one; extra series cycle. |
+| `--fl-heatmap-color-1` … `--fl-heatmap-color-24` | heatmap | Scale from low to high, set at least two. Colors are blended smoothly between stops. |
+| `--fl-correlation-negative-strong`, `-negative-moderate`, `-neutral`, `-positive-moderate`, `-positive-strong` | correlation matrix | Set all five. |
+| `--fl-chart-text-color`, `--fl-chart-panel`, `--fl-chart-background`, `--fl-chart-border`, `--fl-chart-axis-color`, `--fl-chart-grid-color` | all charts | Surfaces and text. |
+| `--fl-chart-font-family`, `--fl-chart-font-size`, `--fl-chart-title-size` | all charts | Typography; chart labels keep this size at any container size. |
+
+```css
+report-viewer {
+  --fl-chart-series-1: #0b3d91;
+  --fl-chart-series-2: #1d6fd1;
+  --fl-chart-series-3: #f5a623;
+  --fl-heatmap-color-1: #f7fbff;
+  --fl-heatmap-color-2: #08306b;
+}
+report-viewer[data-theme="dark"] {
+  --fl-chart-series-1: #8ab4ff;
+  --fl-heatmap-color-1: #08306b;
+  --fl-heatmap-color-2: #f7fbff;
+}
+```
+
+Charts read the variables when they render. If you change them at runtime, call `ChartThemeUtils.refreshTheme()` so
+charts re-read them (changing `theme` on the viewer does this too). Colors can be hex, `rgb()` or `rgba()`; a heatmap
+scale using other formats (named colors, `hsl()`) steps between stops instead of blending.
+
 ## Custom chart color themes
 
 Register a palette once, then select it by name in the report configuration (`"colorTheme": "corp"`).
