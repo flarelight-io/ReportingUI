@@ -542,7 +542,7 @@ export class DataWidget {
     switch (visualizationType) {
       case 'table':
         return (
-          <table-visualization 
+          <table-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -552,7 +552,7 @@ export class DataWidget {
       case 'bar':
       case 'hbar':
         return (
-          <bar-chart-visualization 
+          <bar-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -562,7 +562,7 @@ export class DataWidget {
       case 'stacked-bar':
       case 'stacked-hbar':
         return (
-          <stacked-bar-chart-visualization 
+          <stacked-bar-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -572,7 +572,7 @@ export class DataWidget {
       case 'clustered-bar':
       case 'clustered-hbar':
         return (
-          <clustered-bar-chart-visualization 
+          <clustered-bar-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -582,7 +582,7 @@ export class DataWidget {
       case 'lollipop':
       case 'lollipop-h':
         return (
-          <lollipop-chart-visualization 
+          <lollipop-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -591,7 +591,7 @@ export class DataWidget {
         
       case 'line':
         return (
-          <line-chart-visualization 
+          <line-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -601,7 +601,7 @@ export class DataWidget {
       case 'pie':
       case 'donut':
         return (
-          <pie-chart-visualization 
+          <pie-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -610,7 +610,7 @@ export class DataWidget {
       
       case 'kpi':
         return (
-          <kpi-visualization 
+          <kpi-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -619,7 +619,7 @@ export class DataWidget {
       
       case 'scatter':
         return (
-          <scatter-chart-visualization 
+          <scatter-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -628,7 +628,7 @@ export class DataWidget {
         
       case 'histogram':
         return (
-          <histogram-chart-visualization 
+          <histogram-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -637,7 +637,7 @@ export class DataWidget {
         
       case 'heatmap':
         return (
-          <heatmap-visualization 
+          <heatmap-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config as HeatmapConfig} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -646,7 +646,7 @@ export class DataWidget {
       
       case 'sunburst':
         return (
-          <sunburst-chart-visualization 
+          <sunburst-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -655,7 +655,7 @@ export class DataWidget {
       
       case 'bubble':
         return (
-          <bubble-chart-visualization 
+          <bubble-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -664,7 +664,7 @@ export class DataWidget {
       
       case 'box-whisker':
         return (
-          <box-whisker-chart-visualization 
+          <box-whisker-chart-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -673,7 +673,7 @@ export class DataWidget {
       
       case 'filter':
         return (
-          <filter-visualization 
+          <filter-visualization exportparts="chart,plot,legend,tooltip" 
             config={this.config} 
             data={visualizationData}
             colorTheme={effectiveColorTheme}
@@ -695,7 +695,7 @@ export class DataWidget {
   render() {
     return (
       <Host>
-        <base-widget
+        <base-widget exportparts="card,header,title,body"
           widgetId={this.widgetId}
           widgetTitle={this.widgetTitle}
           width={this.width}

@@ -390,7 +390,7 @@ export class WelchTwoSampleHypothesisTestWidget {
     
     return (
       <Host>
-        <base-widget
+        <base-widget exportparts="card,header,title,body"
           widgetId={this.widgetId}
           widgetTitle={this.widgetTitle || this.config.analysisName || "Welch's Two Sample Hypothesis Test"}
           width={this.width}

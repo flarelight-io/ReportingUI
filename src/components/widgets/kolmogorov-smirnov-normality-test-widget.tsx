@@ -303,7 +303,7 @@ export class KolmogorovSmirnovNormalityTestWidget {
 
     return (
       <Host>
-        <base-widget
+        <base-widget exportparts="card,header,title,body"
           widgetId={this.widgetId}
           widgetTitle={this.widgetTitle || this.config.analysisName || 'Kolmogorov-Smirnov Normality Test'}
           width={this.width}

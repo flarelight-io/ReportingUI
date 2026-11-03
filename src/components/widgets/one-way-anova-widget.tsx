@@ -221,7 +221,7 @@ export class OneWayAnovaWidget {
     if (this.loading) {
       return (
         <Host>
-          <base-widget
+          <base-widget exportparts="card,header,title,body"
             widgetId={this.widgetId}
             widgetTitle={this.widgetTitle || "One-Way ANOVA"}
             width={this.width}
@@ -239,7 +239,7 @@ export class OneWayAnovaWidget {
     if (!this.config.analysisId && !this.analysisSourceId) {
       return (
         <Host>
-          <base-widget
+          <base-widget exportparts="card,header,title,body"
             widgetId={this.widgetId}
             widgetTitle={this.widgetTitle || "One-Way ANOVA"}
             width={this.width}
@@ -260,7 +260,7 @@ export class OneWayAnovaWidget {
     // When we have the analysis data source ID, render a DataWidget with table visualization
     return (
       <Host>
-        <base-widget
+        <base-widget exportparts="card,header,title,body"
           widgetId={this.widgetId}
           widgetTitle={this.widgetTitle || this.config.analysisName || "One-Way ANOVA"}
           width={this.width}

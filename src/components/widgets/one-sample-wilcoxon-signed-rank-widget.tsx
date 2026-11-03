@@ -440,7 +440,7 @@ export class OneSampleWilcoxonSignedRankWidget {
     
     return (
       <Host>
-        <base-widget
+        <base-widget exportparts="card,header,title,body"
           widgetId={this.widgetId}
           widgetTitle={this.widgetTitle || this.config.analysisName || "Wilcoxon Signed Rank Test"}
           width={this.width}

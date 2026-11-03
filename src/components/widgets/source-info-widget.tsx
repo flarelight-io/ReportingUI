@@ -78,7 +78,7 @@ export class SourceInfoWidget {
     if (this.loading) {
       return (
         <Host>
-          <base-widget
+          <base-widget exportparts="card,header,title,body"
             widgetId={this.widgetId}
             widgetTitle={this.widgetTitle || "Source Information"}
             width={this.width}

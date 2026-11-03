@@ -295,7 +295,7 @@ export class ShapiroWilkTestWidget {
 
     return (
       <Host>
-        <base-widget
+        <base-widget exportparts="card,header,title,body"
           widgetId={this.widgetId}
           widgetTitle={this.widgetTitle || this.config.analysisName || 'Shapiro-Wilk Test'}
           width={this.width}

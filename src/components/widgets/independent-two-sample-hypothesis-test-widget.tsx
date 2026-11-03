@@ -393,7 +393,7 @@ export class IndependentTwoSampleHypothesisTestWidget {
     
     return (
       <Host>
-        <base-widget
+        <base-widget exportparts="card,header,title,body"
           widgetId={this.widgetId}
           widgetTitle={this.widgetTitle || this.config.analysisName || "Independent Two-Sample Hypothesis Test"}
           width={this.width}

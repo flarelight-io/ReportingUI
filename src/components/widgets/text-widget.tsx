@@ -153,7 +153,7 @@ export class TextWidget {
   render() {
     return (
       <Host>
-        <base-widget
+        <base-widget exportparts="card,header,title,body"
           widgetId={this.widgetId}
           widgetTitle={this.widgetTitle}
           width={this.width}
