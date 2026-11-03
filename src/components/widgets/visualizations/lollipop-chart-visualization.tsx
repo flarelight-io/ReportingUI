@@ -3,12 +3,14 @@ import { FilterChangeEventDetail, VisualizationData, fieldLabel } from './base-v
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { PlotSizeTracker, computeBarFrame, clipLabel } from '../../../utils/bar-layout';
+import { applyTopN, topNOptions, OTHER_COLOR } from '../../../utils/top-n';
 import { renderValueAxis, buildAxis } from '../../../utils/chart-axes';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface ChartDataItem {
   category: string;
   value: number;
+  isOther?: boolean;
 }
 
 interface TooltipState {
@@ -159,7 +161,8 @@ export class LollipopChartVisualization {
     const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
     const valueField = 'valueField' in this.config ? this.config.valueField : undefined;
     
-    const chartData = this.processData();
+    // Optionally keep the N largest categories and combine the rest into "Other"
+    const chartData = applyTopN(this.processData(), topNOptions(this.config));
     
     if (chartData.length === 0) {
       return <div class="empty-data">No data available</div>;
@@ -201,13 +204,13 @@ export class LollipopChartVisualization {
         return {
           line: { x1: plotX, y1: center, x2: plotX + Math.max(0, length - circleRadius), y2: center },
           circle: { cx: plotX + length, cy: center, r: circleRadius },
-          center, label: labels[index], category: item.category, value: item.value
+          center, label: labels[index], category: item.category, value: item.value, isOther: !!item.isOther
         };
       }
       return {
         line: { x1: center, y1: plotY + plotH, x2: center, y2: plotY + plotH - Math.max(0, length - circleRadius) },
         circle: { cx: center, cy: plotY + plotH - length, r: circleRadius },
-        center, label: labels[index], category: item.category, value: item.value
+        center, label: labels[index], category: item.category, value: item.value, isOther: !!item.isOther
       };
     });
 
@@ -246,7 +249,7 @@ export class LollipopChartVisualization {
                 }}
                 onMouseMove={(e) => this.handleMouseMove(e, { category: lollipop.category, value: lollipop.value })}
                 onMouseLeave={() => this.handleMouseLeave()}
-                onClick={() => this.handleFilterClick(groupByField || '', lollipop.category)}
+                onClick={() => { if (!lollipop.isOther) this.handleFilterClick(groupByField || '', lollipop.category); }}
                 class="lollipop-animated"
               >
                 <line
@@ -254,7 +257,7 @@ export class LollipopChartVisualization {
                   y1={lollipop.line.y1}
                   x2={lollipop.line.x2}
                   y2={lollipop.line.y2}
-                  stroke={mainColor}
+                  stroke={lollipop.isOther ? OTHER_COLOR : mainColor}
                   stroke-width={strokeWidth}
                   class="line-animated"
                   style={{
@@ -266,7 +269,7 @@ export class LollipopChartVisualization {
                   cx={lollipop.circle.cx}
                   cy={lollipop.circle.cy}
                   r={lollipop.circle.r}
-                  fill="url(#lollipopGradient)"
+                  fill={lollipop.isOther ? OTHER_COLOR : "url(#lollipopGradient)"}
                   class="point-animated point-glow"
                   style={{
                     animationDelay: `${ChartAnimations.getStaggerDelay(i) + 100}ms`,

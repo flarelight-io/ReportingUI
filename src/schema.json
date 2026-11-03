@@ -2361,6 +2361,21 @@
             "required": ["value", "color", "operator"]
           }
         },
+        "topN": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Keep the N largest categories (sorted by value, descending) and combine the rest into one 'Other' entry whose value is the sum of the rest. A single leftover category is kept as itself."
+        },
+        "otherLabel": {
+          "type": "string",
+          "description": "Label of the combined bucket when topN is set",
+          "default": "Other"
+        },
+        "showOther": {
+          "type": "boolean",
+          "description": "When topN is set: false drops the remaining categories instead of combining them",
+          "default": true
+        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -2542,6 +2557,21 @@
           "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
           "default": false
         },
+        "topN": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Keep the N largest categories (sorted by value, descending) and combine the rest into one 'Other' entry whose value is the sum of the rest. A single leftover category is kept as itself."
+        },
+        "otherLabel": {
+          "type": "string",
+          "description": "Label of the combined bucket when topN is set",
+          "default": "Other"
+        },
+        "showOther": {
+          "type": "boolean",
+          "description": "When topN is set: false drops the remaining categories instead of combining them",
+          "default": true
+        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -2632,6 +2662,21 @@
           "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
           "default": false
         },
+        "topN": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Keep the N largest categories (sorted by value, descending) and combine the rest into one 'Other' entry whose value is the sum of the rest. A single leftover category is kept as itself."
+        },
+        "otherLabel": {
+          "type": "string",
+          "description": "Label of the combined bucket when topN is set",
+          "default": "Other"
+        },
+        "showOther": {
+          "type": "boolean",
+          "description": "When topN is set: false drops the remaining categories instead of combining them",
+          "default": true
+        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -2721,6 +2766,21 @@
           "type": "boolean",
           "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
           "default": false
+        },
+        "topN": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Keep the N largest categories (sorted by value, descending) and combine the rest into one 'Other' entry whose value is the sum of the rest. A single leftover category is kept as itself."
+        },
+        "otherLabel": {
+          "type": "string",
+          "description": "Label of the combined bucket when topN is set",
+          "default": "Other"
+        },
+        "showOther": {
+          "type": "boolean",
+          "description": "When topN is set: false drops the remaining categories instead of combining them",
+          "default": true
         },
         "hideTitle": {
           "type": "boolean",
@@ -3312,6 +3372,21 @@
           "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
           "default": false
         },
+        "topN": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Keep the N largest categories (sorted by value, descending) and combine the rest into one 'Other' entry whose value is the sum of the rest. A single leftover category is kept as itself."
+        },
+        "otherLabel": {
+          "type": "string",
+          "description": "Label of the combined bucket when topN is set",
+          "default": "Other"
+        },
+        "showOther": {
+          "type": "boolean",
+          "description": "When topN is set: false drops the remaining categories instead of combining them",
+          "default": true
+        },
         "hideTitle": {
           "type": "boolean",
           "description": "Whether to hide the widget title",
@@ -3401,6 +3476,21 @@
           "type": "boolean",
           "description": "Values are percentages: pins the value axis to 0-100 and labels ticks with %. axisMin/axisMax override the ends.",
           "default": false
+        },
+        "topN": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Keep the N largest categories (sorted by value, descending) and combine the rest into one 'Other' entry whose value is the sum of the rest. A single leftover category is kept as itself."
+        },
+        "otherLabel": {
+          "type": "string",
+          "description": "Label of the combined bucket when topN is set",
+          "default": "Other"
+        },
+        "showOther": {
+          "type": "boolean",
+          "description": "When topN is set: false drops the remaining categories instead of combining them",
+          "default": true
         },
         "hideTitle": {
           "type": "boolean",

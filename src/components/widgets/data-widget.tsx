@@ -31,6 +31,12 @@ interface BaseDataWidgetConfig {
   axisMax?: number;
   /** Value axis for percentages: pins 0-100 and labels ticks with %. axisMin/axisMax override the ends. */
   percentAxis?: boolean;
+  /** Bar, horizontal bar, lollipop, pie and donut: keep the N largest categories and combine the rest into "Other". */
+  topN?: number;
+  /** Label of the combined bucket (default "Other"). */
+  otherLabel?: string;
+  /** Set to false to drop the remaining categories instead of combining them (default true). */
+  showOther?: boolean;
 }
 
 // Box-whisker chart specific configuration

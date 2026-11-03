@@ -4,11 +4,13 @@ import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { placeTooltip } from '../../../utils/tooltip';
 import { PlotSizeTracker, computeBarFrame, clipLabel } from '../../../utils/bar-layout';
+import { applyTopN, topNOptions, OTHER_COLOR } from '../../../utils/top-n';
 import { renderValueAxis, buildAxis } from '../../../utils/chart-axes';
 
 interface ChartDataItem {
   category: string;
   value: number;
+  isOther?: boolean;
 }
 
 interface TooltipState {
@@ -162,7 +164,8 @@ export class BarChartVisualization {
     // Extract config properties for use in render
     const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
     
-    const chartData = this.processData();
+    // Optionally keep the N largest categories and combine the rest into "Other"
+    const chartData = applyTopN(this.processData(), topNOptions(this.config));
     
     if (chartData.length === 0) {
       return <div class="empty-data">No data available</div>;
@@ -204,9 +207,9 @@ export class BarChartVisualization {
       if (isHorizontal) {
         // First category sits at the bottom, matching the previous layout
         const y = plotY + plotH - (index + 1) * slotSize + gapOffset;
-        return { x: plotX, y, width: length, height: thickness, color: colors[colorIndex], colorIndex, label: labels[index], category: item.category, value: item.value };
+        return { x: plotX, y, width: length, height: thickness, color: item.isOther ? OTHER_COLOR : colors[colorIndex], colorIndex, isOther: !!item.isOther, label: labels[index], category: item.category, value: item.value };
       }
-      return { x: plotX + index * slotSize + gapOffset, y: plotY + plotH - length, width: thickness, height: length, color: colors[colorIndex], colorIndex, label: labels[index], category: item.category, value: item.value };
+      return { x: plotX + index * slotSize + gapOffset, y: plotY + plotH - length, width: thickness, height: length, color: item.isOther ? OTHER_COLOR : colors[colorIndex], colorIndex, isOther: !!item.isOther, label: labels[index], category: item.category, value: item.value };
     });
 
     return (
@@ -246,17 +249,17 @@ export class BarChartVisualization {
                   rx={2}
                   width={bar.width}
                   height={bar.height}
-                  fill={`url(#barGradient-${bar.colorIndex})`}
+                  fill={bar.isOther ? OTHER_COLOR : `url(#barGradient-${bar.colorIndex})`}
                   class="bar-animated bar-glow"
                   style={{
-                    cursor: 'pointer',
+                    cursor: bar.isOther ? 'default' : 'pointer',
                     transition: ChartAnimations.getHoverTransition(),
                     animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
                     animationFillMode: 'both'
                   }}
                   onMouseMove={(e) => this.handleMouseMove(e, bar.category, bar.value)}
                   onMouseLeave={() => this.handleMouseLeave()}
-                  onClick={() => this.handleFilterClick(groupByField || '', bar.category)}
+                  onClick={() => { if (!bar.isOther) this.handleFilterClick(groupByField || '', bar.category); }}
                   filter="url(#softShadow)"
                 />
               </g>

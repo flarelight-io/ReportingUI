@@ -3,12 +3,14 @@ import { FilterChangeEventDetail, VisualizationData } from './base-visualization
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { PlotSizeTracker, clipLabel } from '../../../utils/bar-layout';
+import { applyTopN, topNOptions, OTHER_COLOR } from '../../../utils/top-n';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface PieChartDataItem {
   category: string;
   value: number;
   percentage?: number;
+  isOther?: boolean;
 }
 
 interface TooltipState {
@@ -173,7 +175,8 @@ export class PieChartVisualization {
     // Extract config properties for use in render
     const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
     
-    const chartData = this.processData();
+    // Optionally keep the N largest categories and combine the rest into "Other"
+    const chartData = applyTopN(this.processData(), topNOptions(this.config));
     
     if (chartData.length === 0) {
       return <div class="empty-data">No data available</div>;
@@ -421,7 +424,8 @@ export class PieChartVisualization {
       
       return {
         path,
-        color: colors[index % colors.length],
+        color: item.isOther ? OTHER_COLOR : colors[index % colors.length],
+        isOther: !!item.isOther,
         colorIndex: index % colors.length,
         percentage,
         labelX,
@@ -469,7 +473,7 @@ export class PieChartVisualization {
               <path 
                 key={i} 
                 d={segment.path} 
-                fill={`url(#pieGradient-${segment.colorIndex})`}
+                fill={segment.isOther ? OTHER_COLOR : `url(#pieGradient-${segment.colorIndex})`}
                 class="pie-segment-animated pie-segment-hover"
                 style={{ 
                   cursor: 'pointer',
@@ -477,7 +481,7 @@ export class PieChartVisualization {
                   animationDelay: `${ChartAnimations.getStaggerDelay(i)}ms`,
                   animationFillMode: 'both'
                 }}
-                onClick={() => this.handleFilterClick(groupByField || '', segment.category)}
+                onClick={() => { if (!segment.isOther) this.handleFilterClick(groupByField || '', segment.category); }}
                 onMouseMove={(event) => this.handleMouseMove(event, segment.category, segment.value, segment.displayPercentage)}
                 onMouseLeave={() => this.handleMouseLeave()}
                 filter="url(#softShadow)"
