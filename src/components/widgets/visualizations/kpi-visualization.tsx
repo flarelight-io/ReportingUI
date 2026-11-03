@@ -44,8 +44,10 @@ export class KpiVisualization {
       let trend: 'up' | 'down' | 'flat' = 'flat';
       
       if (previousValueField && rawData.length > 0) {
-        previousValue = Number(rawData[0][previousValueField] || 0);
-        if (value > previousValue) {
+        previousValue = this.readNumber(rawData[0][previousValueField]);
+        if (previousValue === undefined) {
+          // No previous value available: no trend
+        } else if (value > previousValue) {
           trend = 'up';
         } else if (value < previousValue) {
           trend = 'down';
@@ -62,8 +64,10 @@ export class KpiVisualization {
       
       // Only calculate trend if previousValueField is explicitly specified
       if (previousValueField && rawData.length > 0) {
-        previousValue = Number(rawData[0][previousValueField] || 0);
-        if (value > previousValue) {
+        previousValue = this.readNumber(rawData[0][previousValueField]);
+        if (previousValue === undefined) {
+          // No previous value available: no trend
+        } else if (value > previousValue) {
           trend = 'up';
         } else if (value < previousValue) {
           trend = 'down';
@@ -83,6 +87,25 @@ export class KpiVisualization {
     }
     
     return { value: 0 };
+  }
+
+  /** A finite number, or undefined when the value is missing/blank/not numeric (so it is never treated as 0). */
+  private readNumber(raw: unknown): number | undefined {
+    if (raw === null || raw === undefined || (typeof raw === 'string' && raw.trim() === '')) return undefined;
+    const n = Number(raw);
+    return isFinite(n) ? n : undefined;
+  }
+
+  /**
+   * Percent change from the previous value, or undefined when it can't be computed: no previous value,
+   * a previous value of 0 (division by zero), or non-finite numbers. The trend chip is hidden in that case.
+   */
+  private trendPercent(value: number, previousValue: number | undefined): number | undefined {
+    if (previousValue === undefined || !isFinite(value) || !isFinite(previousValue)) return undefined;
+    if (value === previousValue) return 0;
+    if (previousValue === 0) return undefined;
+    const percent = Math.abs(Math.round(((value - previousValue) / Math.abs(previousValue)) * 100));
+    return isFinite(percent) ? percent : undefined;
   }
 
   private formatValue(value: number): string {
@@ -287,17 +310,18 @@ export class KpiVisualization {
     }
     
     const kpiData = this.calculateKpiValue();
+    const trendPercent = this.trendPercent(kpiData.value, kpiData.previousValue);
     
     return (
       <div class="kpi-container">
         <div class="kpi-value-container">
           <div class="kpi-value" ref={(el) => this.valueElement = el}>{this.formatValue(kpiData.value)}</div>
           
-          {kpiData.previousValue !== undefined && (
+          {trendPercent !== undefined && (
             <div class={`kpi-trend ${this.getTrendClass(kpiData.trend)}`} part="trend" ref={(el) => this.trendElement = el}>
               <span class="trend-icon">{this.getTrendIcon(kpiData.trend)}</span>
               <span class="trend-percentage">
-                {Math.abs(Math.round((kpiData.value - kpiData.previousValue) / kpiData.previousValue * 100))}%
+                {trendPercent}%
               </span>
             </div>
           )}
