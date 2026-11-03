@@ -2,6 +2,7 @@ import { Component, Prop, h, State, Event, EventEmitter, Element, Watch } from '
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { HeatmapConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
+import { PlotSizeTracker, clipLabel } from '../../../utils/bar-layout';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface HeatmapMatrix {
@@ -32,34 +33,26 @@ export class HeatmapVisualization {
   
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0; // Force re-render when theme changes
-  @State() containerSize: { width: number; height: number } = { width: 800, height: 600 };
   @State() legendFontSize: number = 10;
+  @State() plotWidth: number = 0;
+  @State() plotHeight: number = 0;
 
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
   private adjustingFont: boolean = false;
+  private plotSize = new PlotSizeTracker(({ width, height }) => {
+    if (width !== this.plotWidth) this.plotWidth = width;
+    if (height !== this.plotHeight) this.plotHeight = height;
+  });
+
+  disconnectedCallback() {
+    this.plotSize.detach();
+  }
 
   componentWillLoad() {
     // Listen for theme changes
     ChartThemeUtils.onThemeChange(() => {
       this.themeVersion++;
-    });
-  }
-
-  componentDidLoad() {
-    // Use requestAnimationFrame to ensure DOM is ready
-    requestAnimationFrame(() => {
-      this.updateContainerSize();
-      // Listen for resize events
-      if (typeof ResizeObserver !== 'undefined') {
-        const resizeObserver = new ResizeObserver(() => {
-          this.updateContainerSize();
-        });
-        const container = this.el.shadowRoot?.querySelector('.visualization-container');
-        if (container) {
-          resizeObserver.observe(container);
-        }
-      }
     });
   }
 
@@ -79,22 +72,6 @@ export class HeatmapVisualization {
   @Watch('data')
   onDataChange() {
     this.legendFontSize = 10;
-  }
-
-  private updateContainerSize() {
-    const container = this.el.shadowRoot?.querySelector('.visualization-container') as HTMLElement;
-    if (container) {
-      const rect = container.getBoundingClientRect();
-      const newSize = {
-        width: Math.max(rect.width || 800, 800),
-        height: Math.max(rect.height || 600, 600)
-      };
-      // Only update if size changed significantly to avoid unnecessary re-renders
-      if (Math.abs(newSize.width - this.containerSize.width) > 10 || 
-          Math.abs(newSize.height - this.containerSize.height) > 10) {
-        this.containerSize = newSize;
-      }
-    }
   }
 
   private processData(): HeatmapMatrix {
@@ -288,52 +265,34 @@ export class HeatmapVisualization {
       return <div class="empty-data">No data available for heatmap</div>;
     }
     
-    // Calculate dimensions based on number of rows and columns
     const rowCount = heatmapData.rowLabels.length;
     const colCount = heatmapData.colLabels.length;
-    
-    // Dynamic padding based on actual max label length
-    const maxRowLabelLen = Math.max(...heatmapData.rowLabels.map(l => l.length), 1);
-    const maxColLabelLen = Math.max(...heatmapData.colLabels.map(l => l.length), 1);
-    const rowLabelPadding = Math.max(80, Math.min(280, maxRowLabelLen * 9 + 20));
-    const colLabelPadding = Math.max(50, Math.min(180, maxColLabelLen * 6 + 20));
-    
-    // Calculate available space for the heatmap grid (excluding labels)
-    // Use most of the container space, leaving minimal padding
-    const availableWidth = this.containerSize.width - rowLabelPadding - 20; // 20 for minimal side padding
-    const availableHeight = this.containerSize.height - colLabelPadding - 20; // 20 for minimal top/bottom padding
-    
-    // Calculate optimal cell size to use available space more aggressively
-    const cellWidth = Math.max(50, Math.floor(availableWidth / colCount));
-    const cellHeight = Math.max(50, Math.floor(availableHeight / rowCount));
-    
-    // Use consistent cell size (square cells) - prefer larger size to fill space
-    const cellSize = Math.max(cellWidth, cellHeight);
-    
-    // Calculate heatmap grid dimensions
-    const heatmapWidth = cellSize * colCount;
-    const heatmapHeight = cellSize * rowCount;
-    
-    // Calculate total content dimensions (heatmap + labels)
-    const contentWidth = rowLabelPadding + heatmapWidth;
-    const contentHeight = colLabelPadding + heatmapHeight;
-    
-    // Add small equal padding on all sides to center the content in viewBox
-    const padding = 20;
-    const finalViewBoxWidth = contentWidth + (padding * 2);
-    const finalViewBoxHeight = contentHeight + (padding * 2);
-    
-    // Calculate offset to center the content in the viewBox
-    const contentOffsetX = padding;
-    const contentOffsetY = padding;
-    
-    // Calculate offset to position labels and heatmap (centered)
-    const heatmapOffsetX = contentOffsetX + rowLabelPadding;
-    const heatmapOffsetY = contentOffsetY + colLabelPadding;
-    
-    // We'll create a list of all cells for rendering
+
+    // Lay out in real pixels so text keeps a constant, readable size at any container size
+    const W = this.plotWidth;
+    const H = this.plotHeight;
+    const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
+    const charWidth = fontSize * 0.58;
+    const pad = 8;
+    const rowLabels = heatmapData.rowLabels.map(l => clipLabel(l, 24));
+    const colLabels = heatmapData.colLabels.map(l => clipLabel(l, 18));
+    const rowLabelWidth = Math.min(W * 0.35, Math.max(...rowLabels.map(l => l.length), 1) * charWidth + 12);
+    const heatmapOffsetX = pad + rowLabelWidth;
+    const heatmapWidth = Math.max(0, W - heatmapOffsetX - pad);
+    const cellWidth = heatmapWidth / Math.max(1, colCount);
+    const longestColPx = Math.max(...colLabels.map(l => l.length), 1) * charWidth;
+    // Rotate column labels only when they don't fit side by side
+    const rotateCols = cellWidth < longestColPx + 6;
+    const colLabelHeight = rotateCols
+      ? Math.min(longestColPx * Math.SQRT1_2 + fontSize + 8, H * 0.4)
+      : fontSize + 10;
+    const heatmapOffsetY = pad + colLabelHeight;
+    const heatmapHeight = Math.max(0, H - heatmapOffsetY - pad);
+    const cellHeight = heatmapHeight / Math.max(1, rowCount);
+    const rowStride = Math.max(1, Math.ceil((fontSize * 1.3) / Math.max(1, cellHeight)));
+    const colStride = Math.max(1, Math.ceil((rotateCols ? fontSize * 1.4 : longestColPx + 6) / Math.max(1, cellWidth)));
+
     const cells = [];
-    
     for (let rowIdx = 0; rowIdx < rowCount; rowIdx++) {
       for (let colIdx = 0; colIdx < colCount; colIdx++) {
         const value = heatmapData.data[rowIdx][colIdx];
@@ -345,12 +304,12 @@ export class HeatmapVisualization {
         });
       }
     }
-    
+
     // Legend buckets showing value ranges
     const legendSteps = 5;
     const legendBuckets: { start: number; end: number; color: string }[] = [];
     const valueRange = heatmapData.maxValue - heatmapData.minValue;
-    
+
     if (valueRange === 0) {
       legendBuckets.push({
         start: heatmapData.minValue,
@@ -369,20 +328,19 @@ export class HeatmapVisualization {
         });
       }
     }
-    
+
     return (
-      <div class="heatmap-container">
-        <div class="visualization-container" part="plot">
-          <svg 
-            width="100%" 
-            height="100%" 
-            viewBox={`0 0 ${finalViewBoxWidth} ${finalViewBoxHeight}`}
-            preserveAspectRatio="xMidYMid meet"
+      <div class="heatmap-container" part="chart">
+        <div class="visualization-container" part="plot" ref={this.plotSize.attach}>
+          {W > 0 && H > 0 && (
+          <svg
+            width={W}
+            height={H}
+            viewBox={`0 0 ${W} ${H}`}
+            style={{ position: 'absolute', inset: '0' }}
             {...ChartThemeUtils.getSVGAttributes()}
           >
-            {/* Define gradients and filters for modern styling */}
             <defs>
-              {/* Create gradient definitions for each color in the heatmap scale */}
               {Array.from({ length: 6 }, (_, i) => {
                 const color = this.getColorForValue(
                   heatmapData.minValue + (i / 5) * (heatmapData.maxValue - heatmapData.minValue),
@@ -400,48 +358,38 @@ export class HeatmapVisualization {
                 <feDropShadow dx={theme.shadow.dx} dy={theme.shadow.dy} stdDeviation={theme.shadow.blur} flood-opacity={theme.shadow.opacity}/>
               </filter>
             </defs>
-            {/* Row labels (y-axis) */}
-            {heatmapData.rowLabels.map((label, idx) => {
-              const truncatedLabel = label;
-              // Scale font size with cell size - base 14px, scale up with larger cells
-              const labelFontSize = Math.max(14, Math.min(18, cellSize * 0.28));
-              return (
-                <text
-                  key={`row-${idx}`}
-                  x={heatmapOffsetX - 10}
-                  y={heatmapOffsetY + (idx * cellSize) + (cellSize / 2)}
-                  font-size={labelFontSize}
-                  text-anchor="end"
-                  dominant-baseline="middle"
-                  fill={theme.labelColor}
-                  font-family={theme.fontFamily}
-                  font-weight="500"
-                  class="text-animated"
-                  style={{
-                    animationDelay: `${ChartAnimations.getStaggerDelay(idx)}ms`,
-                    animationFillMode: 'both'
-                  }}
-                >
-                  {truncatedLabel}
-                </text>
-              );
-            })}
-            
-            {/* Column labels (x-axis) - rotated for readability */}
-            {heatmapData.colLabels.map((label, idx) => {
-              const truncatedLabel = label;
-              const xPos = heatmapOffsetX + (idx * cellSize) + (cellSize / 2);
-              const yPos = heatmapOffsetY - 20;
-              // Scale font size with cell size - base 14px, scale up with larger cells
-              const labelFontSize = Math.max(14, Math.min(18, cellSize * 0.28));
-              return (
+            {rowLabels.map((label, idx) => idx % rowStride === 0 && (
+              <text
+                key={`row-${idx}`}
+                x={heatmapOffsetX - 6}
+                y={heatmapOffsetY + (idx * cellHeight) + (cellHeight / 2)}
+                font-size={fontSize}
+                text-anchor="end"
+                dominant-baseline="middle"
+                fill={theme.labelColor}
+                font-family={theme.fontFamily}
+                font-weight="500"
+                class="text-animated"
+                style={{
+                  animationDelay: `${ChartAnimations.getStaggerDelay(idx)}ms`,
+                  animationFillMode: 'both'
+                }}
+              >
+                {label}
+              </text>
+            ))}
+
+            {colLabels.map((label, idx) => {
+              if (idx % colStride !== 0) return null;
+              const xPos = heatmapOffsetX + (idx * cellWidth) + (cellWidth / 2);
+              const yPos = heatmapOffsetY - 6;
+              return rotateCols ? (
                 <text
                   key={`col-${idx}`}
                   x={xPos}
                   y={yPos}
-                  font-size={labelFontSize}
+                  font-size={fontSize}
                   text-anchor="start"
-                  dominant-baseline="middle"
                   transform={`rotate(-45, ${xPos}, ${yPos})`}
                   fill={theme.labelColor}
                   font-family={theme.fontFamily}
@@ -453,25 +401,43 @@ export class HeatmapVisualization {
                     transformOrigin: `${xPos}px ${yPos}px`
                   }}
                 >
-                  {truncatedLabel}
+                  {label}
+                </text>
+              ) : (
+                <text
+                  key={`col-${idx}`}
+                  x={xPos}
+                  y={yPos}
+                  font-size={fontSize}
+                  text-anchor="middle"
+                  fill={theme.labelColor}
+                  font-family={theme.fontFamily}
+                  font-weight="500"
+                  class="text-animated"
+                  style={{
+                    animationDelay: `${ChartAnimations.getStaggerDelay(idx)}ms`,
+                    animationFillMode: 'both'
+                  }}
+                >
+                  {label}
                 </text>
               );
             })}
-            
-            {/* Heatmap cells */}
+
             {cells.map((cell, idx) => {
-              // Calculate gradient index based on color intensity
               const normalizedValue = (cell.value - heatmapData.minValue) / (heatmapData.maxValue - heatmapData.minValue);
-              const gradientIndex = Math.min(5, Math.floor(normalizedValue * 5));
-              
+              const gradientIndex = Math.min(5, Math.max(0, Math.floor((normalizedValue || 0) * 5)));
+              const valueText = this.config.showValues ? this.formatValue(cell.value) : '';
+              const showValue = !!valueText && cellWidth >= valueText.length * charWidth + 4 && cellHeight >= fontSize + 2;
+
               return (
-                <g 
-                  key={`cell-${idx}`} 
+                <g
+                  key={`cell-${idx}`}
                   onMouseMove={(e) => this.handleMouseMove(
-                    e, 
-                    cell.rowIdx, 
-                    cell.colIdx, 
-                    cell.value, 
+                    e,
+                    cell.rowIdx,
+                    cell.colIdx,
+                    cell.value,
                     heatmapData
                   )}
                   onMouseLeave={() => {
@@ -480,15 +446,15 @@ export class HeatmapVisualization {
                   onClick={() => {}}
                 >
                   <rect
-                    x={heatmapOffsetX + (cell.colIdx * cellSize)}
-                    y={heatmapOffsetY + (cell.rowIdx * cellSize)}
-                    width={cellSize}
-                    height={cellSize}
+                    x={heatmapOffsetX + (cell.colIdx * cellWidth)}
+                    y={heatmapOffsetY + (cell.rowIdx * cellHeight)}
+                    width={cellWidth}
+                    height={cellHeight}
                     fill={`url(#heatmapGradient-${gradientIndex})`}
                     stroke={theme.border}
-                    stroke-width="0.5"
+                    stroke-width="1"
                     class="cell-animated cell-glow"
-                    style={{ 
+                    style={{
                       cursor: 'pointer',
                       transition: ChartAnimations.getHoverTransition(),
                       animationDelay: `${ChartAnimations.getStaggerDelay(idx)}ms`,
@@ -496,13 +462,12 @@ export class HeatmapVisualization {
                     }}
                     filter="url(#softShadow)"
                   />
-                
-                  {/* Show values in cells if needed and if there's enough space */}
-                  {this.config.showValues && (
+
+                  {showValue && (
                     <text
-                      x={heatmapOffsetX + (cell.colIdx * cellSize) + (cellSize / 2)}
-                      y={heatmapOffsetY + (cell.rowIdx * cellSize) + (cellSize / 2)}
-                      font-size={Math.max(13, Math.min(16, cellSize * 0.26))}
+                      x={heatmapOffsetX + (cell.colIdx * cellWidth) + (cellWidth / 2)}
+                      y={heatmapOffsetY + (cell.rowIdx * cellHeight) + (cellHeight / 2)}
+                      font-size={fontSize}
                       text-anchor="middle"
                       dominant-baseline="middle"
                       fill={this.getTextColor(cell.value, heatmapData.minValue, heatmapData.maxValue)}
@@ -514,14 +479,15 @@ export class HeatmapVisualization {
                         animationFillMode: 'both'
                       }}
                     >
-                      {this.formatValue(cell.value)}
+                      {valueText}
                     </text>
                   )}
                 </g>
               );
             })}
           </svg>
-          
+          )}
+
           {/* Tooltip with modern styling */}
           {this.tooltip.visible && (
             <div 
