@@ -2,7 +2,7 @@ import { Component, Prop, h, State, Event, EventEmitter, Element, Watch } from '
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { HeatmapConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme, interpolateColor } from '../../../utils/chart-theme';
-import { PlotSizeTracker, clipLabel, fitRotatedLabels } from '../../../utils/bar-layout';
+import { PlotSizeTracker, clipLabel, fitRotatedLabels, fitCellFontSize } from '../../../utils/bar-layout';
 import { placeTooltip } from '../../../utils/tooltip';
 
 interface HeatmapMatrix {
@@ -310,6 +310,11 @@ export class HeatmapVisualization {
       }
     }
 
+    // One font size for every value: shrink to fit the widest number (down to a readable minimum), or
+    // show none, so values never appear in some cells and not in others
+    const widestValue = this.config.showValues ? Math.max(1, ...cells.map(c => this.formatValue(c.value).length)) : 0;
+    const valueFont = widestValue ? fitCellFontSize(cellWidth, cellHeight, widestValue, fontSize) : 0;
+
     // Legend buckets showing value ranges
     const legendSteps = 5;
     const legendBuckets: { start: number; end: number; color: string }[] = [];
@@ -434,7 +439,7 @@ export class HeatmapVisualization {
               const normalizedValue = (cell.value - heatmapData.minValue) / (heatmapData.maxValue - heatmapData.minValue);
               const gradientIndex = Math.min(5, Math.max(0, Math.floor((normalizedValue || 0) * 5)));
               const valueText = this.config.showValues ? this.formatValue(cell.value) : '';
-              const showValue = !!valueText && cellWidth >= valueText.length * charWidth + 4 && cellHeight >= fontSize + 2;
+              const showValue = valueFont > 0;
 
               return (
                 <g
@@ -473,7 +478,7 @@ export class HeatmapVisualization {
                     <text
                       x={heatmapOffsetX + (cell.colIdx * cellWidth) + (cellWidth / 2)}
                       y={heatmapOffsetY + (cell.rowIdx * cellHeight) + (cellHeight / 2)}
-                      font-size={fontSize}
+                      font-size={valueFont}
                       text-anchor="middle"
                       dominant-baseline="middle"
                       fill={this.getTextColor(cell.value, heatmapData.minValue, heatmapData.maxValue)}

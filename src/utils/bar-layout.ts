@@ -144,3 +144,14 @@ export function fitRotatedLabels(labels: string[], chartHeight: number, fontSize
   const longest = Math.max(0, ...fitted.map(l => l.length)) * charWidth;
   return { labels: fitted, height: Math.min(longest * Math.SQRT1_2 + fontSize + 8, Math.max(cap, fontSize + 12)) };
 }
+
+/**
+ * Font size for a value drawn inside a cell: the normal size when it fits, shrunk (down to `minSize`)
+ * when the cell is a bit small, or 0 when even the minimum doesn't fit and the value should be left out.
+ */
+export function fitCellFontSize(cellWidth: number, cellHeight: number, textLength: number, fontSize: number, minSize = 9): number {
+  const byWidth = (cellWidth - 4) / (Math.max(1, textLength) * 0.58);
+  const byHeight = cellHeight - 2;
+  const size = Math.min(fontSize, byWidth, byHeight);
+  return size >= minSize ? Math.floor(size * 10) / 10 : 0;
+}

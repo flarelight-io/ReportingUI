@@ -1,7 +1,7 @@
 import { Component, Prop, h, Host, State, Watch, Element, Event, EventEmitter } from '@stencil/core';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../utils/chart-theme';
 import { placeTooltip } from '../../utils/tooltip';
-import { PlotSizeTracker, clipLabel, fitRotatedLabels } from '../../utils/bar-layout';
+import { PlotSizeTracker, clipLabel, fitRotatedLabels, fitCellFontSize } from '../../utils/bar-layout';
 import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
 
 export interface CorrelationAnalysisWidgetConfig {
@@ -378,6 +378,10 @@ export class CorrelationAnalysisWidget {
     const rowStride = Math.max(1, Math.ceil((fontSize * 1.3) / Math.max(1, cellHeight)));
     const colStride = Math.max(1, Math.ceil((rotateCols ? fontSize * 1.4 : longestColPx + 6) / Math.max(1, cellWidth)));
 
+    // One font size for every value (fit to the widest number, or none), so values are never in some cells only
+    const widestValue = this.config.showLabels ? Math.max(1, ...matrix.map(r => Math.max(0, ...r.map(v => this.formatCorrelationValue(v).length)))) : 0;
+    const valueFont = widestValue ? fitCellFontSize(cellWidth, cellHeight, widestValue, fontSize) : 0;
+
     return (
       <div class="heatmap-container" part="chart">
         <div class="visualization-container" part="plot" ref={this.plotSize.attach}>
@@ -447,7 +451,7 @@ export class CorrelationAnalysisWidget {
                 const tooltipText = `${rowFields[i]} & ${this.fields[j]}: ${this.formatCorrelationValue(value)}`;
                 const cellIndex = i * row.length + j;
                 const valueText = this.config.showLabels ? this.formatCorrelationValue(value) : '';
-                const showValue = !!valueText && cellWidth >= valueText.length * charWidth + 4 && cellHeight >= fontSize + 2;
+                const showValue = !!valueText && valueFont > 0;
 
                 return (
                   <g
@@ -483,7 +487,7 @@ export class CorrelationAnalysisWidget {
                         y={paddingTop + i * cellHeight + cellHeight / 2}
                         text-anchor="middle"
                         dominant-baseline="middle"
-                        font-size={fontSize}
+                        font-size={valueFont}
                         font-family={theme.fontFamily}
                         font-weight="bold"
                         fill={this.getTextColor(value)}
