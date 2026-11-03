@@ -12,7 +12,7 @@ import { ColorTheme } from "./utils/chart-theme";
 import { BoxWhiskerNormalityPlotWidgetConfig } from "./components/widgets/box-whisker-normality-plot-widget";
 import { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlation-analysis-widget";
 import { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data-widget";
-import { Filter } from "./api/types/common";
+import { DataSource, Filter } from "./api/types/common";
 import { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
 import { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/independent-two-sample-hypothesis-test-widget";
 import { KolmogorovSmirnovNormalityTestWidgetConfig } from "./components/widgets/kolmogorov-smirnov-normality-test-widget";
@@ -35,7 +35,7 @@ export { ColorTheme } from "./utils/chart-theme";
 export { BoxWhiskerNormalityPlotWidgetConfig } from "./components/widgets/box-whisker-normality-plot-widget";
 export { CorrelationAnalysisWidgetConfig } from "./components/widgets/correlation-analysis-widget";
 export { DataWidgetConfig as DataWidgetConfig1 } from "./components/widgets/data-widget";
-export { Filter } from "./api/types/common";
+export { DataSource, Filter } from "./api/types/common";
 export { DescriptiveAnalysisWidgetConfig } from "./components/widgets/descriptive-analysis-widget";
 export { IndependentTwoSampleHypothesisTestWidgetConfig } from "./components/widgets/independent-two-sample-hypothesis-test-widget";
 export { KolmogorovSmirnovNormalityTestWidgetConfig } from "./components/widgets/kolmogorov-smirnov-normality-test-widget";
@@ -586,6 +586,10 @@ export namespace Components {
           * Removes all filters (same managed/unmanaged rules as `setFilters`).
          */
         "clearFilters": () => Promise<void>;
+        /**
+          * Number of grid columns (default 12). `x` and `w` of widgets are counted in these columns; widgets wider than the grid are clamped. Also available as `columns` in the report configuration; the property wins.
+         */
+        "columns"?: number;
         "configuration": any;
         /**
           * Filters to start with in unmanaged mode. Read once on load; ignored when `activeFilters` is provided.
@@ -629,6 +633,10 @@ export namespace Components {
           * @default true
          */
         "showPlaceholder": boolean;
+        /**
+          * Data sources for the report. Takes precedence over `configuration.sources`, so apps can supply sources (and their fields) at render time instead of embedding them in the saved report.
+         */
+        "sources"?: DataSource[];
         /**
           * Light or dark appearance for this report. `auto` (default) follows the page: a `data-theme` attribute or `dark`/`light` class on <html>, otherwise the system preference. `light`/`dark` forces it for this viewer only, so apps can drive it from their own toggle.
           * @default 'auto'
@@ -1853,6 +1861,10 @@ declare namespace LocalJSX {
           * Filters applied to the report. Providing this property (even `[]`) makes the filters **managed**: the viewer never changes them itself. When the user clicks a chart element it emits `filtersChange` with the proposed list, and the app decides by setting this property again. Leave it undefined for **unmanaged** use, where the viewer keeps the filters itself (and still emits `filtersChange` so the app can observe them).
          */
         "activeFilters"?: Filter[];
+        /**
+          * Number of grid columns (default 12). `x` and `w` of widgets are counted in these columns; widgets wider than the grid are clamped. Also available as `columns` in the report configuration; the property wins.
+         */
+        "columns"?: number;
         "configuration"?: any;
         /**
           * Filters to start with in unmanaged mode. Read once on load; ignored when `activeFilters` is provided.
@@ -1892,6 +1904,10 @@ declare namespace LocalJSX {
           * @default true
          */
         "showPlaceholder"?: boolean;
+        /**
+          * Data sources for the report. Takes precedence over `configuration.sources`, so apps can supply sources (and their fields) at render time instead of embedding them in the saved report.
+         */
+        "sources"?: DataSource[];
         /**
           * Light or dark appearance for this report. `auto` (default) follows the page: a `data-theme` attribute or `dark`/`light` class on <html>, otherwise the system preference. `light`/`dark` forces it for this viewer only, so apps can drive it from their own toggle.
           * @default 'auto'

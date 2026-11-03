@@ -40,6 +40,16 @@ export class ReportViewer {
    */
   @Prop() gap?: number;
   /**
+   * Number of grid columns (default 12). `x` and `w` of widgets are counted in these columns; widgets wider than
+   * the grid are clamped. Also available as `columns` in the report configuration; the property wins.
+   */
+  @Prop() columns?: number;
+  /**
+   * Data sources for the report. Takes precedence over `configuration.sources`, so apps can supply sources
+   * (and their fields) at render time instead of embedding them in the saved report.
+   */
+  @Prop() sources?: DataSource[];
+  /**
    * Light or dark appearance for this report. `auto` (default) follows the page: a `data-theme` attribute or
    * `dark`/`light` class on <html>, otherwise the system preference. `light`/`dark` forces it for this viewer
    * only, so apps can drive it from their own toggle.
@@ -69,6 +79,8 @@ export class ReportViewer {
   @State() configRowHeight?: number;
   @State() configRowAspectRatio?: number;
   @State() configGap?: number;
+  @State() configColumns?: number;
+  private configSources: DataSource[] = [];
   
   private gridContainer?: HTMLElement;
   private dataFetchPromises: { [widgetId: string]: Promise<any> } = {};
@@ -246,6 +258,39 @@ export class ReportViewer {
     ChartThemeUtils.refreshTheme();
   }
 
+  @Watch('columns')
+  onColumnsChange() {
+    if (!this.isMounted || !this.gridContainer) return;
+    this.setEqualGridDimensions();
+    // Widget positions are clamped to the number of columns, so place them again
+    this.renderWidgets();
+  }
+
+  @Watch('sources')
+  onSourcesChange() {
+    this.applySources();
+    if (!this.isMounted) return;
+    // Source lookups decide what is fetched, so refresh the data and re-render
+    this.widgetData = {};
+    this.dataFetchPromises = {};
+    this.prefetchAndRender();
+  }
+
+  /** The sources in effect: the `sources` property when provided, otherwise the ones from the configuration. */
+  private applySources() {
+    this.dataSources = Array.isArray(this.sources) ? this.sources : this.configSources;
+  }
+
+  /** Number of grid columns in effect: property, then configuration, then 12. */
+  private get effectiveColumns(): number {
+    return this.positiveInteger(this.columns) ?? this.configColumns ?? 12;
+  }
+
+  private positiveInteger(value: unknown): number | undefined {
+    const n = typeof value === 'string' ? parseFloat(value) : value;
+    return typeof n === 'number' && isFinite(n) && n >= 1 ? Math.floor(n) : undefined;
+  }
+
   @Watch('rowHeight')
   @Watch('rowAspectRatio')
   @Watch('gap')
@@ -391,6 +436,7 @@ export class ReportViewer {
     this.configRowHeight = this.positiveNumber(config.rowHeight);
     this.configRowAspectRatio = this.positiveNumber(config.rowAspectRatio);
     this.configGap = this.nonNegativeNumber(config.gap);
+    this.configColumns = this.positiveInteger(config.columns);
 
     if (config.colorTheme && typeof config.colorTheme === 'string') {
       this.colorTheme = config.colorTheme as ColorTheme;
@@ -401,11 +447,12 @@ export class ReportViewer {
     
     // Parse data sources
     if (config.sources && Array.isArray(config.sources)) {
-      this.dataSources = config.sources;
+      this.configSources = config.sources;
     } else {
-      console.warn('No data sources found in configuration');
-      this.dataSources = [];
+      if (!Array.isArray(this.sources)) console.warn('No data sources found in configuration');
+      this.configSources = [];
     }
+    this.applySources();
 
     // Handle both legacy format (direct widgets) and new format (layouts + widgets)
     let widgets: WidgetData[] = [];
@@ -669,9 +716,10 @@ export class ReportViewer {
       // Position the widget using grid properties
       // Set both size (span) and position (start)
       // Using zero-based coordinates (add 1 when applying to grid since CSS grid is 1-based)
-      const x = (widget.x !== undefined) ? widget.x : 0; // Default to first column (0) if not specified
+      const columns = this.effectiveColumns;
+      const w = Math.max(1, Math.min(columns, widget.w || Math.max(1, Math.round(columns / 2)))); // Default: half the grid, clamped to it
+      const x = Math.max(0, Math.min(columns - w, (widget.x !== undefined) ? widget.x : 0)); // Default to first column (0)
       const y = (widget.y !== undefined) ? widget.y : 0; // Default to first row (0) if not specified
-      const w = widget.w || 6; // Default width of 6 grid units
       const h = widget.h || 4; // Default height of 4 grid units
       
       // Set both size (span) and position (start)
@@ -1759,6 +1807,9 @@ export class ReportViewer {
   private setEqualGridDimensions() {
     if (!this.gridContainer) return;
     
+    // Column count (default 12); an inline template overrides the stylesheet's default
+    this.gridContainer.style.gridTemplateColumns = `repeat(${this.effectiveColumns}, 1fr)`;
+
     // Get the width of the grid
     const gridWidth = this.gridContainer.offsetWidth;
     
@@ -1771,7 +1822,7 @@ export class ReportViewer {
     }
     
     // Calculate column width (account for gap)
-    const numColumns = 12;
+    const numColumns = this.effectiveColumns;
     // An explicit gap (prop or configuration) wins; otherwise the CSS (--fl-grid-gap, default 15px) applies.
     // The row-height math below reads the effective gap back from the computed style so both stay in sync.
     const explicitGap = this.nonNegativeNumber(this.gap) ?? this.configGap;

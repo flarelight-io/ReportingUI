@@ -51,6 +51,7 @@ the configuration.
 
 | Property | Config key | Meaning |
 | -------- | ---------- | ------- |
+| `columns` | `columns` | Number of grid columns (default `12`). Widget `x` and `w` are counted in these columns and widgets wider than the grid are clamped. |
 | `rowHeight` / `row-height` | `rowHeight` | Row height in pixels. Overrides `rowAspectRatio`. |
 | `rowAspectRatio` / `row-aspect-ratio` | `rowAspectRatio` | Column width divided by row height. `1` = square (default), `2` = rows half as tall as a column is wide. |
 | `gap` | `gap` | Gap between widgets in pixels, `0` or more. Default `15`. |

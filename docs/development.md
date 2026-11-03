@@ -103,6 +103,16 @@ works when the backend returns a different casing in the rows.
 ```
 
 A table column's explicit `header` in the widget configuration still wins over the display name.
+
+### Supplying sources at render time
+
+Sources don't have to be embedded in the saved report. `<report-viewer>` takes a `sources` property that overrides
+`configuration.sources`; a widget only stores its `sourceId`. Changing the property refetches and re-renders, and
+clearing it falls back to the sources in the configuration.
+
+```js
+viewer.sources = await loadSourcesFromBackend();
+```
 `data-widget` builds the lookup (`VisualizationData.fieldLabels`) and visualizations use `fieldLabel(data, name)`
 from `base-visualization.ts`; use the same helper in new visualizations.
 
