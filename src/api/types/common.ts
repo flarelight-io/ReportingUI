@@ -13,9 +13,22 @@ export interface ChartDataRequest {
   widgetId?: string; // Optional, matches backend
 }
 
+/** Aggregations the library names. Any other string is allowed and sent to the backend as-is. */
+export type KnownAggregation = "sum" | "avg" | "min" | "max" | "count" | "countDistinct" | "stdDev" | "stdDevPop";
+
+/**
+ * How a value field is aggregated: a name your backend supports (`'sum'`, `'median'`, `'p95'`, ...), or
+ * `{ type, ...options }` for parameterized ones (`{ type: 'percentile', p: 0.95 }`). `'none'` means no aggregation.
+ */
+export type AggregationSpec = KnownAggregation | 'none' | (string & {}) | { type: string; [option: string]: any };
+
 export interface ChartField {
   fieldName: string;
-  aggregation?: "sum" | "avg" | "min" | "max" | "count" | "countDistinct" | "stdDev" | "stdDevPop";
+  /** Free-form: the known aggregations autocomplete, but any string your backend understands is accepted. */
+  aggregation?: KnownAggregation | (string & {});
+  /** Options from a `{ type, ...options }` aggregation are forwarded as extra properties. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [option: string]: any;
 }
 
 export interface ChartSort {

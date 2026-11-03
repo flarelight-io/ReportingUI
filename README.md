@@ -187,6 +187,7 @@ const configuration = {
 - [Theming and styling](docs/theming.md) — CSS variables, shadow parts, custom color themes
 - [Bundlers (Vite, webpack, Next.js)](docs/bundlers.md) — static ESM entry, lazy loader, styles
 - [Filters](docs/filters.md) — open filter model, managed vs unmanaged, custom operations
+- [Aggregations](docs/aggregations.md) — any aggregation your backend supports, parameters, per-field overrides
 - [React Integration](docs/react-integration.md) — detailed React setup and examples
 - [JavaScript Integration](docs/javascript-integration.md) — vanilla JS / CDN usage
 - [.NET Integration](docs/dotnet-integration.md) — PuppeteerSharp PDF generation

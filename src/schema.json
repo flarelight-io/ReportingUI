@@ -1713,10 +1713,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "kpiFormatType": {
           "type": "string",
@@ -2390,10 +2402,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
@@ -2455,10 +2479,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
@@ -2520,10 +2556,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
@@ -2585,10 +2633,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
@@ -2774,10 +2834,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
@@ -2839,10 +2911,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
@@ -2904,10 +2988,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
@@ -2969,10 +3065,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
@@ -3034,10 +3142,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",
@@ -3099,10 +3219,22 @@
           "description": "Field to use for labels"
         },
         "aggregation": {
-          "type": "string",
-          "description": "Aggregation method",
-          "enum": ["none", "sum", "avg", "count", "min", "max"],
-          "default": "none"
+          "description": "How value fields are aggregated. Any name your backend supports (for example sum, avg, min, max, count, countDistinct, stdDev, stdDevPop, median), or an object { type, ...options } for parameterized aggregations such as { type: 'percentile', p: 0.95 }. 'none' means no aggregation.",
+          "default": "none",
+          "anyOf": [
+            { "type": "string", "examples": ["none", "sum", "avg", "count", "min", "max", "countDistinct", "stdDev", "stdDevPop"] },
+            { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+          ]
+        },
+        "aggregations": {
+          "type": "object",
+          "description": "Per-field overrides of aggregation, keyed by field name. Each value is an aggregation name or { type, ...options }.",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string" } }, "additionalProperties": true }
+            ]
+          }
         },
         "fields": {
           "type": "array",

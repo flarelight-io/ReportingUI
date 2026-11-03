@@ -1,6 +1,6 @@
 import { Component, Prop, h, Host, State, Watch, Element, Listen } from '@stencil/core';
 import { FilterChangeEventDetail, VisualizationData, buildFieldLabels } from './visualizations/base-visualization';
-import { Filter } from '../../api/types/common';
+import { AggregationSpec, Filter } from '../../api/types/common';
 import { filtersCacheKey } from '../../utils/filters';
 import { ColorTheme } from '../../utils/chart-theme';
 import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
@@ -21,6 +21,10 @@ interface BaseDataWidgetConfig {
   colorTheme?: ColorTheme; // Widget-level color theme override
   sortField?: string;
   sortDirection?: 'Ascending' | 'Descending';
+  /** Aggregates every value field with this: any name your backend supports, or { type, ...options }. 'none' = raw rows. */
+  aggregation?: AggregationSpec;
+  /** Per-field overrides of `aggregation`, by field name. */
+  aggregations?: Record<string, AggregationSpec>;
 }
 
 // Box-whisker chart specific configuration
@@ -92,7 +96,7 @@ export interface BarChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
 }
 
@@ -102,7 +106,7 @@ export interface LineChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
 }
 
@@ -112,7 +116,7 @@ export interface PieChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
 }
 
@@ -122,7 +126,7 @@ export interface DonutChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
   showTotal?: boolean;
 }
@@ -133,7 +137,7 @@ export interface HBarChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
 }
 
@@ -162,7 +166,7 @@ export interface StackedBarChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
 }
 
@@ -172,7 +176,7 @@ export interface StackedHBarChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
 }
 
@@ -182,7 +186,7 @@ export interface ClusteredBarChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
 }
 
@@ -192,7 +196,7 @@ export interface ClusteredHBarChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
 }
 
@@ -202,7 +206,7 @@ export interface LollipopChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
 }
 
@@ -212,7 +216,7 @@ export interface LollipopHChartConfig extends BaseDataWidgetConfig {
   groupByField?: string;
   valueField?: string;
   labelField?: string;
-  aggregation?: 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max';
+  aggregation?: AggregationSpec;
   fields?: string[];
 }
 
@@ -425,6 +429,7 @@ export class DataWidget {
     const groupByField = 'groupByField' in this.config ? this.config.groupByField : undefined;
     const labelField = 'labelField' in this.config ? this.config.labelField : undefined;
     const aggregation = 'aggregation' in this.config ? this.config.aggregation : undefined;
+    const aggregations = this.config.aggregations;
     const fields = 'fields' in this.config ? this.config.fields : undefined;
     const columns = 'columns' in this.config ? this.config.columns : undefined;
     const sortField = this.config.sortField;
@@ -471,6 +476,7 @@ export class DataWidget {
         groupByField,
         labelField,
         aggregation,
+        aggregations,
         columns,
         previousValueField: 'previousValueField' in this.config ? (this.config as any).previousValueField : undefined,
         sortField,
