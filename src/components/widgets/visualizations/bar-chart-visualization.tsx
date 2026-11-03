@@ -2,7 +2,7 @@ import { Component, Prop, h, Event, EventEmitter, State, Watch, Element } from '
 import { FilterChangeEventDetail, VisualizationData } from './base-visualization';
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
-import { observeSize } from '../../../utils/observe-size';
+import { PlotSizeTracker, computeBarFrame, clipLabel } from '../../../utils/bar-layout';
 
 interface ChartDataItem {
   category: string;
@@ -37,25 +37,13 @@ export class BarChartVisualization {
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
   private adjustingFont: boolean = false;
-  private plotEl?: HTMLElement;
-  private disconnectSize?: () => void;
-
-  private attachPlot = (el?: HTMLElement) => {
-    if (el === this.plotEl) return;
-    this.disconnectSize?.();
-    this.plotEl = el;
-    this.disconnectSize = el
-      ? observeSize(el, ({ width, height }) => {
-          if (width !== this.plotWidth) this.plotWidth = width;
-          if (height !== this.plotHeight) this.plotHeight = height;
-        })
-      : undefined;
-  };
+  private plotSize = new PlotSizeTracker(({ width, height }) => {
+    if (width !== this.plotWidth) this.plotWidth = width;
+    if (height !== this.plotHeight) this.plotHeight = height;
+  });
 
   disconnectedCallback() {
-    this.disconnectSize?.();
-    this.disconnectSize = undefined;
-    this.plotEl = undefined;
+    this.plotSize.detach();
   }
 
   componentWillLoad() {
@@ -189,39 +177,14 @@ export class BarChartVisualization {
     const W = this.plotWidth;
     const H = this.plotHeight;
     const fontSize = Math.max(10, (theme.fontSize || 12) - 1);
-    const charWidth = fontSize * 0.58;
-    const maxChars = 18;
-    const clip = (text: string) => (text.length > maxChars ? `${text.substring(0, maxChars - 1)}…` : text);
-    const labels = chartData.map(item => clip(item.category));
-    const longestPx = Math.max(...labels.map(l => l.length)) * charWidth;
-
-    const pad = 8;
-    const topPad = this.config.showLabels ? fontSize + 8 : 8;
+    const labels = chartData.map(item => clipLabel(item.category));
     // In a small cell the legend already names every category, so skip axis labels rather than cram them
     const showCategories = !(this.config.showLegend !== false && H < 140);
-    let left = pad;
-    let bottom = pad + 4;
-    let rotate = false;
-    if (!showCategories) {
-      // plot uses the full area
-    } else if (isHorizontal) {
-      left = Math.min(longestPx + pad * 2, W * 0.4);
-    } else {
-      const slot = (W - pad * 2) / chartData.length;
-      rotate = slot < longestPx + 6;
-      bottom = rotate
-        ? Math.min(longestPx * Math.SQRT1_2 + fontSize + 8, H * 0.45)
-        : fontSize + 14;
-    }
-    const plotX = left;
-    const plotY = topPad;
-    const plotW = Math.max(0, W - left - pad - (isHorizontal && this.config.showLabels ? 40 : 0));
-    const plotH = Math.max(0, H - topPad - bottom);
-    const slotSize = (isHorizontal ? plotH : plotW) / chartData.length;
-    // Show every Nth label when slots are too tight for the text height / width
-    const labelStride = isHorizontal || rotate
-      ? Math.max(1, Math.ceil((fontSize * 1.3) / slotSize))
-      : 1;
+    const frame = computeBarFrame({
+      width: W, height: H, horizontal: isHorizontal, labels, fontSize,
+      valueLabels: !!this.config.showLabels, showCategories
+    });
+    const { plotX, plotY, plotW, plotH, rotate, slot: slotSize, labelStride, charWidth } = frame;
     const valueStride = isHorizontal
       ? Math.max(1, Math.ceil((fontSize * 1.3) / slotSize))
       : Math.max(1, Math.ceil((charWidth * 4) / slotSize));
@@ -241,7 +204,7 @@ export class BarChartVisualization {
 
     return (
       <div class="bar-chart-container" part="chart">
-        <div class="visualization-container" part="plot" ref={this.attachPlot}>
+        <div class="visualization-container" part="plot" ref={this.plotSize.attach}>
           {W > 0 && H > 0 && (
           <svg
             width={W}
