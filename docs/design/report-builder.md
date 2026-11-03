@@ -378,25 +378,26 @@ every signature); it could be passed to widgets in place if that ever matters.
 
 ### Phase 1: editable canvas (done)
 
- is implemented (, user docs in ): controlled
- / , an overlay with selection frames and eight resize handles over the unmodified
-viewer, move and resize through  /  with a live preview configuration that is committed on
-release, Delete, Escape (cancel / clear selection) and Shift/Ctrl-click multi-select,  /  /
- /  methods, ,  for sizes and defaults, , and the interaction preview ( hides the body of the widget being dragged via ).
+`<report-builder>` is implemented (`src/components/report-builder/`, user docs in `docs/report-builder.md`): controlled
+`configuration` / `configurationChange`, an overlay with selection frames and eight resize handles over the unmodified
+viewer, move and resize through `moveItem` / `setItemRect` with a live preview configuration that is committed on
+release, Delete, Escape (cancel / clear selection) and Shift/Ctrl-click multi-select, `addWidget` / `removeWidgets` /
+`updateWidget` / `select` methods, `widgetSelect`, `widgetCatalog` for sizes and defaults, `readOnly`, `compact`
+and the interaction preview (`outline` hides the body of the widget being dragged via `--fl-widget-body-display`).
 
 Verified in the browser on the 50-widget demo with synthetic pointer events: frames coincide with the rendered widgets,
-move (0 to 6 columns) and southeast resize commit one  each and push neighbours down, Escape
-cancels without an event, Delete and  update the configuration, and the body is hidden only while
+move (0 to 6 columns) and southeast resize commit one `configurationChange` each and push neighbours down, Escape
+cancels without an event, Delete and `addWidget` update the configuration, and the body is hidden only while
 interacting. 108 unit tests pass.
 
-Lessons: the viewer owns each cell's inline style, so the outline flag is a  attribute plus a
+Lessons: the viewer owns each cell's inline style, so the outline flag is a `data-interacting` attribute plus a
 stylesheet rule, not an inline variable; the viewer builds its grid after the builder renders, so the builder observes
 its own root to measure once the grid exists.
 
 Not done in Phase 1: puppeteer e2e tests (the repo has none yet), touch-specific tuning, keyboard moves, a visible
-placeholder for the drop target,  formats other than the first breakpoint (only verified in unit tests).
+placeholder for the drop target, the `layouts` format in the browser (only covered by unit tests).
 
 ### Phase 2 (next)
 
-Configuration hook:  /  so apps open their own UI when a widget is added or edited,
-and  to apply the result (the method already exists).
+Configuration hook: `configureWidget` / `widgetAction` so apps open their own UI when a widget is added or edited,
+and `updateWidget` to apply the result (the method already exists).
