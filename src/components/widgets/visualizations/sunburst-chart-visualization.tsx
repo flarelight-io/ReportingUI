@@ -3,6 +3,7 @@ import { FilterChangeEventDetail, VisualizationData } from './base-visualization
 import { DataWidgetConfig } from '../data-widget';
 import { ChartThemeUtils, ChartAnimations, ColorTheme } from '../../../utils/chart-theme';
 import { placeTooltip } from '../../../utils/tooltip';
+import { PlotSizeTracker } from '../../../utils/bar-layout';
 
 interface SunburstNode {
   id: string | number;
@@ -50,12 +51,22 @@ export class SunburstChartVisualization {
   @State() tooltip: TooltipState = { visible: false, text: '', x: 0, y: 0 };
   @State() themeVersion: number = 0; // Force re-render when theme changes
   @State() legendFontSize: number = 10;
+  @State() plotWidth: number = 0;
+  @State() plotHeight: number = 0;
 
   @Element() el: HTMLElement;
 
   @Event() filterChange: EventEmitter<FilterChangeEventDetail>;
 
   private adjustingFont: boolean = false;
+  private plotSize = new PlotSizeTracker(({ width, height }) => {
+    if (width !== this.plotWidth) this.plotWidth = width;
+    if (height !== this.plotHeight) this.plotHeight = height;
+  });
+
+  disconnectedCallback() {
+    this.plotSize.detach();
+  }
 
   componentDidRender() {
     if (this.adjustingFont) return;
@@ -439,6 +450,10 @@ export class SunburstChartVisualization {
     const viewBoxSize = 100;
     const centerX = viewBoxSize / 2;
     const centerY = viewBoxSize / 2;
+    // The drawing is a 100-unit square scaled to fit the cell; size text in px so it stays readable
+    const pxScale = Math.max(1, Math.min(this.plotWidth, this.plotHeight)) / viewBoxSize;
+    const labelFontPx = Math.max(10, (theme.fontSize || 12) - 1);
+    const labelFontUnits = labelFontPx / pxScale;
     
     const arcPaths = nodes.map((node, index) => {
       // Calculate the path for the arc
@@ -456,13 +471,14 @@ export class SunburstChartVisualization {
       const labelRadius = node.innerRadius + (node.outerRadius - node.innerRadius) / 2;
       const labelPos = this.polarToCartesian(centerX, centerY, labelRadius, labelAngle);
       
-      const showLabel = 
-        this.config.showLabels && 
-        (node.endAngle - node.startAngle) > 15 && // Only show if segment is large enough
-        (node.outerRadius - node.innerRadius) > 5; // Only show if segment is thick enough
-      
       // Use label field if available, fall back to name
-      const displayText = node.label || node.name;
+      const displayText = String(node.label || node.name);
+      // Fit the label to the arc: it needs enough thickness and arc length (in px) for a few characters
+      const thicknessPx = (node.outerRadius - node.innerRadius) * pxScale;
+      const arcLengthPx = labelRadius * ((node.endAngle - node.startAngle) * Math.PI / 180) * pxScale;
+      const fitChars = Math.floor(arcLengthPx / (labelFontPx * 0.58));
+      const showLabel = !!this.config.showLabels && thicknessPx >= labelFontPx + 4 && fitChars >= 3;
+      const clippedText = displayText.length > fitChars ? `${displayText.substring(0, Math.max(1, fitChars - 1))}…` : displayText;
       const tooltipContent = `${displayText}: ${ChartThemeUtils.formatNumber(node.value)}`;
       
       return (
@@ -493,19 +509,19 @@ export class SunburstChartVisualization {
               dominant-baseline="middle"
               class="segment-label text-animated"
               style={{
-                fontSize: `${Math.min(3, Math.max(1, (node.outerRadius - node.innerRadius) / 8))}px`,
+                fontSize: `${labelFontUnits}px`,
                 fill: theme.labelColor,
                 fontFamily: theme.fontFamily,
                 fontWeight: '500',
                 pointerEvents: 'none',
                 paintOrder: 'stroke fill',
                 stroke: 'rgba(0,0,0,0.1)',
-                strokeWidth: '0.5',
+                strokeWidth: `${1 / pxScale}`,
                 animationDelay: `${ChartAnimations.getStaggerDelay(index) + 100}ms`,
                 animationFillMode: 'both'
               }}
             >
-              {displayText.toString().substring(0, 6)}{displayText.toString().length > 6 ? '...' : ''}
+              {clippedText}
             </text>
           )}
         </g>
@@ -549,7 +565,7 @@ export class SunburstChartVisualization {
     
     return (
       <div class="sunburst-chart-container" part="chart">
-        <div class="chart-area">
+        <div class="chart-area" ref={this.plotSize.attach}>
           <svg 
             viewBox="0 0 100 100" 
             preserveAspectRatio="xMidYMid meet"
