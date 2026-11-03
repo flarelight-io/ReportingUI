@@ -36,15 +36,18 @@ Example configuration:
 
 ## Properties
 
-| Property          | Attribute          | Description | Type                | Default     |
-| ----------------- | ------------------ | ----------- | ------------------- | ----------- |
-| `configuration`   | `configuration`    |             | `any`               | `undefined` |
-| `fetchChartData`  | --                 |             | `Function`          | `undefined` |
-| `heightMode`      | `height-mode`      |             | `"auto" \| "fixed"` | `'auto'`    |
-| `isFullscreen`    | `is-fullscreen`    |             | `boolean`           | `false`     |
-| `isViewer`        | `is-viewer`        |             | `boolean`           | `false`     |
-| `reportId`        | `report-id`        |             | `string`            | `undefined` |
-| `showPlaceholder` | `show-placeholder` |             | `boolean`           | `true`      |
+| Property          | Attribute          | Description                                                                                                                                                                     | Type                | Default     |
+| ----------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ----------- |
+| `configuration`   | `configuration`    |                                                                                                                                                                                 | `any`               | `undefined` |
+| `fetchChartData`  | --                 |                                                                                                                                                                                 | `Function`          | `undefined` |
+| `gap`             | `gap`              | Gap between widgets in pixels (0 or more). Defaults to 15. Takes precedence over `gap` in the report configuration and over the `--fl-grid-gap` CSS variable.                   | `number`            | `undefined` |
+| `heightMode`      | `height-mode`      |                                                                                                                                                                                 | `"auto" \| "fixed"` | `'auto'`    |
+| `isFullscreen`    | `is-fullscreen`    |                                                                                                                                                                                 | `boolean`           | `false`     |
+| `isViewer`        | `is-viewer`        |                                                                                                                                                                                 | `boolean`           | `false`     |
+| `reportId`        | `report-id`        |                                                                                                                                                                                 | `string`            | `undefined` |
+| `rowAspectRatio`  | `row-aspect-ratio` | Column width divided by row height (heightMode="auto" only): 1 gives square rows (the default), 2 gives rows half as tall as a column is wide. Ignored when `rowHeight` is set. | `number`            | `undefined` |
+| `rowHeight`       | `row-height`       | Row height in pixels (heightMode="auto" only). Takes precedence over `rowAspectRatio` and over `rowHeight` in the report configuration.                                         | `number`            | `undefined` |
+| `showPlaceholder` | `show-placeholder` |                                                                                                                                                                                 | `boolean`           | `true`      |
 
 
 ## Dependencies

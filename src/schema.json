@@ -52,6 +52,23 @@
         }
       }
     },
+    "rowHeight": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Row height in pixels when the report grows with its content (heightMode auto). Overrides rowAspectRatio; the report-viewer rowHeight property takes precedence over this."
+    },
+    "gap": {
+      "type": "number",
+      "minimum": 0,
+      "default": 15,
+      "description": "Gap between widgets in pixels. The report-viewer gap property takes precedence over this."
+    },
+    "rowAspectRatio": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "default": 1,
+      "description": "Column width divided by row height when heightMode is auto: 1 = square rows (default), 2 = rows half as tall as a column is wide."
+    },
     "colorTheme": {
       "type": "string",
       "description": "Global color theme for the report",

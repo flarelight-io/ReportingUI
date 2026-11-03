@@ -23,12 +23,31 @@ export class ReportViewer {
   @Prop() isFullscreen: boolean = false;
   @Prop() fetchChartData: Function;
   @Prop() heightMode: 'auto' | 'fixed' = 'auto';
+  /**
+   * Row height in pixels (heightMode="auto" only). Takes precedence over `rowAspectRatio`
+   * and over `rowHeight` in the report configuration.
+   */
+  @Prop() rowHeight?: number;
+  /**
+   * Column width divided by row height (heightMode="auto" only): 1 gives square rows (the default),
+   * 2 gives rows half as tall as a column is wide. Ignored when `rowHeight` is set.
+   */
+  @Prop() rowAspectRatio?: number;
+  /**
+   * Gap between widgets in pixels (0 or more). Defaults to 15. Takes precedence over `gap` in the
+   * report configuration and over the `--fl-grid-gap` CSS variable.
+   */
+  @Prop() gap?: number;
   
   @State() widgets: WidgetData[] = [];
   @State() dataSources: DataSource[] = [];
   @State() activeFilters: Filter[] = [];
   @State() widgetData: WidgetDataCache = {};
   @State() colorTheme: ColorTheme = "brand";
+  // Row sizing read from the report configuration (props take precedence)
+  @State() configRowHeight?: number;
+  @State() configRowAspectRatio?: number;
+  @State() configGap?: number;
   
   private gridContainer?: HTMLElement;
   private dataFetchPromises: { [widgetId: string]: Promise<any> } = {};
@@ -104,6 +123,15 @@ export class ReportViewer {
     }
   }
   
+  @Watch('rowHeight')
+  @Watch('rowAspectRatio')
+  @Watch('gap')
+  onRowSizeChange() {
+    if (this.isMounted && this.gridContainer) {
+      this.setEqualGridDimensions();
+    }
+  }
+
   @Watch('heightMode')
   onHeightModeChange() {
     // Recalculate grid dimensions when height mode changes
@@ -229,6 +257,10 @@ export class ReportViewer {
   
   private parseConfiguration(config: any) {
     // Parse color theme first
+    this.configRowHeight = this.positiveNumber(config.rowHeight);
+    this.configRowAspectRatio = this.positiveNumber(config.rowAspectRatio);
+    this.configGap = this.nonNegativeNumber(config.gap);
+
     if (config.colorTheme && typeof config.colorTheme === 'string') {
       this.colorTheme = config.colorTheme as ColorTheme;
     } else {
@@ -1673,7 +1705,10 @@ export class ReportViewer {
     
     // Calculate column width (account for gap)
     const numColumns = 12;
-    // Read the gap from CSS so --fl-grid-gap overrides stay in sync with the row-height math
+    // An explicit gap (prop or configuration) wins; otherwise the CSS (--fl-grid-gap, default 15px) applies.
+    // The row-height math below reads the effective gap back from the computed style so both stay in sync.
+    const explicitGap = this.nonNegativeNumber(this.gap) ?? this.configGap;
+    this.gridContainer.style.gap = explicitGap !== undefined ? `${explicitGap}px` : '';
     const cssGap = parseFloat(getComputedStyle(this.gridContainer).columnGap);
     const gapSize = isNaN(cssGap) ? 15 : cssGap;
     const totalGapWidth = gapSize * (numColumns - 1);
@@ -1707,11 +1742,30 @@ export class ReportViewer {
         this.gridContainer.style.gridAutoRows = '20px';
       }
     } else {
-      // In auto mode, set the row height to match column width (original behavior)
-      const rowHeight = `${columnWidth}px`;
-      this.gridContainer.style.gridAutoRows = rowHeight;
+      this.gridContainer.style.gridAutoRows = `${this.resolveRowHeight(columnWidth)}px`;
       this.gridContainer.style.height = 'auto';
     }
+  }
+
+  private nonNegativeNumber(value: unknown): number | undefined {
+    const n = typeof value === 'string' ? parseFloat(value) : value;
+    return typeof n === 'number' && isFinite(n) && n >= 0 ? n : undefined;
+  }
+
+  private positiveNumber(value: unknown): number | undefined {
+    const n = typeof value === 'string' ? parseFloat(value) : value;
+    return typeof n === 'number' && isFinite(n) && n > 0 ? n : undefined;
+  }
+
+  /**
+   * Row height for heightMode="auto": an explicit pixel height wins, then an aspect ratio
+   * (column width / row height), otherwise rows are square (the original behavior).
+   */
+  private resolveRowHeight(columnWidth: number): number {
+    const explicit = this.positiveNumber(this.rowHeight) ?? this.configRowHeight;
+    if (explicit !== undefined) return explicit;
+    const ratio = this.positiveNumber(this.rowAspectRatio) ?? this.configRowAspectRatio ?? 1;
+    return columnWidth / ratio;
   }
   
   private startConfigurationPolling() {

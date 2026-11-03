@@ -581,6 +581,10 @@ export namespace Components {
         "configuration": any;
         "fetchChartData": Function;
         /**
+          * Gap between widgets in pixels (0 or more). Defaults to 15. Takes precedence over `gap` in the report configuration and over the `--fl-grid-gap` CSS variable.
+         */
+        "gap"?: number;
+        /**
           * @default 'auto'
          */
         "heightMode": 'auto' | 'fixed';
@@ -593,6 +597,14 @@ export namespace Components {
          */
         "isViewer": boolean;
         "reportId": string;
+        /**
+          * Column width divided by row height (heightMode="auto" only): 1 gives square rows (the default), 2 gives rows half as tall as a column is wide. Ignored when `rowHeight` is set.
+         */
+        "rowAspectRatio"?: number;
+        /**
+          * Row height in pixels (heightMode="auto" only). Takes precedence over `rowAspectRatio` and over `rowHeight` in the report configuration.
+         */
+        "rowHeight"?: number;
         /**
           * @default true
          */
@@ -1800,6 +1812,10 @@ declare namespace LocalJSX {
         "configuration"?: any;
         "fetchChartData"?: Function;
         /**
+          * Gap between widgets in pixels (0 or more). Defaults to 15. Takes precedence over `gap` in the report configuration and over the `--fl-grid-gap` CSS variable.
+         */
+        "gap"?: number;
+        /**
           * @default 'auto'
          */
         "heightMode"?: 'auto' | 'fixed';
@@ -1812,6 +1828,14 @@ declare namespace LocalJSX {
          */
         "isViewer"?: boolean;
         "reportId"?: string;
+        /**
+          * Column width divided by row height (heightMode="auto" only): 1 gives square rows (the default), 2 gives rows half as tall as a column is wide. Ignored when `rowHeight` is set.
+         */
+        "rowAspectRatio"?: number;
+        /**
+          * Row height in pixels (heightMode="auto" only). Takes precedence over `rowAspectRatio` and over `rowHeight` in the report configuration.
+         */
+        "rowHeight"?: number;
         /**
           * @default true
          */
