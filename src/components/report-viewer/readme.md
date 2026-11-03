@@ -36,19 +36,67 @@ Example configuration:
 
 ## Properties
 
-| Property          | Attribute          | Description                                                                                                                                                                                                                                                          | Type                          | Default     |
-| ----------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | ----------- |
-| `configuration`   | `configuration`    |                                                                                                                                                                                                                                                                      | `any`                         | `undefined` |
-| `fetchChartData`  | --                 |                                                                                                                                                                                                                                                                      | `Function`                    | `undefined` |
-| `gap`             | `gap`              | Gap between widgets in pixels (0 or more). Defaults to 15. Takes precedence over `gap` in the report configuration and over the `--fl-grid-gap` CSS variable.                                                                                                        | `number`                      | `undefined` |
-| `heightMode`      | `height-mode`      |                                                                                                                                                                                                                                                                      | `"auto" \| "fixed"`           | `'auto'`    |
-| `isFullscreen`    | `is-fullscreen`    |                                                                                                                                                                                                                                                                      | `boolean`                     | `false`     |
-| `isViewer`        | `is-viewer`        |                                                                                                                                                                                                                                                                      | `boolean`                     | `false`     |
-| `reportId`        | `report-id`        |                                                                                                                                                                                                                                                                      | `string`                      | `undefined` |
-| `rowAspectRatio`  | `row-aspect-ratio` | Column width divided by row height (heightMode="auto" only): 1 gives square rows (the default), 2 gives rows half as tall as a column is wide. Ignored when `rowHeight` is set.                                                                                      | `number`                      | `undefined` |
-| `rowHeight`       | `row-height`       | Row height in pixels (heightMode="auto" only). Takes precedence over `rowAspectRatio` and over `rowHeight` in the report configuration.                                                                                                                              | `number`                      | `undefined` |
-| `showPlaceholder` | `show-placeholder` |                                                                                                                                                                                                                                                                      | `boolean`                     | `true`      |
-| `theme`           | `theme`            | Light or dark appearance for this report. `auto` (default) follows the page: a `data-theme` attribute or `dark`/`light` class on <html>, otherwise the system preference. `light`/`dark` forces it for this viewer only, so apps can drive it from their own toggle. | `"auto" \| "dark" \| "light"` | `'auto'`    |
+| Property          | Attribute          | Description                                                                                                                                                                                                                                                                                                                                                                                                                          | Type                          | Default     |
+| ----------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------- | ----------- |
+| `activeFilters`   | --                 | Filters applied to the report. Providing this property (even `[]`) makes the filters **managed**: the viewer never changes them itself. When the user clicks a chart element it emits `filtersChange` with the proposed list, and the app decides by setting this property again. Leave it undefined for **unmanaged** use, where the viewer keeps the filters itself (and still emits `filtersChange` so the app can observe them). | `Filter[]`                    | `undefined` |
+| `configuration`   | `configuration`    |                                                                                                                                                                                                                                                                                                                                                                                                                                      | `any`                         | `undefined` |
+| `defaultFilters`  | --                 | Filters to start with in unmanaged mode. Read once on load; ignored when `activeFilters` is provided.                                                                                                                                                                                                                                                                                                                                | `Filter[]`                    | `undefined` |
+| `fetchChartData`  | --                 |                                                                                                                                                                                                                                                                                                                                                                                                                                      | `Function`                    | `undefined` |
+| `gap`             | `gap`              | Gap between widgets in pixels (0 or more). Defaults to 15. Takes precedence over `gap` in the report configuration and over the `--fl-grid-gap` CSS variable.                                                                                                                                                                                                                                                                        | `number`                      | `undefined` |
+| `heightMode`      | `height-mode`      |                                                                                                                                                                                                                                                                                                                                                                                                                                      | `"auto" \| "fixed"`           | `'auto'`    |
+| `isFullscreen`    | `is-fullscreen`    |                                                                                                                                                                                                                                                                                                                                                                                                                                      | `boolean`                     | `false`     |
+| `isViewer`        | `is-viewer`        |                                                                                                                                                                                                                                                                                                                                                                                                                                      | `boolean`                     | `false`     |
+| `reportId`        | `report-id`        |                                                                                                                                                                                                                                                                                                                                                                                                                                      | `string`                      | `undefined` |
+| `rowAspectRatio`  | `row-aspect-ratio` | Column width divided by row height (heightMode="auto" only): 1 gives square rows (the default), 2 gives rows half as tall as a column is wide. Ignored when `rowHeight` is set.                                                                                                                                                                                                                                                      | `number`                      | `undefined` |
+| `rowHeight`       | `row-height`       | Row height in pixels (heightMode="auto" only). Takes precedence over `rowAspectRatio` and over `rowHeight` in the report configuration.                                                                                                                                                                                                                                                                                              | `number`                      | `undefined` |
+| `showPlaceholder` | `show-placeholder` |                                                                                                                                                                                                                                                                                                                                                                                                                                      | `boolean`                     | `true`      |
+| `theme`           | `theme`            | Light or dark appearance for this report. `auto` (default) follows the page: a `data-theme` attribute or `dark`/`light` class on <html>, otherwise the system preference. `light`/`dark` forces it for this viewer only, so apps can drive it from their own toggle.                                                                                                                                                                 | `"auto" \| "dark" \| "light"` | `'auto'`    |
+
+
+## Events
+
+| Event           | Description                                                                                                                                                           | Type                    |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| `filtersChange` | The full filter list after a user interaction. In unmanaged mode the viewer has already applied it; in managed mode it is a request: set `activeFilters` to apply it. | `CustomEvent<Filter[]>` |
+
+
+## Methods
+
+### `clearFilters() => Promise<void>`
+
+Removes all filters (same managed/unmanaged rules as `setFilters`).
+
+#### Returns
+
+Type: `Promise<void>`
+
+
+
+### `getFilters() => Promise<Filter[]>`
+
+The filters currently in effect (managed or not).
+
+#### Returns
+
+Type: `Promise<Filter[]>`
+
+
+
+### `setFilters(filters: Filter[]) => Promise<void>`
+
+Replaces all filters. In managed mode this only emits `filtersChange`; the app applies it via `activeFilters`.
+
+#### Parameters
+
+| Name      | Type       | Description |
+| --------- | ---------- | ----------- |
+| `filters` | `Filter[]` |             |
+
+#### Returns
+
+Type: `Promise<void>`
+
+
 
 
 ## Dependencies

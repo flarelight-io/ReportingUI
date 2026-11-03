@@ -1,8 +1,9 @@
-import { Component, Prop, h, State, Watch, Element, Listen } from '@stencil/core';
+import { Component, Prop, h, State, Watch, Element, Listen, Event, EventEmitter, Method } from '@stencil/core';
 import { DataSource, Filter, ChartDataRequest } from '../../api/types/common';
 import { WidgetData } from '../widgets/base-widget';
 import { ColorTheme, ChartThemeUtils } from '../../utils/chart-theme';
 import { ChartDataRequestBuilder } from '../../utils/chart-data-request-builder';
+import { filtersCacheKey, filterIdentity, stableStringify } from '../../utils/filters';
 
 interface WidgetDataCache {
   [widgetId: string]: any;
@@ -44,10 +45,24 @@ export class ReportViewer {
    * only, so apps can drive it from their own toggle.
    */
   @Prop() theme: 'light' | 'dark' | 'auto' = 'auto';
+  /**
+   * Filters applied to the report. Providing this property (even `[]`) makes the filters **managed**: the viewer
+   * never changes them itself. When the user clicks a chart element it emits `filtersChange` with the proposed
+   * list, and the app decides by setting this property again. Leave it undefined for **unmanaged** use, where the
+   * viewer keeps the filters itself (and still emits `filtersChange` so the app can observe them).
+   */
+  @Prop() activeFilters?: Filter[];
+  /** Filters to start with in unmanaged mode. Read once on load; ignored when `activeFilters` is provided. */
+  @Prop() defaultFilters?: Filter[];
+  /**
+   * The full filter list after a user interaction. In unmanaged mode the viewer has already applied it; in managed
+   * mode it is a request: set `activeFilters` to apply it.
+   */
+  @Event() filtersChange: EventEmitter<Filter[]>;
   
   @State() widgets: WidgetData[] = [];
   @State() dataSources: DataSource[] = [];
-  @State() activeFilters: Filter[] = [];
+  @State() internalFilters: Filter[] = [];
   @State() widgetData: WidgetDataCache = {};
   @State() colorTheme: ColorTheme = "brand";
   // Row sizing read from the report configuration (props take precedence)
@@ -129,6 +144,88 @@ export class ReportViewer {
     }
   }
   
+  /** True when the app owns the filters through the `activeFilters` property. */
+  private get isFiltersManaged(): boolean {
+    return Array.isArray(this.activeFilters);
+  }
+
+  /** The filters in effect: the property when managed, otherwise the viewer's own state. */
+  private get currentFilters(): Filter[] {
+    return this.isFiltersManaged ? this.activeFilters : this.internalFilters;
+  }
+
+  private appliedFiltersKey = 'nofilters';
+
+  /** Order-independent identity of a filter list (objects, arrays and extra properties included). */
+  private filtersKey(filters: Filter[]): string {
+    return filtersCacheKey(filters || []);
+  }
+
+  @Watch('activeFilters')
+  onActiveFiltersChange() {
+    // Managed mode: the app changed the filters. Skip no-op updates (e.g. a re-created identical array).
+    const key = this.filtersKey(this.currentFilters);
+    if (key === this.appliedFiltersKey) return;
+    this.appliedFiltersKey = key;
+    if (this.isMounted) this.refreshForFilters(this.currentFilters.length === 0);
+  }
+
+  /** The filters currently in effect (managed or not). */
+  @Method()
+  async getFilters(): Promise<Filter[]> {
+    return this.currentFilters.map(f => ({ ...f }));
+  }
+
+  /** Replaces all filters. In managed mode this only emits `filtersChange`; the app applies it via `activeFilters`. */
+  @Method()
+  async setFilters(filters: Filter[]): Promise<void> {
+    // Only sourceId and field are required: operation, value and extra properties belong to the app. A null value
+    // only means "no filter" when no operation is given (operations such as isnull legitimately have none).
+    this.commitFilters((filters || []).filter(f =>
+      f && f.sourceId && f.field && (f.operation || (f.value !== null && f.value !== undefined))
+    ));
+  }
+
+  /** Removes all filters (same managed/unmanaged rules as `setFilters`). */
+  @Method()
+  async clearFilters(): Promise<void> {
+    this.commitFilters([]);
+  }
+
+  /**
+   * Single exit for every filter change. Unmanaged: apply and refresh. Managed: only emit; the app applies it by
+   * setting `activeFilters`. `filtersChange` is emitted in both modes.
+   */
+  private commitFilters(next: Filter[]) {
+    // Nothing changed (e.g. a rebuilt widget re-reporting its selection): no event, no refetch
+    if (this.filtersKey(next) === this.filtersKey(this.currentFilters)) return;
+    this.filtersChange.emit(next.map(f => ({ ...f })));
+    if (this.isFiltersManaged) return;
+    this.internalFilters = next;
+    this.appliedFiltersKey = this.filtersKey(next);
+    this.refreshForFilters(next.length === 0);
+  }
+
+  /** Drops cached data and re-renders every widget for the new filters, then notifies widgets. */
+  private refreshForFilters(cleared: boolean) {
+    this.widgetData = {};
+    this.dataFetchPromises = {};
+    const finish = () => {
+      if (!this.gridContainer) return;
+      this.gridContainer.innerHTML = '';
+      this.renderWidgets();
+      const event = cleared
+        ? new CustomEvent('filters-cleared', { bubbles: true })
+        : new CustomEvent('filters-applied', { bubbles: true, detail: { filters: this.currentFilters } });
+      this.el.dispatchEvent(event);
+    };
+    if (this.widgets.length > 0 && this.fetchChartData) {
+      this.prefetchWidgetData().then(finish);
+    } else {
+      finish();
+    }
+  }
+
   @Watch('theme')
   onThemeModeChange() {
     this.applyThemeMode();
@@ -166,6 +263,13 @@ export class ReportViewer {
     }
   }
   
+  componentWillLoad() {
+    if (!this.isFiltersManaged && this.defaultFilters && this.defaultFilters.length > 0) {
+      this.internalFilters = this.defaultFilters.map(f => ({ ...f }));
+    }
+    this.appliedFiltersKey = this.filtersKey(this.currentFilters);
+  }
+
   connectedCallback() {
     this.applyThemeMode();
     if (this.configuration) {
@@ -455,17 +559,15 @@ export class ReportViewer {
       const sourceId = (widget.config?.analysisId || widget.config?.sourceId) as string;
       
       // Get relevant filters for this source
-      const sourceFilters = this.activeFilters.filter(f => f.sourceId === sourceId);
+      const sourceFilters = this.currentFilters.filter(f => f.sourceId === sourceId);
       
       // Create cache key based on source and filters
-      const filterKey = sourceFilters.length > 0 ? 
-        JSON.stringify(sourceFilters.map(f => `${f.field}:${f.value}`).sort()) : 
-        'nofilters';
+      const filterKey = filtersCacheKey(sourceFilters);
       
       const cacheKey = `${sourceId}:${filterKey}`;
       
       // Check if we already have this data in the cache
-      if (this.widgetData[widget.id] && !this.activeFilters.some(f => f.sourceId === sourceId)) {
+      if (this.widgetData[widget.id] && !this.currentFilters.some(f => f.sourceId === sourceId)) {
         return this.widgetData[widget.id];
       }
       
@@ -503,7 +605,7 @@ export class ReportViewer {
           widget.id,
           visualizationType,
           widget.config || {},
-          this.activeFilters,
+          this.currentFilters,
           this.isViewer
         );
       }
@@ -1539,7 +1641,7 @@ export class ReportViewer {
         // Set properties directly
         (element as any).config = dataConfig;
         (element as any).availableSources = this.dataSources || [];
-        (element as any).activeFilters = this.activeFilters || [];
+        (element as any).activeFilters = this.currentFilters;
         
         // Directly pass the data
         if (widgetDataCache) {
@@ -1602,118 +1704,56 @@ export class ReportViewer {
   }
   
   // Handle filter changes  
-  @Listen('filter-change', { target: 'window' })  
-  handleFilterChangeEvent(event: CustomEvent) {    
-    const { sourceId, field, value } = event.detail;    
-    this.handleFilterChange(sourceId, field, value);  
+  // Only filter changes from this viewer's own widgets (or dispatched on it) count; other viewers on the page are ignored
+  @Listen('filter-change')
+  handleFilterChangeEvent(event: CustomEvent) {
+    const { sourceId, field, value, ...extra } = event.detail || {};
+    this.handleFilterChange(sourceId, field, value, extra);
   }
   
-  // Track active filter changes to prevent duplicate processing
-  private filterUpdateInProgress = false;
+  // Track recent filter changes to ignore exact duplicates (a widget can report the same click twice)
+  private lastFilterChangeKey = '';
   private lastFilterTimestamp = 0;
 
-  handleFilterChange = (sourceId: string, field: string, value: any) => {
-    // Prevent excessive filter updates
+  /**
+   * Applies one filter change. `extra` may carry `operation`, `id` and any custom properties, which are stored on
+   * the filter. A filter is removed with `remove: true`, or (for plain filters without an operation) with a null value.
+   * Filters are identified by source + field + optional `id`, so several filters can share a field.
+   */
+  handleFilterChange = (sourceId: string, field: string, value: any, extra: Record<string, any> = {}) => {
+    // Ignore exact repeats within 300ms; different filters in quick succession (e.g. a date range) all count
     const now = Date.now();
-    if (now - this.lastFilterTimestamp < 300) {
+    const changeKey = stableStringify([sourceId, field, value, extra]);
+    if (changeKey === this.lastFilterChangeKey && now - this.lastFilterTimestamp < 300) {
       return;
     }
+    this.lastFilterChangeKey = changeKey;
     this.lastFilterTimestamp = now;
-    
-    // Prevent recursive filter processing
-    if (this.filterUpdateInProgress) {
+
+    // Wildcard clears everything
+    if (sourceId === '*' && field === '*' && (value === null || value === undefined)) {
+      this.commitFilters([]);
       return;
     }
-    
-    this.filterUpdateInProgress = true;
-    
-    try {
-      // Special case for wildcard clearing
-      if (sourceId === '*' && field === '*' && (value === null || value === undefined)) {
-        this.activeFilters = [];
-        
-        // Reset widget data cache
-        this.widgetData = {};
-        this.dataFetchPromises = {};
-        
-        // Force render with empty filters
-        const forceRender = async () => {
-          // First, force fetch all data with no filters
-          await this.prefetchWidgetData();
-          
-          // Then completely rebuild the widget grid
-          if (this.gridContainer) {
-            // Clear the container
-            this.gridContainer.innerHTML = '';
-            
-            // Rebuild all widgets from scratch
-            this.renderWidgets();
-            
-            // Dispatch an event that filter clearing is complete
-            const event = new CustomEvent('filters-cleared', {
-              bubbles: true
-            });
-            this.el.dispatchEvent(event);
-          }
-        };
-        
-        // Start the rendering process
-        forceRender();
-        return;
-      }
-      
-      // Update filters
-      const existingFilterIndex = this.activeFilters.findIndex(
-        filter => filter.sourceId === sourceId && filter.field === field
-      );
-      
-      const newFilters = [...this.activeFilters];
-      
-      if (existingFilterIndex >= 0) {
-        if (value === null || value === undefined) {
-          // Remove filter
-          newFilters.splice(existingFilterIndex, 1);
-        } else {
-          // Update filter
-          newFilters[existingFilterIndex] = { sourceId, field, value };
-        }
-      } else if (value !== null && value !== undefined) {
-        // Add new filter
-        newFilters.push({ sourceId, field, value });
-      }
-      
-      this.activeFilters = newFilters;
-      
-      // Reset cache and re-fetch data with new filters
-      this.widgetData = {};
-      this.dataFetchPromises = {};
-      
-      // Instead of trying to update existing widgets, completely recreate them
-      // First, prefetch data with the new filters
-      if (this.widgets.length > 0 && this.fetchChartData) {
-        this.prefetchWidgetData().then(() => {
-          if (this.gridContainer) {
-            // Clear the container
-            this.gridContainer.innerHTML = '';
-            
-            // Rebuild all widgets from scratch
-            this.renderWidgets();
-            
-            // Dispatch event to notify that filters have been applied
-            const event = new CustomEvent('filters-applied', {
-              bubbles: true,
-              detail: { filters: this.activeFilters }
-            });
-            this.el.dispatchEvent(event);
-          }
-        });
-      } else {
-        // If we can't fetch new data, just re-render with existing data
-        this.renderWidgets();
-      }
-    } finally {
-      this.filterUpdateInProgress = false;
+
+    const { remove, ...custom } = extra || {};
+    const target = { sourceId, field, id: custom.id };
+    const identity = filterIdentity(target);
+    const next = this.currentFilters.filter(f => filterIdentity(f) !== identity);
+    const removing = remove === true || (!custom.operation && (value === null || value === undefined));
+
+    if (!removing) {
+      next.push({ ...custom, sourceId, field, value } as Filter);
     }
+
+    // Keep the position of an updated filter stable
+    const existingIndex = this.currentFilters.findIndex(f => filterIdentity(f) === identity);
+    if (!removing && existingIndex >= 0) {
+      next.splice(next.length - 1, 1);
+      next.splice(existingIndex, 0, { ...custom, sourceId, field, value } as Filter);
+    }
+
+    this.commitFilters(next);
   }
   
   private setEqualGridDimensions() {
